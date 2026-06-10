@@ -1,359 +1,151 @@
-# 🌐 BiT App — Ecossistema Inteligente de Desenvolvimento Humano e Profissional
+Problema
+Pessoas de grupos sub-representados enfrentam barreiras simultâneas de emprego, formação e saúde mental sem um suporte integrado e humanizado.
 
-<p align="center">
-  <img src="./docs/logo-bitapp.png" alt="BiT App Logo" width="220"/>
-</p>
+Descrição
+## App de Orientação Pessoal — App BiT
 
-<p align="center">
-  <strong>Conectando pessoas, oportunidades e bem-estar através da tecnologia.</strong>
-</p>
+O desafio B2C propõe o desenvolvimento de uma web app responsiva com agente de IA, criada para apoiar pessoas de grupos sub-representados de forma ampla, integrada e verdadeiramente humana.
 
-<p align="center">
-  Desenvolvido durante o Hackathon No Country 2026 • Grupo 68
-</p>
+A proposta é atuar, ao mesmo tempo, em cinco dimensões essenciais da jornada dessas pessoas: formação, empregabilidade, experiências, mentorias e saúde mental.
 
----
+Não se trata apenas de um app de vagas.
+Não é apenas uma plataforma de cursos.
+Também não é somente uma solução voltada ao bem-estar.
 
-# 📖 Sobre o Projeto
-
-O **BiT App** é uma plataforma digital desenvolvida para promover inclusão, desenvolvimento profissional e qualidade de vida através de uma abordagem integrada e inteligente.
-
-Diferente das plataformas tradicionais focadas apenas em empregabilidade, o BiT App atua como um **ecossistema 360°**, conectando:
-
-✅ Formação Profissional
-
-✅ Orientação de Carreira
-
-✅ Empregabilidade
-
-✅ Saúde Mental
-
-✅ Infraestrutura Tecnológica Regional
-
-✅ Inteligência Artificial
-
-Nosso objetivo é reduzir barreiras de acesso ao mercado de trabalho, oferecendo recomendações personalizadas, suporte emocional preventivo e acesso inteligente a oportunidades compatíveis com o perfil de cada usuário.
+É um ecossistema pensado para olhar cada participante de forma 360°, com empatia, acolhimento e relevância cultural — reunindo, em um só lugar, o suporte necessário para que cada pessoa possa se desenvolver, pertencer e avançar com mais oportunidade, confiança e perspectiva de futuro.
 
 ---
 
-# 🎯 Problema
+PERFIL DO USUÁRIO
 
-Milhões de pessoas enfrentam desafios simultâneos ao buscar crescimento profissional:
+Estudante em formação, universitário, graduado sem emprego na área ou profissional buscando mudança. Ao criar a conta preenche:
 
-* Falta de orientação de carreira;
-* Dificuldade para identificar lacunas técnicas;
-* Pouco acesso a mentorias qualificadas;
-* Escassez de oportunidades compatíveis;
-* Problemas emocionais causados por pressão profissional;
-* Limitações de infraestrutura digital em determinadas regiões.
+Dados pessoais: nome, e-mail, data de nascimento, gênero, escolaridade, continente, país, estado (BR), cidade, WhatsApp
 
-Atualmente essas soluções encontram-se fragmentadas em diversas plataformas.
+Dados profissionais: nível, área de tecnologia, o que busca — estudar / definir caminho / buscar emprego / mudar de emprego
 
-O **BiT App unifica toda essa jornada em um único ambiente inteligente.**
-
----
-
-# 💡 Nossa Solução
-
-O BiT App utiliza Inteligência Artificial, análise geográfica e dados de infraestrutura para criar uma experiência personalizada de desenvolvimento humano e profissional.
-
-## Fluxo Principal
-
-```mermaid
-flowchart TD
-
-A[Cadastro do Usuário] --> B[Mapeamento de Perfil]
-
-B --> C[Análise por IA]
-
-C --> D[Identificação de Competências]
-
-D --> E[Recomendação de Trilhas]
-
-E --> F[Correspondência de Vagas]
-
-F --> G[Monitoramento de Saúde Mental]
-
-G --> H[Evolução Contínua]
-```
+Dores reais que a solução precisa endereçar:
+. Baixa autoestima e complexo de inferioridade
+. Ciclo de exclusão — uma barreira leva a outra
+. Desvantagens socioeconômicas acumuladas
+. Falta de senso de pertencimento no mercado de tecnologia
+. Networking restrito — não conhecem as pessoas certas
+. Sensação de que sempre falta algo para ser elegível
 
 ---
 
-# 🚀 Funcionalidades
+OS 5 SERVIÇOS — MVP
 
-## 🧠 Orientação de Carreira com IA
+1. FORMAÇÕES
+Cursos gratuitos (Programa GEAR do Google Cloud, Programa ONE da Oracle & Alura) e outros pagos. Trilhas personalizadas baseadas no gap identificado no perfil do usuário. O agente cruza o perfil com as trilhas disponíveis e recomenda o próximo passo concreto.
 
-O sistema analisa:
+2. EMPREGABILIDADE
+Match automático entre perfil e vagas disponíveis. O app exibe o gap de forma clara: "Você atende 70% dos requisitos desta vaga — veja o que falta e como resolver". A lógica é simples: o mercado já atende 70% das necessidades do usuário — a plataforma mostra o 30% que falta e oferece uma solução concreta. Se o usuário for contratado via plataforma, a app recebe um percentual da empresa. O usuário não paga nada.
 
-* Hard Skills
-* Soft Skills
-* Experiências anteriores
-* Objetivos profissionais
+3. EXPERIÊNCIAS ESTRUTURANTES
+Eventos ao vivo e gravados com testemunhos de pessoas que viveram trajetórias semelhantes: CEOs, líderes e profissionais que superaram as mesmas barreiras. O usuário se identifica com as histórias e encontra referências reais de que é possível. O engajamento acontece quando as pessoas reconhecem sua própria dor na trajetória de outra pessoa e encontram ali uma saída.
 
-Gerando:
+4. MENTORIAS
+Networking humanizado — mentores que convidam o usuário para uma prática, não apenas para uma entrevista formal. Outras formas de entrar no mercado além da porta convencional. "Você quer vir a uma prática comigo?" é o espírito desse serviço: uma conexão real, baseada em confiança, não em currículo.
 
-* Mapeamento de lacunas técnicas;
-* Recomendações de estudo;
-* Trilhas de aprendizado personalizadas;
-* Sugestões de evolução profissional.
-
-### Exemplo
-
-```text
-Objetivo: Desenvolvedor Backend Java
-
-Compatibilidade Atual: 72%
-
-Competências Necessárias:
-
-✔ Java
-✔ Spring Boot
-✔ SQL
-
-Competências Recomendadas:
-
-➜ Docker
-➜ AWS
-➜ Testes Automatizados
-```
+5. SAÚDE MENTAL
+Check-in diário via emojis (feliz, cansado, triste, ansioso, sobrecarregado...) ao entrar na app. O agente de IA detecta o estado emocional do usuário e sugere ações concretas e humanas: um capítulo de livro, um episódio de podcast, caminhar descalço no gramado, uma série na Netflix, uma caminhada sob a chuva. A referência inspiradora é o modelo dos Alcoólicos Anônimos — escutar sem julgar já é o início da cura. Em situações de crise (nota abaixo de 4), o agente deriva automaticamente para o CVV (Centro de Valorização da Vida).
 
 ---
 
-## 💼 Match Inteligente de Oportunidades
+FLUXO DO USUÁRIO
 
-O BiT App conecta usuários a oportunidades compatíveis com seu perfil.
-
-Critérios utilizados:
-
-* Competências técnicas;
-* Objetivos profissionais;
-* Geolocalização;
-* Disponibilidade regional;
-* Infraestrutura de conectividade.
+1. Cria conta e preenche perfil pessoal e profissional completo
+2. App analisa o perfil e mostra vagas compatíveis + gap percentual ("você atende 70%")
+3. Recebe trilha de formação concreta para fechar o gap identificado
+4. Acessa mentores disponíveis e agenda conversa ou prática
+5. Agente de saúde mental faz o primeiro check-in: "Como você está hoje?"
+6. Recebe sugestões de ações concretas de bem-estar baseadas no seu estado e contexto regional
+7. Visualiza eventos e recursos próximos por geolocalização (dataset Vísent CDRView)
 
 ---
 
-## ❤️ Saúde Mental com CNV
+DATASET VÍSENT CDRVIEW
 
-A plataforma realiza check-ins emocionais periódicos utilizando princípios da Comunicação Não Violenta (CNV).
+Dados de concentração de pessoas por zona + cobertura de rede ERB (5G/4G/3G) com coordenadas reais de antenas Anatel. Dados emulados com coordenadas reais. Disponível em: github.com/wongola-bit/appbit-hackathon (inclui README e dicionário de colunas).
 
-### Benefícios
-
-* Escuta ativa;
-* Acolhimento humanizado;
-* Identificação precoce de sinais de sofrimento emocional;
-* Encaminhamento para canais oficiais de apoio.
-
-### Exemplo
-
-```text
-Como você está se sentindo hoje?
-
-😀 Muito Bem
-🙂 Bem
-😐 Neutro
-😔 Triste
-😫 Sobrecarregado
-```
+Uso neste desafio: mostrar eventos e recursos próximos conforme zona e conectividade do usuário. Se cobertura de rede baixa na região, o agente pode sugerir conteúdo offline para garantir acesso mesmo sem internet estável.
 
 ---
 
-## 📡 Mapeamento de Infraestrutura Regional
+ENDPOINTS PRINCIPAIS
 
-O sistema permite registrar e monitorar:
+POST /orientar
+Request: { usuario_id, perfil, nivel, regiao, idioma, lat, lng }
+Response: { gap_percentual, gap_itens, trilha_sugerida, vagas_compativeis, confianca }
 
-* Cobertura 3G
-* Cobertura 4G
-* Cobertura 5G
-* Densidade populacional
-* Disponibilidade de acesso digital
-
-Esses dados auxiliam na distribuição de oportunidades e estratégias de inclusão digital.
-
----
-
-## 🛡️ Motor Inteligente de Contingência
-
-Uma das principais inovações do projeto.
-
-Caso serviços externos apresentem indisponibilidade ou atinjam limites de uso:
-
-```text
-Google Gemini indisponível
-          ↓
-Motor de Contingência
-          ↓
-Experiência preservada
-```
-
-O usuário continua utilizando a plataforma normalmente.
+POST /saude
+Request: { usuario_id, humor, nota_semanal, contexto }
+Response: { mensagem, acao_sugerida, derivar_cvv, nota_atual, alerta }
+Nota: nota_semanal < 4 aciona derivar_cvv: true (situação de crise)
 
 ---
 
-# 🏗️ Arquitetura da Solução
+FUNCIONALIDADES EXIGIDAS — MVP
 
-```mermaid
-graph TD
-
-UI[Frontend]
-
-API[Spring Boot API]
-
-DB[(MySQL)]
-
-AI[Google Gemini]
-
-INFRA[Infraestrutura Regional]
-
-UI --> API
-
-API --> DB
-API --> AI
-API --> INFRA
-```
+. Onboarding completo: dados pessoais e profissionais
+. Endpoint /orientar com gap percentual + trilha sugerida
+. OU endpoint /saude com check-in via emojis + ação sugerida
+. Interface responsiva com ao menos home + uma tela funcional
+. README com instruções de execução local e exemplos de request/response
 
 ---
 
-# 🛠️ Stack Tecnológica
+FUNCIONALIDADES OPCIONAIS
 
-## Backend
-
-* Java 21 LTS
-* Spring Boot 3.3.4
-* Spring Data JPA
-* Hibernate ORM
-* Maven
-
-## Banco de Dados
-
-* MySQL Server
-* H2 Database
-
-## Inteligência Artificial
-
-* Google Gemini 1.5 Flash
-
-## Frontend
-
-* Thymeleaf
-* HTML5
-* Tailwind CSS
-* JavaScript
-
-## Bibliotecas
-
-* Jackson Databind
-* JTS Topology Suite
+. Ambos os endpoints em produção e integrados
+. Integração com dataset Vísent CDRView para eventos por geolocalização
+. Seção Experiências Estruturantes com vídeos e depoimentos reais
+. Módulo de mentorias com agenda e convite de prática
+. Download offline de recursos para regiões com baixa conectividade
+. Notificações push diárias de bem-estar
+. Suporte multilíngue PT + ES
+. Derivação automática para CVV em situações de crise (nota < 4)
 
 ---
 
-# ⚙️ Instalação
+ORIENTAÇÕES TÉCNICAS
 
-## Pré-requisitos
-
-* Java JDK 21+
-* Maven 3+
-* MySQL Server
-
----
-
-## Clone o Repositório
-
-```bash
-git clone https://github.com/No-Country-simulation/S06-26-AB-EQUIPE-68.git
-
-cd S06-26-AB-EQUIPE-68
-```
+. Plataforma: Web App Responsiva (PWA) — funciona no celular e no desktop. Use a tecnologia que sua equipe já domina: React, Vue, Node.js, Spring Boot, Python, Java ou qualquer outra.
+. O stack não é obrigatório — cada equipe escolhe o que melhor conhece.
+. Comece pelo contrato de integração entre os membros da equipe no Dia 1.
+. O agente de saúde mental é sensível — teste exaustivamente antes de colocar em produção.
+. Nunca suba credenciais ou chaves de API no repositório.
+. Deploy: Railway ou Render para o MVP. 
 
 ---
 
-## Configure a Chave Gemini
+POR ONDE COMEÇAR — DIA 1
 
-```env
-GEMINI_API_KEY=sua_chave_aqui
-```
-
----
-
-## Compile o Projeto
-
-```bash
-mvn clean compile
-```
+1. Reunião de equipe: apresentação, divisão de responsabilidades e alinhamento do contrato de integração
+2. Configurar ambiente local: repositório GitHub, arquivo .env, banco de dados
+3. Dividir as frentes: interface com tela de onboarding / API com /orientar retornando dados mockados / agente com primeiro prompt isolado
 
 ---
 
-## Execute
+NOTA DE OPORTUNIDADE
 
-```bash
-mvn spring-boot:run
-```
+Este desafio é parte de um produto maior com alcance em Brasil, Angola e LATAM. Os melhores projetos poderão ser apresentados a investidores reais no Shark Tank BiT para seed funding e contratos piloto.
 
 ---
 
-## Acesso
+REFERÊNCIAS CULTURAIS
 
-```text
-http://localhost:8080
-```
+Os filmes a seguir foram selecionados para ampliar a compreensão sobre a dimensão de impacto que buscamos alcançar — uma abordagem que vá além do assistencialismo e promova autonomia, pertencimento, protagonismo e transformação real.
 
----
+Filmes:
+. The Boy Who Harnessed the Wind — jovem africano que resolve a seca com engenharia e determinação
+. Gênio Indomável (Good Will Hunting) — potencial reprimido por falta de oportunidade
+. Infinito — superação pessoal e propósito
+. À Procura da Felicidade (The Pursuit of Happyness) — resiliência e empreendedorismo desde a adversidade
+. Mãos Talentosas (Gifted Hands) — talento que supera barreiras socioeconômicas
+. Rainha de Katwe — protagonismo feminino negro em tecnologia
 
-# 📈 Diferenciais Competitivos
-
-| Funcionalidade          | Soluções Tradicionais | BiT App |
-| ----------------------- | --------------------- | ------- |
-| Empregabilidade         | ✅                     | ✅       |
-| Orientação de Carreira  | ❌                     | ✅       |
-| IA Integrada            | ❌                     | ✅       |
-| Saúde Mental            | ❌                     | ✅       |
-| Infraestrutura Regional | ❌                     | ✅       |
-| Sistema de Contingência | ❌                     | ✅       |
-| Visão 360° do Usuário   | ❌                     | ✅       |
-
----
-
-# 🔮 Evoluções Futuras
-
-* Aplicativo Mobile Flutter
-* Dashboard Analítico Avançado
-* Sistema de Mentorias
-* Gamificação
-* Integração com LinkedIn
-* Marketplace de Cursos
-* Recomendação Preditiva de Carreira
-* Assistente Virtual Multimodal
-
----
-
-# 👨‍💻 Equipe de Desenvolvimento
-
-### Andre Teixeira
-
-**Backend Developer & Tech Leader**
-
-### Carlos Alexandre
-
-**Full Stack Developer**
-
-### Tiago Farias
-
-**AI Engineer**
-
-### Daniela Vieira
-
-**QA Engineer**
-
----
-
-# 🏆 Hackathon No Country 2026
-
-Projeto desenvolvido durante a simulação de ambiente profissional da No Country.
-
-O BiT App demonstra como Inteligência Artificial, inclusão digital e desenvolvimento humano podem trabalhar juntos para gerar impacto social real.
-
----
-
-# 📄 Licença
-
-Projeto desenvolvido exclusivamente para fins acadêmicos, educacionais e avaliação dentro do programa No Country Simulation 2026.
+Livros:
+. Apaixone-se pelo Problema, Não Pela Solução — Uri Levine (cofundador do Waze)
+. De Onde Vêm as Boas Ideias — Steven Johnson
