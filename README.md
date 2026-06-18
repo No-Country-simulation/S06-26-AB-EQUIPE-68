@@ -99,17 +99,6 @@ AI Engineer
 
 AI
 
-Thaiane Costa do Nascimento
-
-No Code Developer
-
-TC
-
-Hellen Souza Lopes De Resende
-
-BI Analyst
-
-BI
 
 Daniela Vieira
 
