@@ -458,7 +458,7 @@ public OrientacaoDto.Response processarOrientacao(
 ### Installation
 1. Clone: `git clone ...`
 2. Configure: `cp .env.example .env`
-3. Set env: `export GEMINI_API_KEY=...`
+3. Set env: `export***REMOVED***
 4. Build: `mvn clean install`
 5. Run: `mvn spring-boot:run`
 
