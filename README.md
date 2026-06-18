@@ -1,151 +1,122 @@
-Problema
-Pessoas de grupos sub-representados enfrentam barreiras simultâneas de emprego, formação e saúde mental sem um suporte integrado e humanizado.
+🌐 BiT App — Ecossistema 360 de Orientação Pessoal e Profissional
 
-Descrição
-## App de Orientação Pessoal — App BiT
+O BiT App é uma plataforma inovadora desenvolvida durante a simulação da No Country (Grupo 68). O ecossistema foi projetado sob uma abordagem holística 360°, unindo desenvolvimento profissional, infraestrutura tecnológica regional e acompanhamento preventivo de bem-estar e saúde mental.
 
-O desafio B2C propõe o desenvolvimento de uma web app responsiva com agente de IA, criada para apoiar pessoas de grupos sub-representados de forma ampla, integrada e verdadeiramente humana.
+🚀 Principais Funcionalidades
 
-A proposta é atuar, ao mesmo tempo, em cinco dimensões essenciais da jornada dessas pessoas: formação, empregabilidade, experiências, mentorias e saúde mental.
+Orientação de Carreira Orientada por IA: Mapeamento de competências (hard e soft skills) com cálculo dinâmico de desvios técnicos ($0\% \le \text{gap} \le 100\%$), sugestão inteligente de trilhas de aprendizagem reais e correspondência de vagas geolocalizadas.
 
-Não se trata apenas de um app de vagas.
-Não é apenas uma plataforma de cursos.
-Também não é somente uma solução voltada ao bem-estar.
+Check-in de Saúde Mental com CNV: Escuta ativa e acolhimento emocional humanizado com base nos preceitos de Comunicação Não-Violenta (CNV), identificando estados de estresse extremo ou depressão com roteamento automático de canais de suporte nacional.
 
-É um ecossistema pensado para olhar cada participante de forma 360°, com empatia, acolhimento e relevância cultural — reunindo, em um só lugar, o suporte necessário para que cada pessoa possa se desenvolver, pertencer e avançar com mais oportunidade, confiança e perspectiva de futuro.
+Mapeamento de Infraestrutura de Rede: Cadastro e gerenciamento de ativos de rede móvel regional (3G, 4G, 5G), otimizando a distribuição técnica com base na densidade populacional e cobertura de dados.
 
----
+Motor Inteligente de Contingência (Fallback): Mecanismo de defesa resiliente que mantém a aplicação 100% funcional caso os limites de cota de chamadas de APIs externas (como Google Gemini) sejam atingidos.
 
-PERFIL DO USUÁRIO
+🛠️ Tecnologias e Arquitetura
 
-Estudante em formação, universitário, graduado sem emprego na área ou profissional buscando mudança. Ao criar a conta preenche:
+O ecossistema foi desenvolvido utilizando arquitetura de microsserviços/módulos acoplada a um modelo de desenvolvimento rápido e resiliente:
 
-Dados pessoais: nome, e-mail, data de nascimento, gênero, escolaridade, continente, país, estado (BR), cidade, WhatsApp
+Linguagem: Java 21 LTS
 
-Dados profissionais: nível, área de tecnologia, o que busca — estudar / definir caminho / buscar emprego / mudar de emprego
+Framework Core: Spring Boot 3.3.4
 
-Dores reais que a solução precisa endereçar:
-. Baixa autoestima e complexo de inferioridade
-. Ciclo de exclusão — uma barreira leva a outra
-. Desvantagens socioeconômicas acumuladas
-. Falta de senso de pertencimento no mercado de tecnologia
-. Networking restrito — não conhecem as pessoas certas
-. Sensação de que sempre falta algo para ser elegível
+Persistência: Spring Data JPA / Hibernate ORM
 
----
+Banco de Dados: MySQL Server / H2 Database em memória (para testes)
 
-OS 5 SERVIÇOS — MVP
+Engine Cognitiva: Google Gemini API (Modelo gemini-1.5-flash) via Client REST HTTP
 
-1. FORMAÇÕES
-Cursos gratuitos (Programa GEAR do Google Cloud, Programa ONE da Oracle & Alura) e outros pagos. Trilhas personalizadas baseadas no gap identificado no perfil do usuário. O agente cruza o perfil com as trilhas disponíveis e recomenda o próximo passo concreto.
+Motor de Template: Thymeleaf (Renderização robusta no lado do servidor)
 
-2. EMPREGABILIDADE
-Match automático entre perfil e vagas disponíveis. O app exibe o gap de forma clara: "Você atende 70% dos requisitos desta vaga — veja o que falta e como resolver". A lógica é simples: o mercado já atende 70% das necessidades do usuário — a plataforma mostra o 30% que falta e oferece uma solução concreta. Se o usuário for contratado via plataforma, a app recebe um percentual da empresa. O usuário não paga nada.
+Styling: Tailwind CSS via CDN com suporte completo a Dark Mode
 
-3. EXPERIÊNCIAS ESTRUTURANTES
-Eventos ao vivo e gravados com testemunhos de pessoas que viveram trajetórias semelhantes: CEOs, líderes e profissionais que superaram as mesmas barreiras. O usuário se identifica com as histórias e encontra referências reais de que é possível. O engajamento acontece quando as pessoas reconhecem sua própria dor na trajetória de outra pessoa e encontram ali uma saída.
+Manipulação de JSON: Jackson Databind
 
-4. MENTORIAS
-Networking humanizado — mentores que convidam o usuário para uma prática, não apenas para uma entrevista formal. Outras formas de entrar no mercado além da porta convencional. "Você quer vir a uma prática comigo?" é o espírito desse serviço: uma conexão real, baseada em confiança, não em currículo.
+⚙️ Configuração e Inicialização Local
 
-5. SAÚDE MENTAL
-Check-in diário via emojis (feliz, cansado, triste, ansioso, sobrecarregado...) ao entrar na app. O agente de IA detecta o estado emocional do usuário e sugere ações concretas e humanas: um capítulo de livro, um episódio de podcast, caminhar descalço no gramado, uma série na Netflix, uma caminhada sob a chuva. A referência inspiradora é o modelo dos Alcoólicos Anônimos — escutar sem julgar já é o início da cura. Em situações de crise (nota abaixo de 4), o agente deriva automaticamente para o CVV (Centro de Valorização da Vida).
+Pré-requisitos
 
----
+Java JDK 21 instalado.
 
-FLUXO DO USUÁRIO
+Maven 3.x configurado nas variáveis de ambiente.
 
-1. Cria conta e preenche perfil pessoal e profissional completo
-2. App analisa o perfil e mostra vagas compatíveis + gap percentual ("você atende 70%")
-3. Recebe trilha de formação concreta para fechar o gap identificado
-4. Acessa mentores disponíveis e agenda conversa ou prática
-5. Agente de saúde mental faz o primeiro check-in: "Como você está hoje?"
-6. Recebe sugestões de ações concretas de bem-estar baseadas no seu estado e contexto regional
-7. Visualiza eventos e recursos próximos por geolocalização (dataset Vísent CDRView)
+MySQL Server ativo (caso utilize o perfil de produção local).
 
----
+Passo 1: Clonar o Repositório
 
-DATASET VÍSENT CDRVIEW
+git clone https://github.com/No-Country-simulation/S06-26-AB-EQUIPE-68.git
+cd S06-26-AB-EQUIPE-68
 
-Dados de concentração de pessoas por zona + cobertura de rede ERB (5G/4G/3G) com coordenadas reais de antenas Anatel. Dados emulados com coordenadas reais. Disponível em: github.com/wongola-bit/appbit-hackathon (inclui README e dicionário de colunas).
 
-Uso neste desafio: mostrar eventos e recursos próximos conforme zona e conectividade do usuário. Se cobertura de rede baixa na região, o agente pode sugerir conteúdo offline para garantir acesso mesmo sem internet estável.
+Passo 2: Configurar Variáveis de Ambiente
 
----
+Crie um arquivo .env ou configure na inicialização da sua IDE a chave de acesso do Google Gemini:
 
-ENDPOINTS PRINCIPAIS
+GEMINI_API_KEY=sua_chave_do_google_ai_studio_aqui
 
-POST /orientar
-Request: { usuario_id, perfil, nivel, regiao, idioma, lat, lng }
-Response: { gap_percentual, gap_itens, trilha_sugerida, vagas_compativeis, confianca }
 
-POST /saude
-Request: { usuario_id, humor, nota_semanal, contexto }
-Response: { mensagem, acao_sugerida, derivar_cvv, nota_atual, alerta }
-Nota: nota_semanal < 4 aciona derivar_cvv: true (situação de crise)
+Passo 3: Compilar o Projeto
 
----
+Use o Maven Wrapper ou instalação global para limpar pacotes legados e gerar o novo empacotamento:
 
-FUNCIONALIDADES EXIGIDAS — MVP
+mvn clean compile
 
-. Onboarding completo: dados pessoais e profissionais
-. Endpoint /orientar com gap percentual + trilha sugerida
-. OU endpoint /saude com check-in via emojis + ação sugerida
-. Interface responsiva com ao menos home + uma tela funcional
-. README com instruções de execução local e exemplos de request/response
 
----
+Passo 4: Executar a Aplicação
 
-FUNCIONALIDADES OPCIONAIS
+Inicie a aplicação utilizando o plugin nativo do Spring Boot:
 
-. Ambos os endpoints em produção e integrados
-. Integração com dataset Vísent CDRView para eventos por geolocalização
-. Seção Experiências Estruturantes com vídeos e depoimentos reais
-. Módulo de mentorias com agenda e convite de prática
-. Download offline de recursos para regiões com baixa conectividade
-. Notificações push diárias de bem-estar
-. Suporte multilíngue PT + ES
-. Derivação automática para CVV em situações de crise (nota < 4)
+mvn spring-boot:run
 
----
 
-ORIENTAÇÕES TÉCNICAS
+O servidor estará disponível para acesso em: http://localhost:8080
 
-. Plataforma: Web App Responsiva (PWA) — funciona no celular e no desktop. Use a tecnologia que sua equipe já domina: React, Vue, Node.js, Spring Boot, Python, Java ou qualquer outra.
-. O stack não é obrigatório — cada equipe escolhe o que melhor conhece.
-. Comece pelo contrato de integração entre os membros da equipe no Dia 1.
-. O agente de saúde mental é sensível — teste exaustivamente antes de colocar em produção.
-. Nunca suba credenciais ou chaves de API no repositório.
-. Deploy: Railway ou Render para o MVP. 
+👥 Equipe de Desenvolvimento (Grupo 68)
 
----
+Temos muito orgulho de apresentar o time multidisciplinar que idealizou, desenvolveu e implantou o ecossistema do BiT App:
 
-POR ONDE COMEÇAR — DIA 1
+Integrante
 
-1. Reunião de equipe: apresentação, divisão de responsabilidades e alinhamento do contrato de integração
-2. Configurar ambiente local: repositório GitHub, arquivo .env, banco de dados
-3. Dividir as frentes: interface com tela de onboarding / API com /orientar retornando dados mockados / agente com primeiro prompt isolado
+Função principal
 
----
+Avatar / Logo
 
-NOTA DE OPORTUNIDADE
+Andre Teixeira
 
-Este desafio é parte de um produto maior com alcance em Brasil, Angola e LATAM. Os melhores projetos poderão ser apresentados a investidores reais no Shark Tank BiT para seed funding e contratos piloto.
+Backend Developer & Tech Leader
 
----
+AT
 
-REFERÊNCIAS CULTURAIS
+Carlos Alexandre
 
-Os filmes a seguir foram selecionados para ampliar a compreensão sobre a dimensão de impacto que buscamos alcançar — uma abordagem que vá além do assistencialismo e promova autonomia, pertencimento, protagonismo e transformação real.
+Full Stack Developer
 
-Filmes:
-. The Boy Who Harnessed the Wind — jovem africano que resolve a seca com engenharia e determinação
-. Gênio Indomável (Good Will Hunting) — potencial reprimido por falta de oportunidade
-. Infinito — superação pessoal e propósito
-. À Procura da Felicidade (The Pursuit of Happyness) — resiliência e empreendedorismo desde a adversidade
-. Mãos Talentosas (Gifted Hands) — talento que supera barreiras socioeconômicas
-. Rainha de Katwe — protagonismo feminino negro em tecnologia
+Dev
 
-Livros:
-. Apaixone-se pelo Problema, Não Pela Solução — Uri Levine (cofundador do Waze)
-. De Onde Vêm as Boas Ideias — Steven Johnson
+Tiago Farias
+
+AI Engineer
+
+AI
+
+Thaiane Costa do Nascimento
+
+No Code Developer
+
+TC
+
+Hellen Souza Lopes De Resende
+
+BI Analyst
+
+BI
+
+Daniela Vieira
+
+QA Engineer
+
+QA
+
+📄 Licença
+
+Este projeto é de uso exclusivo para fins acadêmicos e de avaliação de simulação de desenvolvimento de MVPs no ambiente No Country (2026).
