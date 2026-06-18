@@ -1,0 +1,110 @@
+{
+  "antennas": [
+    {
+      "id": 1,
+      "operator": "Claro",
+      "technology": "5G",
+      "latitude": -23.55052,
+      "longitude": -46.633308,
+      "coverageRadiusKm": 2.0,
+      "peopleDensity": "HIGH",
+      "signalStrength": 95
+    },
+    {
+      "id": 2,
+      "operator": "Vivo",
+      "technology": "4G",
+      "latitude": -23.555,
+      "longitude": -46.64,
+      "coverageRadiusKm": 3.0,
+      "peopleDensity": "MEDIUM",
+      "signalStrength": 80
+    },
+    {
+      "id": 3,
+      "operator": "TIM",
+      "technology": "3G",
+      "latitude": -23.57,
+      "longitude": -46.69,
+      "coverageRadiusKm": 1.5,
+      "peopleDensity": "LOW",
+      "signalStrength": 40
+    },
+    {
+      "id": 4,
+      "operator": "Claro",
+      "technology": "4G",
+      "latitude": -23.60,
+      "longitude": -46.65,
+      "coverageRadiusKm": 2.5,
+      "peopleDensity": "MEDIUM",
+      "signalStrength": 75
+    },
+    {
+      "id": 5,
+      "operator": "Vivo",
+      "technology": "5G",
+      "latitude": -23.585,
+      "longitude": -46.678,
+      "coverageRadiusKm": 1.0,
+      "peopleDensity": "HIGH",
+      "signalStrength": 90
+    },
+    {
+      "id": 6,
+      "operator": "TIM",
+      "technology": "2G",
+      "latitude": -23.62,
+      "longitude": -46.70,
+      "coverageRadiusKm": 1.0,
+      "peopleDensity": "LOW",
+      "signalStrength": 25
+    }
+  ],
+  "events": [
+    {
+      "id": 1,
+      "title": "Workshop Java Back-end para Iniciantes - Heliópolis",
+      "description": "Curso prático gratuito de lógica e orientação a objetos com certificação.",
+      "address": "Centro Comunitário Heliópolis, SP",
+      "latitude": -23.608,
+      "longitude": -46.596,
+      "date": "2026-06-20T14:00:00",
+      "type": "PRESENCIAL",
+      "connectivityRequired": "NONE"
+    },
+    {
+      "id": 2,
+      "title": "Encontro de Devs Periféricos - Estação Hack",
+      "description": "Networking e mentoria direta com engenheiros de software seniores.",
+      "address": "Av. Paulista, 1374 - Cerqueira César, SP",
+      "latitude": -23.563,
+      "longitude": -46.654,
+      "date": "2026-06-25T19:00:00",
+      "type": "HIBRIDO",
+      "connectivityRequired": "LOW"
+    },
+    {
+      "id": 3,
+      "title": "Google Cloud GEAR Meetup - Zona Sul",
+      "description": "Sessão prática sobre infraestrutura e deploy em nuvem gratuita.",
+      "address": "FATEC Zona Sul - Jd. Ângela, SP",
+      "latitude": -23.688,
+      "longitude": -46.772,
+      "date": "2026-07-02T10:00:00",
+      "type": "PRESENCIAL",
+      "connectivityRequired": "MEDIUM"
+    },
+    {
+      "id": 4,
+      "title": "Mutirão de Elaboração de Currículos Tech",
+      "description": "Feedback individual de recrutadores voluntários para preparar seu LinkedIn.",
+      "address": "Biblioteca Pública Alceu Amoroso Lima, Pinheiros",
+      "latitude": -23.568,
+      "longitude": -46.693,
+      "date": "2026-06-18T13:00:00",
+      "type": "PRESENCIAL",
+      "connectivityRequired": "NONE"
+    }
+  ]
+}

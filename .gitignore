@@ -1,0 +1,18 @@
+# Arquivos de configuração da IDE
+.idea/
+.vscode/
+*.iml
+
+# Compilação e Build
+target/
+*.class
+*.war
+*.ear
+
+# Arquivos de propriedades com credenciais locais
+/src/main/resources/application.properties
+/src/main/resources/application.yml
+
+# Logs do sistema e banco de dados
+*.log
+.DS_Store

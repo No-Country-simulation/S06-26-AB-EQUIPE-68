@@ -1,0 +1,70 @@
+/* ============================================================
+   style.css — BiT App Frontend
+   Estilos auxiliares que complementam o Tailwind CSS CDN.
+   ============================================================ */
+
+/* ---------- Animação de entrada ---------- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* ---------- Utilitários de estado ---------- */
+.hidden {
+    display: none !important;
+}
+
+/* ---------- Mood buttons ---------- */
+.mood-btn.selected {
+    border-color: #06b6d4; /* cyan-500 */
+    background-color: #1e293b; /* slate-800 */
+}
+
+/* ---------- Scrollbar personalizada ---------- */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #020617; /* slate-950 */
+}
+
+::-webkit-scrollbar-thumb {
+    background: #334155; /* slate-700 */
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #475569; /* slate-600 */
+}
+
+/* ---------- Seleção de texto ---------- */
+::selection {
+    background-color: #06b6d4;
+    color: #020617;
+}
+
+/* ---------- Loader spinner (usado durante chamadas à API) ---------- */
+.loader {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #334155;
+    border-top-color: #06b6d4;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
