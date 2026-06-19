@@ -1,87 +1,359 @@
-🌐 BiT App — Ecossistema 360 de Orientação Pessoal e Profissional
+# 🌐 BiT App — Ecossistema Inteligente de Desenvolvimento Humano e Profissional
 
-O BiT App é uma plataforma inovadora desenvolvida durante a simulação da No Country (Grupo 68). O ecossistema foi projetado sob uma abordagem holística 360°, unindo desenvolvimento profissional, infraestrutura tecnológica regional e acompanhamento preventivo de bem-estar e saúde mental.
+<p align="center">
+  <img src="./docs/logo-bitapp.png" alt="BiT App Logo" width="220"/>
+</p>
 
-🚀 Principais Funcionalidades
+<p align="center">
+  <strong>Conectando pessoas, oportunidades e bem-estar através da tecnologia.</strong>
+</p>
 
-Orientação de Carreira Orientada por IA: Mapeamento de competências (hard e soft skills) com cálculo dinâmico de desvios técnicos ($0\% \le \text{gap} \le 100\%$), sugestão inteligente de trilhas de aprendizagem reais e correspondência de vagas geolocalizadas.
+<p align="center">
+  Desenvolvido durante o Hackathon No Country 2026 • Grupo 68
+</p>
 
-Check-in de Saúde Mental com CNV: Escuta ativa e acolhimento emocional humanizado com base nos preceitos de Comunicação Não-Violenta (CNV), identificando estados de estresse extremo ou depressão com roteamento automático de canais de suporte nacional.
+---
 
-Mapeamento de Infraestrutura de Rede: Cadastro e gerenciamento de ativos de rede móvel regional (3G, 4G, 5G), otimizando a distribuição técnica com base na densidade populacional e cobertura de dados.
+# 📖 Sobre o Projeto
 
-Motor Inteligente de Contingência (Fallback): Mecanismo de defesa resiliente que mantém a aplicação 100% funcional caso os limites de cota de chamadas de APIs externas (como Google Gemini) sejam atingidos.
+O **BiT App** é uma plataforma digital desenvolvida para promover inclusão, desenvolvimento profissional e qualidade de vida através de uma abordagem integrada e inteligente.
 
-🛠️ Tecnologias e Arquitetura
+Diferente das plataformas tradicionais focadas apenas em empregabilidade, o BiT App atua como um **ecossistema 360°**, conectando:
 
-O ecossistema foi desenvolvido utilizando arquitetura de microsserviços/módulos acoplada a um modelo de desenvolvimento rápido e resiliente:
+✅ Formação Profissional
 
-Linguagem: Java 21 LTS
+✅ Orientação de Carreira
 
-Framework Core: Spring Boot 3.3.4
+✅ Empregabilidade
 
-Persistência: Spring Data JPA / Hibernate ORM
+✅ Saúde Mental
 
-Banco de Dados: MySQL Server / H2 Database em memória (para testes)
+✅ Infraestrutura Tecnológica Regional
 
-Engine Cognitiva: Google Gemini API (Modelo gemini-1.5-flash) via Client REST HTTP
+✅ Inteligência Artificial
 
-Motor de Template: Thymeleaf (Renderização robusta no lado do servidor)
+Nosso objetivo é reduzir barreiras de acesso ao mercado de trabalho, oferecendo recomendações personalizadas, suporte emocional preventivo e acesso inteligente a oportunidades compatíveis com o perfil de cada usuário.
 
-Styling: Tailwind CSS via CDN com suporte completo a Dark Mode
+---
 
-Manipulação de JSON: Jackson Databind
+# 🎯 Problema
 
-⚙️ Configuração e Inicialização Local
+Milhões de pessoas enfrentam desafios simultâneos ao buscar crescimento profissional:
 
-Pré-requisitos
+* Falta de orientação de carreira;
+* Dificuldade para identificar lacunas técnicas;
+* Pouco acesso a mentorias qualificadas;
+* Escassez de oportunidades compatíveis;
+* Problemas emocionais causados por pressão profissional;
+* Limitações de infraestrutura digital em determinadas regiões.
 
-Java JDK 21 instalado.
+Atualmente essas soluções encontram-se fragmentadas em diversas plataformas.
 
-Maven 3.x configurado nas variáveis de ambiente.
+O **BiT App unifica toda essa jornada em um único ambiente inteligente.**
 
-MySQL Server ativo (caso utilize o perfil de produção local).
+---
 
-Passo 1: Clonar o Repositório
+# 💡 Nossa Solução
 
+O BiT App utiliza Inteligência Artificial, análise geográfica e dados de infraestrutura para criar uma experiência personalizada de desenvolvimento humano e profissional.
+
+## Fluxo Principal
+
+```mermaid
+flowchart TD
+
+A[Cadastro do Usuário] --> B[Mapeamento de Perfil]
+
+B --> C[Análise por IA]
+
+C --> D[Identificação de Competências]
+
+D --> E[Recomendação de Trilhas]
+
+E --> F[Correspondência de Vagas]
+
+F --> G[Monitoramento de Saúde Mental]
+
+G --> H[Evolução Contínua]
+```
+
+---
+
+# 🚀 Funcionalidades
+
+## 🧠 Orientação de Carreira com IA
+
+O sistema analisa:
+
+* Hard Skills
+* Soft Skills
+* Experiências anteriores
+* Objetivos profissionais
+
+Gerando:
+
+* Mapeamento de lacunas técnicas;
+* Recomendações de estudo;
+* Trilhas de aprendizado personalizadas;
+* Sugestões de evolução profissional.
+
+### Exemplo
+
+```text
+Objetivo: Desenvolvedor Backend Java
+
+Compatibilidade Atual: 72%
+
+Competências Necessárias:
+
+✔ Java
+✔ Spring Boot
+✔ SQL
+
+Competências Recomendadas:
+
+➜ Docker
+➜ AWS
+➜ Testes Automatizados
+```
+
+---
+
+## 💼 Match Inteligente de Oportunidades
+
+O BiT App conecta usuários a oportunidades compatíveis com seu perfil.
+
+Critérios utilizados:
+
+* Competências técnicas;
+* Objetivos profissionais;
+* Geolocalização;
+* Disponibilidade regional;
+* Infraestrutura de conectividade.
+
+---
+
+## ❤️ Saúde Mental com CNV
+
+A plataforma realiza check-ins emocionais periódicos utilizando princípios da Comunicação Não Violenta (CNV).
+
+### Benefícios
+
+* Escuta ativa;
+* Acolhimento humanizado;
+* Identificação precoce de sinais de sofrimento emocional;
+* Encaminhamento para canais oficiais de apoio.
+
+### Exemplo
+
+```text
+Como você está se sentindo hoje?
+
+😀 Muito Bem
+🙂 Bem
+😐 Neutro
+😔 Triste
+😫 Sobrecarregado
+```
+
+---
+
+## 📡 Mapeamento de Infraestrutura Regional
+
+O sistema permite registrar e monitorar:
+
+* Cobertura 3G
+* Cobertura 4G
+* Cobertura 5G
+* Densidade populacional
+* Disponibilidade de acesso digital
+
+Esses dados auxiliam na distribuição de oportunidades e estratégias de inclusão digital.
+
+---
+
+## 🛡️ Motor Inteligente de Contingência
+
+Uma das principais inovações do projeto.
+
+Caso serviços externos apresentem indisponibilidade ou atinjam limites de uso:
+
+```text
+Google Gemini indisponível
+          ↓
+Motor de Contingência
+          ↓
+Experiência preservada
+```
+
+O usuário continua utilizando a plataforma normalmente.
+
+---
+
+# 🏗️ Arquitetura da Solução
+
+```mermaid
+graph TD
+
+UI[Frontend]
+
+API[Spring Boot API]
+
+DB[(MySQL)]
+
+AI[Google Gemini]
+
+INFRA[Infraestrutura Regional]
+
+UI --> API
+
+API --> DB
+API --> AI
+API --> INFRA
+```
+
+---
+
+# 🛠️ Stack Tecnológica
+
+## Backend
+
+* Java 21 LTS
+* Spring Boot 3.3.4
+* Spring Data JPA
+* Hibernate ORM
+* Maven
+
+## Banco de Dados
+
+* MySQL Server
+* H2 Database
+
+## Inteligência Artificial
+
+* Google Gemini 1.5 Flash
+
+## Frontend
+
+* Thymeleaf
+* HTML5
+* Tailwind CSS
+* JavaScript
+
+## Bibliotecas
+
+* Jackson Databind
+* JTS Topology Suite
+
+---
+
+# ⚙️ Instalação
+
+## Pré-requisitos
+
+* Java JDK 21+
+* Maven 3+
+* MySQL Server
+
+---
+
+## Clone o Repositório
+
+```bash
 git clone https://github.com/No-Country-simulation/S06-26-AB-EQUIPE-68.git
+
 cd S06-26-AB-EQUIPE-68
+```
 
+---
 
-Passo 2: Configurar Variáveis de Ambiente
+## Configure a Chave Gemini
 
-Crie um arquivo .env ou configure na inicialização da sua IDE a chave de acesso do Google Gemini:
+```env
+GEMINI_API_KEY=sua_chave_aqui
+```
 
-GEMINI_API_KEY=sua_chave_do_google_ai_studio_aqui
+---
 
+## Compile o Projeto
 
-Passo 3: Compilar o Projeto
-
-Use o Maven Wrapper ou instalação global para limpar pacotes legados e gerar o novo empacotamento:
-
+```bash
 mvn clean compile
+```
 
+---
 
-Passo 4: Executar a Aplicação
+## Execute
 
-Inicie a aplicação utilizando o plugin nativo do Spring Boot:
-
+```bash
 mvn spring-boot:run
+```
 
-O servidor estará disponível para acesso em: http://localhost:8080
+---
 
+## Acesso
 
-👥 Equipe de Desenvolvimento (Grupo 68) - Integrante
+```text
+http://localhost:8080
+```
 
+---
 
-Andre Teixeira - Backend Developer & Tech Leader
+# 📈 Diferenciais Competitivos
 
-Carlos Alexandre - Full Stack Developer
+| Funcionalidade          | Soluções Tradicionais | BiT App |
+| ----------------------- | --------------------- | ------- |
+| Empregabilidade         | ✅                     | ✅       |
+| Orientação de Carreira  | ❌                     | ✅       |
+| IA Integrada            | ❌                     | ✅       |
+| Saúde Mental            | ❌                     | ✅       |
+| Infraestrutura Regional | ❌                     | ✅       |
+| Sistema de Contingência | ❌                     | ✅       |
+| Visão 360° do Usuário   | ❌                     | ✅       |
 
-Tiago Farias - AI Engineer
+---
 
-Daniela Vieira - QA Engineer
+# 🔮 Evoluções Futuras
 
+* Aplicativo Mobile Flutter
+* Dashboard Analítico Avançado
+* Sistema de Mentorias
+* Gamificação
+* Integração com LinkedIn
+* Marketplace de Cursos
+* Recomendação Preditiva de Carreira
+* Assistente Virtual Multimodal
 
+---
 
-📄 Licença = Este projeto é de uso exclusivo para fins acadêmicos e de avaliação de simulação de desenvolvimento de MVPs no ambiente No Country (2026).
+# 👨‍💻 Equipe de Desenvolvimento
+
+### Andre Teixeira
+
+**Backend Developer & Tech Leader**
+
+### Carlos Alexandre
+
+**Full Stack Developer**
+
+### Tiago Farias
+
+**AI Engineer**
+
+### Daniela Vieira
+
+**QA Engineer**
+
+---
+
+# 🏆 Hackathon No Country 2026
+
+Projeto desenvolvido durante a simulação de ambiente profissional da No Country.
+
+O BiT App demonstra como Inteligência Artificial, inclusão digital e desenvolvimento humano podem trabalhar juntos para gerar impacto social real.
+
+---
+
+# 📄 Licença
+
+Projeto desenvolvido exclusivamente para fins acadêmicos, educacionais e avaliação dentro do programa No Country Simulation 2026.
