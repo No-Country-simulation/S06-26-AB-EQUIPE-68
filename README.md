@@ -68,44 +68,20 @@ Inicie a aplicação utilizando o plugin nativo do Spring Boot:
 
 mvn spring-boot:run
 
-
 O servidor estará disponível para acesso em: http://localhost:8080
 
-👥 Equipe de Desenvolvimento (Grupo 68)
 
-Temos muito orgulho de apresentar o time multidisciplinar que idealizou, desenvolveu e implantou o ecossistema do BiT App:
-
-Integrante
-
-Função principal
-
-Avatar / Logo
-
-Andre Teixeira
-
-Backend Developer & Tech Leader
-
-AT
-
-Carlos Alexandre
-
-Full Stack Developer
-
-Dev
-
-Tiago Farias
-
-AI Engineer
-
-AI
+👥 Equipe de Desenvolvimento (Grupo 68) - Integrante
 
 
-Daniela Vieira
+Andre Teixeira - Backend Developer & Tech Leader
 
-QA Engineer
+Carlos Alexandre - Full Stack Developer
 
-QA
+Tiago Farias - AI Engineer
 
-📄 Licença
+Daniela Vieira - QA Engineer
 
-Este projeto é de uso exclusivo para fins acadêmicos e de avaliação de simulação de desenvolvimento de MVPs no ambiente No Country (2026).
+
+
+📄 Licença = Este projeto é de uso exclusivo para fins acadêmicos e de avaliação de simulação de desenvolvimento de MVPs no ambiente No Country (2026).
