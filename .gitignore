@@ -10,8 +10,8 @@ target/
 *.ear
 
 # Arquivos de propriedades com credenciais locais
-/src/main/resources/application.properties
-/src/main/resources/application.yml
+/backend/src/main/resources/application.properties
+/backend/src/main/resources/application.yml
 
 # Logs do sistema e banco de dados
 *.log
