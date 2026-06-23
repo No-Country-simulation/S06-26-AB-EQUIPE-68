@@ -1,18 +1,27 @@
-# Arquivos de configuração da IDE
+# ─── IDEs ─────────────────────────────────────────────────────────────────
 .idea/
 .vscode/
 *.iml
 
-# Compilação e Build
+# ─── Compilação e Build ────────────────────────────────────────────────────
 target/
+backend/target/
 *.class
 *.war
 *.ear
 
-# Arquivos de propriedades com credenciais locais
-/src/main/resources/application.properties
-/src/main/resources/application.yml
+# ─── Credenciais e configurações locais ────────────────────────────────────
+# application.properties contém senhas de BD e chaves de API — NUNCA commitá-los
+backend/src/main/resources/application.properties
+backend/src/main/resources/application.yml
+src/main/resources/application.properties
+src/main/resources/application.yml
 
-# Logs do sistema e banco de dados
+# Arquivo .env com segredos (use .env.example como template)
+backend/.env
+.env
+
+# ─── Logs e sistema ────────────────────────────────────────────────────────
 *.log
 .DS_Store
+Thumbs.db
