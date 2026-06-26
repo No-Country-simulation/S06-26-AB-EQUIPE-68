@@ -1,0 +1,213 @@
+{
+  "name": "BiT App - Orquestrador",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "bit/agent",
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook_1",
+      "name": "Webhook Entrada",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst tipo = body.tipo || '';\n\nlet message = '';\nif (tipo === 'assessment' || body.nome) {\n  const parts = [];\n  if (body.nome) parts.push('Nome: ' + body.nome);\n  if (body.idade) parts.push('Idade: ' + body.idade);\n  if (body.escolaridade) parts.push('Escolaridade: ' + body.escolaridade);\n  if (body.experiencia) parts.push('Experiencia: ' + body.experiencia);\n  if (body.hardSkills && body.hardSkills.length) parts.push('Hard Skills: ' + body.hardSkills.join(', '));\n  if (body.softSkills && body.softSkills.length) parts.push('Soft Skills: ' + body.softSkills.join(', '));\n  if (body.tecnologias && body.tecnologias.length) parts.push('Tecnologias: ' + body.tecnologias.join(', '));\n  message = 'Avaliacao de carreira para: ' + parts.join(' | ');\n} else if (tipo === 'mental-health' || body.userId) {\n  message = body.message || 'Avaliacao de saude mental para usuario ' + (body.userId || 'desconhecido');\n} else {\n  message = body.message || JSON.stringify(body);\n}\n\nreturn [{ json: { message: message, tipo: tipo, originalBody: body } }];"
+      },
+      "id": "code_format",
+      "name": "Formatar Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "systemMessage": "Responda SOMENTE com uma palavra: ASSESSMENT ou MENTAL_HEALTH. ASSESSMENT = avaliacao de carreira, perfil profissional, skills, compatibilidade com vagas. MENTAL_HEALTH = saude mental, emocoes, bem-estar, humor, estresse.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "={{ $json.message }}"
+          }
+        ]
+      },
+      "id": "openai_classify",
+      "name": "Classificar Intent",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.choices[0].message.content }}",
+                    "operation": "contains",
+                    "value2": "ASSESSMENT"
+                  }
+                ]
+              },
+              "output": 0
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.choices[0].message.content }}",
+                    "operation": "contains",
+                    "value2": "MENTAL_HEALTH"
+                  }
+                ]
+              },
+              "output": 1
+            }
+          ]
+        },
+        "fallbackOutput": 1
+      },
+      "id": "switch_router",
+      "name": "Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "systemMessage": "Voce e o agente de Avaliacao Profissional do BiT App. Analise o perfil do usuario e retorne EXATAMENTE um JSON valido. Estrutura obrigatoria: { compatibilidade: numero 0-100, nivel: string (Junior Trainee/Pleno/Pleno/Senior), pontosFortes: array de strings, gaps: array de strings, planoDesenvolvimento: array de strings }. Analise as skills, tecnologias e experiencia do usuario para gerar uma avaliacao realista e personalizada. Responda APENAS com o JSON, sem texto adicional.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "={{ $('Formatar Request').first().json.message }}"
+          }
+        ]
+      },
+      "id": "openai_assessment",
+      "name": "Assessment Agent",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [1100, 200]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "systemMessage": "Voce e o agente de Saude Mental do BiT App. Avalie o estado emocional do usuario com empatia e acolhimento. Retorne EXATAMENTE um JSON valido. Estrutura obrigatoria: { nivel: string (estavel/alerta/critico), alerta: string com observacao, recomendacoes: array de strings, acoes: array de strings, canaisApoio: array de strings incluindo CVV Disque 188 }. Se identificar risco imediato, inclua recomendacao de contato com CVV (188). Responda APENAS com o JSON, sem texto adicional.",
+        "messages": [
+          {
+            "role": "user",
+            "content": "={{ $('Formatar Request').first().json.message }}"
+          }
+        ]
+      },
+      "id": "openai_mental_health",
+      "name": "Mental Health Agent",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [1100, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, response: $json.choices[0].message.content }) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond_1",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1400, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Entrada": {
+      "main": [
+        [
+          {
+            "node": "Formatar Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar Request": {
+      "main": [
+        [
+          {
+            "node": "Classificar Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classificar Intent": {
+      "main": [
+        [
+          {
+            "node": "Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router": {
+      "main": [
+        [
+          {
+            "node": "Assessment Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mental Health Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assessment Agent": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mental Health Agent": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true
+}

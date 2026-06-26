@@ -20,8 +20,40 @@ src/main/resources/application.yml
 # Arquivo .env com segredos (use .env.example como template)
 backend/.env
 .env
+.env.production
 
 # ─── Logs e sistema ────────────────────────────────────────────────────────
 *.log
+*.tmp
 .DS_Store
 Thumbs.db
+
+# ─── IDEs e editores ──────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+.junie/
+.agents/
+.firecrawl/
+
+# ─── Build ─────────────────────────────────────────────────────────────────
+target/
+backend/target/
+*.class
+*.war
+*.ear
+
+# ─── N8N local ─────────────────────────────────────────────────────────────
+n8n/node_modules/
+n8n/.n8n/
+n8n/cookies.txt
+n8n/*.json
+!n8n/bitapp-agent-workflow.json
+
+# ─── Docker ────────────────────────────────────────────────────────────────
+docker/data/
+docker/logs/
+
+# ─── Temporarios ──────────────────────────────────────────────────────────
+cookies.txt
+build_log.txt
