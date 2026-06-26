@@ -43,12 +43,6 @@
                     class="md:hidden p-2 rounded-lg border border-slate-700 text-slate-300" aria-label="Abrir menu"
                     aria-expanded="false">☰</button>
 
-                <div class="flex items-center gap-3">
-                    <div id="signalBadge" class="hidden sm:flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20" role="status" aria-label="Status da rede">
-                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
-                        <span id="signalText">Rede Estável — 4G</span>
-                    </div>
-
                 <div id="navLinks" class="hidden md:flex items-center space-x-2">
                     <a href="index.html"
                         class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Login</a>
@@ -105,6 +99,11 @@
             </div>
         </div>
     </nav>
+
+    <div id="signalBadge" class="hidden sm:flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-yellow-500/10 text-yellow-400 border-b border-yellow-500/20" role="status" aria-label="Status da rede">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <span id="signalText">Rede Estável — 4G</span>
+    </div>
 
     <main id="conteudo-principal" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <header class="border-b border-slate-800 pb-6 mb-6">

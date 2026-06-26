@@ -1,7 +1,10 @@
-# ─── IDEs ─────────────────────────────────────────────────────────────────
+# ─── IDEs e editores ──────────────────────────────────────────────────────
 .idea/
 .vscode/
 *.iml
+.junie/
+.agents/
+.firecrawl/
 
 # ─── Compilação e Build ────────────────────────────────────────────────────
 target/
@@ -11,37 +14,28 @@ backend/target/
 *.ear
 
 # ─── Credenciais e configurações locais ────────────────────────────────────
-# application.properties contém senhas de BD e chaves de API — NUNCA commitá-los
 backend/src/main/resources/application.properties
 backend/src/main/resources/application.yml
 src/main/resources/application.properties
 src/main/resources/application.yml
 
-# Arquivo .env com segredos (use .env.example como template)
-backend/.env
+# Arquivos .env com segredos (use .env.example como template)
 .env
+.env.local
 .env.production
+.env.staging
+!.env.example
+backend/.env
+backend/.env.local
+backend/.env.production
+backend/.env.staging
+!backend/.env.example
 
 # ─── Logs e sistema ────────────────────────────────────────────────────────
 *.log
 *.tmp
 .DS_Store
 Thumbs.db
-
-# ─── IDEs e editores ──────────────────────────────────────────────────────
-.idea/
-.vscode/
-*.iml
-.junie/
-.agents/
-.firecrawl/
-
-# ─── Build ─────────────────────────────────────────────────────────────────
-target/
-backend/target/
-*.class
-*.war
-*.ear
 
 # ─── N8N local ─────────────────────────────────────────────────────────────
 n8n/node_modules/
@@ -54,6 +48,6 @@ n8n/*.json
 docker/data/
 docker/logs/
 
-# ─── Temporarios ──────────────────────────────────────────────────────────
+# ─── Temporários ──────────────────────────────────────────────────────────
 cookies.txt
 build_log.txt
