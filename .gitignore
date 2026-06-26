@@ -10,8 +10,11 @@ target/
 *.ear
 
 # Arquivos de propriedades com credenciais locais
-/src/main/resources/application.properties
-/src/main/resources/application.yml
+/backend/src/main/resources/application.properties
+/backend/src/main/resources/application.yml
+
+# Frontend copiado automaticamente pelo Maven no build (não versionar)
+/backend/src/main/resources/static/
 
 # Logs do sistema e banco de dados
 *.log
