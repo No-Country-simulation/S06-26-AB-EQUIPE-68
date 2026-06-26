@@ -19,12 +19,12 @@ import org.springframework.stereotype.Component;
  * MAPEAMENTO (application.properties):
  * spring.gemini.api-key=${GEMINI_API_KEY}         → apiKey
  * spring.gemini.endpoint=https://...              → endpoint
- * spring.gemini.model=gemini-pro                  → model
+ * spring.gemini.model=gemini-1.5-flash                  → model
  * spring.gemini.temperature=0.7                   → temperature
  * spring.gemini.candidate-count=1                 → candidateCount
  * 
  * DEFAULTS:
- * - Endpoint: API v1beta2 oficial do Google
+ * - Endpoint: API v1beta oficial do Google
  * - Model: gemini-pro (modelo padrão estável)
  * - Temperature: 0.7 (equilibrio entre criatividade e determinismo)
  * - CandidateCount: 1 (apenas 1 resposta por requisição)
@@ -45,12 +45,12 @@ public class GoogleGeminiProperties {
     private String apiKey;
 
     // ========== ENDPOINTS ==========
-    /** URL base da API Google Gemini v1beta2 */
-    private String endpoint = "https://generativelanguage.googleapis.com/v1beta2/models";
+    /** URL base da API Google Gemini v1beta */
+    private String endpoint = "https://generativelanguage.googleapis.com/v1beta/models";
 
     // ========== MODELO ==========
     /** Nome do modelo Gemini a usar (ex: gemini-pro, gemini-1.5-flash) */
-    private String model = "gemini-pro";
+    private String model = "gemini-1.5-flash";
 
     // ========== PARÂMETROS DE GERAÇÃO ==========
     /**

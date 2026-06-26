@@ -3,15 +3,21 @@
 .vscode/
 *.iml
 
+# Ferramentas pessoais (IA Junie, Firecrawl) - não fazem parte do projeto
+.junie/
+.firecrawl/
+
 # Compilação e Build
 target/
 *.class
 *.war
 *.ear
 
-# Arquivos de propriedades com credenciais locais
-/src/main/resources/application.properties
-/src/main/resources/application.yml
+# Arquivos locais com credenciais reais (NUNCA versionar)
+/backend/src/main/resources/application-local.properties
+
+# Frontend copiado automaticamente pelo Maven no build (não versionar)
+/backend/src/main/resources/static/
 
 # Logs do sistema e banco de dados
 *.log

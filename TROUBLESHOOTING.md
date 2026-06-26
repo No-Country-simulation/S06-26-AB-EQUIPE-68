@@ -23,8 +23,8 @@ echo %GEMINI_API_KEY% # Windows CMD
 $env:GEMINI_API_KEY   # Windows PowerShell
 
 # 2. Definir no terminal
-export GEMINI_API_KEY="AIzaSyD..."  # Linux/Mac
-set GEMINI_API_KEY=AIzaSyD...       # Windows CMD
+export***REMOVED***
+set***REMOVED***
 $env:GEMINI_API_KEY="AIzaSyD..."    # Windows PowerShell
 
 # 3. Arquivo .env (IDE específico)
