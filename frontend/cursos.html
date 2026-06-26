@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cursos profissionalizantes gratuitos em tecnologia — BiT App." />
+    <title>Cursos - App BiT</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            gold: '#FFD700',
+                            orange: '#FF4500',
+                            darkBg: '#020617',
+                        },
+                    },
+                },
+            },
+        };
+    </script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+    <a href="#conteudo-principal" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-cyan-500 focus:text-slate-950 focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold">Pular para o conteúdo</a>
+
+    <nav class="sticky top-0 z-50 bg-slate-900/80 border-b border-slate-800 backdrop-blur-lg" aria-label="Menu principal">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <a href="index.html"
+                        class="text-2xl font-black tracking-wider bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">BiT</a>
+                    <span
+                        class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Cursos</span>
+                </div>
+
+                <button id="menuToggle" type="button"
+                    class="md:hidden p-2 rounded-lg border border-slate-700 text-slate-300" aria-label="Abrir menu"
+                    aria-expanded="false">☰</button>
+
+                <div class="flex items-center gap-3">
+                    <div id="signalBadge" class="hidden sm:flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20" role="status" aria-label="Status da rede">
+                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+                        <span id="signalText">Rede Estável — 4G</span>
+                    </div>
+
+                <div id="navLinks" class="hidden md:flex items-center space-x-2">
+                    <a href="index.html"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Login</a>
+                    <a href="cadastro.html"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cadastro</a>
+                    <a href="vagas.html"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
+                    <a href="cursos.html"
+                        class="text-sm font-medium text-cyan-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Cursos</a>
+                    <a href="lazer.html"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
+                    <a href="usuarios.html"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Candidatos</a>
+                    <div id="authSection" class="hidden">
+                        <a href="dashboard.html"
+                            class="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition py-2 px-3">Meu
+                            Painel</a>
+                        <button onclick="handleLogout()"
+                            class="text-sm font-medium text-rose-400 hover:text-rose-300 transition py-2 px-3">Sair</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mobileNav" class="hidden md:hidden pb-4 space-y-2">
+                <a href="index.html"
+                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Login</a>
+                <a href="cadastro.html"
+                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cadastro</a>
+                <a href="dashboard.html"
+                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Painel</a>
+                <a href="vagas.html"
+                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
+                <a href="cursos.html"
+                    class="block text-sm font-medium text-cyan-400 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
+                <a href="lazer.html"
+                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
+                <a href="usuarios.html"
+                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Candidatos</a>
+                <a href="dashboard.html"
+                    class="block text-sm font-medium text-cyan-400 py-2 px-3 rounded-lg border border-slate-800">Meu
+                    Painel</a>
+                <button onclick="handleLogout()"
+                    class="block w-full text-left text-sm font-medium text-rose-400 py-2 px-3 rounded-lg border border-slate-800">Sair</button>
+            </div>
+        </div>
+    </nav>
+
+    <main id="conteudo-principal" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        <header class="border-b border-slate-800 pb-6 mb-6">
+            <p class="text-xs font-bold text-emerald-400 uppercase tracking-widest">Formação Profissional</p>
+            <div class="mt-2 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-white">Cursos Profissionalizantes</h1>
+                    <p class="mt-2 text-sm text-slate-400">Capacitação em tecnologia com foco em cursos gratuitos e instituições beneficentes.</p>
+                </div>
+                <div id="cursosStats" class="text-sm text-slate-400">
+                    <span id="cursosTotal" class="text-emerald-400 font-bold">—</span> cursos em
+                    <span id="cursosRegioes" class="text-emerald-400 font-bold">—</span> regiões
+                </div>
+            </div>
+        </header>
+
+        <div class="flex flex-wrap gap-3 mb-6">
+            <button id="btnTodos" onclick="filtroGratuito(null)"
+                class="px-4 py-2 text-sm font-semibold rounded-full border transition bg-emerald-500/20 text-emerald-400 border-emerald-500/40">
+                Todos
+            </button>
+            <button id="btnGratuitos" onclick="filtroGratuito(true)"
+                class="px-4 py-2 text-sm font-semibold rounded-full border transition bg-slate-800 text-slate-300 border-slate-700 hover:border-emerald-500/40">
+                🆓 Gratuitos
+            </button>
+            <button id="btnBeneficentes" onclick="filtroBeneficente()"
+                class="px-4 py-2 text-sm font-semibold rounded-full border transition bg-slate-800 text-slate-300 border-slate-700 hover:border-amber-500/40">
+                ❤️ Beneficentes
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-6" role="search" aria-label="Filtros de busca">
+            <div class="lg:col-span-2">
+                <label for="buscaGeral" class="sr-only">Buscar cursos</label>
+                <input type="text" id="buscaGeral" placeholder="Buscar por curso, instituição ou área..."
+                    class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition" />
+            </div>
+            <div>
+                <label for="filtroRegiao" class="sr-only">Filtrar por região</label>
+                <select id="filtroRegiao"
+                    class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+                    <option value="">Todas as regiões</option>
+                </select>
+            </div>
+            <div>
+                <label for="filtroArea" class="sr-only">Filtrar por área</label>
+                <select id="filtroArea"
+                    class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+                    <option value="">Todas as áreas</option>
+                    <option value="Programação">Programação</option>
+                    <option value="Web">Web</option>
+                    <option value="Java">Java</option>
+                    <option value="Dados">Dados</option>
+                    <option value="DevOps">DevOps</option>
+                    <option value="IA">IA</option>
+                    <option value="Cibersegurança">Cibersegurança</option>
+                    <option value="Infraestrutura">Infraestrutura</option>
+                    <option value="Mobile">Mobile</option>
+                    <option value="Games">Games</option>
+                    <option value="UI/UX">UI/UX</option>
+                </select>
+            </div>
+            <div>
+                <select id="filtroModalidade"
+                    class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+                    <option value="">Todas as modalidades</option>
+                    <option value="Online">Online</option>
+                    <option value="Presencial">Presencial</option>
+                    <option value="Híbrido">Híbrido</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="cursosGrid">
+            <div class="col-span-full text-center py-16 text-slate-500">
+                <span class="loader align-middle mr-2"></span> Carregando cursos...
+            </div>
+        </div>
+
+        <p id="cursosStatus" class="mt-6 text-sm text-slate-500 text-center"></p>
+    </main>
+
+    <div id="cursoModal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-8 shadow-2xl relative">
+            <button id="closeModal" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">&times;</button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <footer class="bg-slate-900 border-t border-slate-800 py-8 mt-auto text-slate-500 text-xs" role="contentinfo">
+        <div
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <span class="font-bold text-slate-400">BiT App</span>
+            <div class="flex space-x-6">
+                <span class="hover:text-white transition cursor-pointer">Termos de Uso</span>
+                <a href="tel:188" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188 (CVV)</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('menuToggle')?.addEventListener('click', () => {
+            const mobileNav = document.getElementById('mobileNav');
+            const toggle = document.getElementById('menuToggle');
+            const isOpen = !mobileNav.classList.contains('hidden');
+            mobileNav.classList.toggle('hidden', isOpen);
+            toggle.setAttribute('aria-expanded', String(!isOpen));
+        });
+
+        const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
+        if (usuario) {
+            document.getElementById('authSection')?.classList.remove('hidden');
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('bitapp_token');
+            localStorage.removeItem('bitapp_refresh');
+            localStorage.removeItem('bitapp_usuario');
+            window.location.href = 'index.html';
+        }
+        window.handleLogout = handleLogout;
+
+        (async function loadSignal() {
+            const badge = document.getElementById('signalBadge');
+            const text = document.getElementById('signalText');
+            if (!badge || !text) return;
+            badge.classList.remove('hidden');
+            try {
+                const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
+                if (usuario?.id) {
+                    const resp = await fetch(`http://localhost:8080/api/network-status/${usuario.id}`);
+                    const json = await resp.json();
+                    if (json.success && json.data) {
+                        const d = json.data;
+                        text.textContent = d.status === 'Estavel' ? `Rede Estável — ${d.tecnologiaPredominante || '4G'}` : 'Rede Instável';
+                        return;
+                    }
+                }
+                text.textContent = 'Rede Estável — 4G';
+            } catch { text.textContent = 'Rede Estável — 4G'; }
+        })();
+    </script>
+    <script type="module" src="js/cursos.js"></script>
+</body>
+
+</html>
