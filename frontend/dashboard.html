@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Painel BiT App â€” acompanhe sua trilha e saÃºde mental." />
+    <meta name="description" content="Painel BiT App — acompanhe sua trilha e saúde mental." />
     <title>Painel - App BiT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -19,61 +20,93 @@
     </script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
-    <a href="#conteudo-principal" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-cyan-500 focus:text-slate-950 focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold">Pular para o conteÃºdo</a>
 
-    <nav class="sticky top-0 z-50 bg-slate-900/80 border-b border-slate-800 backdrop-blur-lg" aria-label="Menu principal">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+    <a href="#conteudo-principal"
+        class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-cyan-500 focus:text-slate-950 focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold">Pular
+        para o conteúdo</a>
+
+    <nav class="sticky top-0 z-50 bg-slate-900/80 border-b border-slate-800 backdrop-blur-lg"
+        aria-label="Menu principal">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-3">
-                    <a href="index.html" class="text-2xl font-black tracking-wider bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">BiT</a>
-                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Dashboard</span>
+                    <a href="index.html"
+                        class="text-2xl font-black tracking-wider bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">BiT</a>
+                    <span
+                        class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Dashboard</span>
                 </div>
-                <button id="menuToggle" type="button" class="md:hidden p-2 rounded-lg border border-slate-700 text-slate-300" aria-label="Abrir menu" aria-expanded="false">â˜°</button>
+                <button id="menuToggle" type="button"
+                    class="md:hidden p-2 rounded-lg border border-slate-700 text-slate-300" aria-label="Abrir menu"
+                    aria-expanded="false">â˜°</button>
                 <div id="navLinks" class="hidden md:flex items-center space-x-2">
-                    <button type="button" onclick="switchTab('dashboard')" class="nav-tab text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700" data-tab="dashboard">Dashboard</button>
-                    <a href="index.html" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Login</a>
-                    <a href="cadastro.html" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cadastro</a>
-                    <a href="vagas.html" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
-                    <a href="cursos.html" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
-                    <a href="lazer.html" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
-                    <a href="usuarios.html" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Candidatos</a>
-                    <button onclick="handleLogout()" class="text-sm font-medium text-rose-400 hover:text-rose-300 transition py-2 px-3">Sair</button>
+                    <button type="button" onclick="switchTab('dashboard')"
+                        class="nav-tab text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700"
+                        data-tab="dashboard">Dashboard</button>
+                    <a href="index.html"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Login</a>
+                    <a href="cadastro.html"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cadastro</a>
+                    <a href="vagas.html"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
+                    <a href="cursos.html"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
+                    <a href="lazer.html"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
+
+                    <button onclick="handleLogout()"
+                        class="text-sm font-medium text-rose-400 hover:text-rose-300 transition py-2 px-3">Sair</button>
                 </div>
             </div>
             <div id="mobileNav" class="hidden md:hidden pb-4 space-y-2">
-                <button type="button" onclick="switchTab('dashboard'); closeMobileMenu()" class="block w-full text-left text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Dashboard</button>
-                <a href="index.html" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Login</a>
-                <a href="cadastro.html" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cadastro</a>
-                <a href="vagas.html" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
-                <a href="cursos.html" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
-                <a href="lazer.html" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
-                <a href="usuarios.html" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Candidatos</a>
-                <button onclick="handleLogout()" class="block w-full text-left text-sm font-medium text-rose-400 py-2 px-3 rounded-lg border border-slate-800">Sair</button>
+                <button type="button" onclick="switchTab('dashboard'); closeMobileMenu()"
+                    class="block w-full text-left text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Dashboard</button>
+                <a href="index.html"
+                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Login</a>
+                <a href="cadastro.html"
+                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cadastro</a>
+                <a href="vagas.html"
+                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
+                <a href="cursos.html"
+                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
+                <a href="lazer.html"
+                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
+
+                <button onclick="handleLogout()"
+                    class="block w-full text-left text-sm font-medium text-rose-400 py-2 px-3 rounded-lg border border-slate-800">Sair</button>
             </div>
         </div>
     </nav>
 
-    <div id="signalBadge" class="hidden sm:flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-yellow-500/10 text-yellow-400 border-b border-yellow-500/20" role="status" aria-label="Status da rede">
-        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
-        <span id="signalText">Rede EstÃ¡vel â€” 4G</span>
+    <div id="signalBadge"
+        class="hidden sm:flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-yellow-500/10 text-yellow-400 border-b border-yellow-500/20"
+        role="status" aria-label="Status da rede">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+                d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
+        </svg>
+        <span id="signalText">Rede Estável — 4G</span>
     </div>
 
     <main id="conteudo-principal" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         <section id="tab-dashboard" class="space-y-8 animate-fade-in">
-            <header class="rounded-3xl border border-slate-800 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <header
+                class="rounded-3xl border border-slate-800 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <p class="text-xs font-bold text-cyan-400 uppercase tracking-widest">BiT Dashboard</p>
-                    <h1 id="dashUsuarioNome" class="mt-2 text-3xl font-extrabold text-white">OlÃ¡, UsuÃ¡rio</h1>
+                    <h1 id="dashUsuarioNome" class="mt-2 text-3xl font-extrabold text-white">Olá, Usuário</h1>
                 </div>
             </header>
 
             <div class="grid gap-8 lg:grid-cols-2">
-                <section class="rounded-3xl border border-slate-800 bg-slate-900/40 p-8 shadow-xl backdrop-blur-md flex flex-col justify-between">
+                <section
+                    class="rounded-3xl border border-slate-800 bg-slate-900/40 p-8 shadow-xl backdrop-blur-md flex flex-col justify-between">
                     <div>
-                        <h2 class="text-xl font-bold text-cyan-400 flex items-center gap-2">ðŸŽ¯ Match de Oportunidades</h2>
-                        <p class="mt-4 text-6xl font-black bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent" id="dashMatchPercent">
+                        <h2 class="text-xl font-bold text-cyan-400 flex items-center gap-2">🎯 Match de Oportunidades
+                        </h2>
+                        <p class="mt-4 text-6xl font-black bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent"
+                            id="dashMatchPercent">
                             <span class="loader"></span>
                         </p>
                         <div class="mt-6 rounded-2xl bg-slate-950/80 p-6 border border-slate-800/80" id="dashVagaCard">
@@ -84,15 +117,16 @@
                     <div class="mt-6 pt-6 border-t border-slate-800/60">
                         <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lacunas:</h4>
                         <ul class="mt-3 space-y-2 text-sm text-slate-300" id="dashGapItens">
-                            <li class="rounded-xl bg-slate-950 px-4 py-3 border border-slate-800/60 text-slate-500">Aguardando...</li>
+                            <li class="rounded-xl bg-slate-950 px-4 py-3 border border-slate-800/60 text-slate-500">
+                                Aguardando...</li>
                         </ul>
                     </div>
                 </section>
 
                 <section class="rounded-3xl border border-slate-800 bg-slate-900/40 p-8 shadow-xl backdrop-blur-md">
-                    <h2 class="text-xl font-bold text-cyan-400 flex items-center gap-2">ðŸ“š Trilha de FormaÃ§Ã£o</h2>
+                    <h2 class="text-xl font-bold text-cyan-400 flex items-center gap-2">📚 Trilha de Formação</h2>
                     <div class="mt-6 space-y-4" id="dashTrilha">
-                        <p class="text-sm text-slate-500">Aguardando recomendaÃ§Ãµes...</p>
+                        <p class="text-sm text-slate-500">Aguardando recomendações...</p>
                     </div>
                 </section>
             </div>
@@ -100,39 +134,41 @@
 
         <section id="tab-saude" class="hidden max-w-2xl mx-auto space-y-6 animate-fade-in">
             <div class="text-center space-y-2">
-                <h2 class="text-3xl font-bold text-white">ðŸŒ± Check-in de SaÃºde Mental</h2>
+                <h2 class="text-3xl font-bold text-white">🌱 Check-in de Saúde Mental</h2>
                 <p class="text-slate-400 text-sm">Compartilhe seu estado para receber acolhimento.</p>
             </div>
             <div class="rounded-3xl bg-slate-900 border border-slate-800 p-8 shadow-2xl space-y-6">
                 <div class="grid grid-cols-5 gap-2 sm:gap-4">
                     <button type="button" onclick="selectMood(this, 'feliz', 5)" aria-pressed="false"
                         class="mood-btn text-3xl py-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl transition group focus:ring-2 focus:ring-cyan-500 outline-none">
-                        ðŸ˜Š <span class="block text-[10px] text-slate-500 font-medium mt-1">Leve</span>
+                        😊 <span class="block text-[10px] text-slate-500 font-medium mt-1">Leve</span>
                     </button>
                     <button type="button" onclick="selectMood(this, 'cansado', 4)" aria-pressed="false"
                         class="mood-btn text-3xl py-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl transition group focus:ring-2 focus:ring-cyan-500 outline-none">
-                        ðŸ˜´ <span class="block text-[10px] text-slate-500 font-medium mt-1">Cansado</span>
+                        😴 <span class="block text-[10px] text-slate-500 font-medium mt-1">Cansado</span>
                     </button>
                     <button type="button" onclick="selectMood(this, 'triste', 3)" aria-pressed="false"
                         class="mood-btn text-3xl py-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl transition group focus:ring-2 focus:ring-cyan-500 outline-none">
-                        ðŸ˜¢ <span class="block text-[10px] text-slate-500 font-medium mt-1">Triste</span>
+                        😢 <span class="block text-[10px] text-slate-500 font-medium mt-1">Triste</span>
                     </button>
                     <button type="button" onclick="selectMood(this, 'ansioso', 3)" aria-pressed="false"
                         class="mood-btn text-3xl py-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl transition group focus:ring-2 focus:ring-cyan-500 outline-none">
-                        ðŸ˜° <span class="block text-[10px] text-slate-500 font-medium mt-1">Ansioso</span>
+                        😰 <span class="block text-[10px] text-slate-500 font-medium mt-1">Ansioso</span>
                     </button>
                     <button type="button" onclick="selectMood(this, 'sobrecarregado', 2)" aria-pressed="false"
                         class="mood-btn text-3xl py-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl transition group focus:ring-2 focus:ring-cyan-500 outline-none">
-                        ðŸ¤¯ <span class="block text-[10px] text-slate-500 font-medium mt-1">Exausto</span>
+                        🤯 <span class="block text-[10px] text-slate-500 font-medium mt-1">Exausto</span>
                     </button>
                 </div>
                 <form id="formSaude" class="space-y-4">
                     <div class="space-y-3">
-                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Contexto (opcional)</label>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Contexto
+                            (opcional)</label>
                         <textarea rows="4" id="healthContext" placeholder="Compartilhe como se sente..."
                             class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-4 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition"></textarea>
                     </div>
-                    <button type="submit" class="w-full rounded-2xl bg-cyan-500 px-6 py-4 text-sm font-bold text-slate-950 shadow-xl transition hover:bg-cyan-400 transform active:scale-[0.98]">
+                    <button type="submit"
+                        class="w-full rounded-2xl bg-cyan-500 px-6 py-4 text-sm font-bold text-slate-950 shadow-xl transition hover:bg-cyan-400 transform active:scale-[0.98]">
                         Enviar Registro
                     </button>
                 </form>
@@ -147,18 +183,19 @@
         <section id="recomendacoesRegionais" class="hidden mt-10 space-y-6 animate-fade-in">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">ðŸ“ Oportunidades na sua regiÃ£o</h2>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">- Oportunidades na sua região
+                    </h2>
                     <p id="recomendacoesSubtitulo" class="text-sm text-slate-400 mt-1"></p>
                 </div>
             </div>
 
             <div id="recomendacoesVagas" class="hidden">
-                <h3 class="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-3">ðŸ’¼ Vagas</h3>
+                <h3 class="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-3">- Vagas</h3>
                 <div id="listaVagasRecomendadas" class="grid gap-4 sm:grid-cols-2"></div>
             </div>
 
             <div id="recomendacoesCursos" class="hidden">
-                <h3 class="text-sm font-bold text-indigo-400 uppercase tracking-wider mb-3">ðŸ“š Cursos</h3>
+                <h3 class="text-sm font-bold text-indigo-400 uppercase tracking-wider mb-3">📚 Cursos</h3>
                 <div id="listaCursosRecomendados" class="grid gap-4 sm:grid-cols-2"></div>
             </div>
         </section>
@@ -166,15 +203,18 @@
     </main>
 
     <footer class="bg-slate-900 border-t border-slate-800 py-8 mt-auto text-slate-500 text-xs" role="contentinfo">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div><span class="font-bold text-slate-400">BiT App</span> Â© 2026</div>
+        <div
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div><span class="font-bold text-slate-400">BiT App</span> © 2026</div>
             <div class="flex space-x-6">
                 <span class="hover:text-white transition cursor-pointer">Termos de Uso</span>
-                <a href="tel:188" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188 (CVV)</a>
+                <a href="tel:188" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188
+                    (CVV)</a>
             </div>
         </div>
     </footer>
 
     <script type="module" src="js/dashboard.js"></script>
 </body>
+
 </html>

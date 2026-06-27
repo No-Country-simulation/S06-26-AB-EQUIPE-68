@@ -21,7 +21,7 @@ const REGION_COORDS = {
 };
 
 const pontosData = [
-    { id: 1, nome: 'Parque Municipal da Lagoa da Conceição', tipo: 'Parque', regiao: 'LAGOA_CONCEICAO', descricao: 'Trilhas ecológicas, áreas de lazer à beira da laga, playground e espaço para piquenique. Ideal para caminhadas ao entardecer.', gratuito: true, acessivel: true, horario: 'Diário 6h–20h', tags: ['natureza', 'caminhada', 'família'] },
+    { id: 1, nome: 'Parque Municipal da Lagoa da Conceição', tipo: 'Parque', regiao: 'LAGOA_CONCEICAO', descricao: 'Trilhas ecológicas, áreas de lazer à beira da lagoa, playground e espaço para piquenique. Ideal para caminhadas ao entardecer.', gratuito: true, acessivel: true, horario: 'Diário 6h–20h', tags: ['natureza', 'caminhada', 'família'] },
     { id: 2, nome: 'Teatro Ademir Rosa', tipo: 'Teatro', regiao: 'TRINDADE', descricao: 'Principal casa de espetáculos de Florianópolis. Teatro, dança, música e ópera com programação cultural diversificada.', gratuito: false, acessivel: true, horario: 'Seg–Sáb 10h–20h', tags: ['cultura', 'espetáculos', 'teatro'] },
     { id: 3, nome: 'Parque da Cidade Dona Sarah Kubitschek', tipo: 'Parque', regiao: 'ESTREITO_CAPOEIRAS', descricao: 'Maior parque urbano da ilha com 870 mil m². Lago, trilhas, quadras esportivas, rocha de escalada e playground.', gratuito: true, acessivel: true, horario: 'Diário 6h–21h', tags: ['natureza', 'esporte', 'família'] },
     { id: 4, nome: 'Museu da UFSC', tipo: 'Museu', regiao: 'UFSC', descricao: 'Acervo de artes visuais, fotografias e exposições temporárias. Entrada gratuita para estudantes.', gratuito: true, acessivel: true, horario: 'Seg–Sex 9h–17h', tags: ['cultura', 'arte', 'educação'] },

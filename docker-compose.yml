@@ -37,6 +37,22 @@ services:
       timeout: 5s
       retries: 5
 
+  frontend:
+    image: nginx:alpine
+    container_name: bitapp-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:80"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
   n8n:
     image: n8nio/n8n:latest
     container_name: bitapp-n8n
