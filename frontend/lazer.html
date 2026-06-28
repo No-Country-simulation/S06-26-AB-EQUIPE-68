@@ -126,6 +126,9 @@
         </div>
 
         <section aria-label="Mapa de pontos de interesse" class="mb-8">
+            <div class="flex justify-end mb-3">
+                <button onclick="localizarUsuario()" class="text-xs font-semibold px-4 py-2 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20 transition">📍 Minha localização</button>
+            </div>
             <div class="rounded-3xl overflow-hidden border border-slate-800 shadow-2xl" style="height: 400px;">
                 <div id="mapa" style="height: 100%; width: 100%;"></div>
             </div>

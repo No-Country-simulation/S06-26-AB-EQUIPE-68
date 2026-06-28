@@ -251,3 +251,51 @@ window.focarNoMapa = function(id) {
 
 // Inicializa o mapa quando a página carrega
 document.addEventListener('DOMContentLoaded', initMapa);
+
+// ============================================================
+// CAMADA 2: Localização do usuário
+// ============================================================
+let marcadorUsuario = null;
+
+window.localizarUsuario = function() {
+    if (!navigator.geolocation) {
+        alert('Seu navegador não suporta geolocalização.');
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        // Sucesso: pegou a localização
+        function(pos) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+
+            // Remove marcador anterior se já existir
+            if (marcadorUsuario) {
+                mapa.removeLayer(marcadorUsuario);
+            }
+
+            // Ícone azul diferente para "você"
+            const iconeUsuario = L.divIcon({
+                html: '<div style="background:#06b6d4;width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 0 8px rgba(6,182,212,0.8);"></div>',
+                className: '',
+                iconSize: [18, 18],
+                iconAnchor: [9, 9]
+            });
+
+            marcadorUsuario = L.marker([lat, lng], { icon: iconeUsuario })
+                .addTo(mapa)
+                .bindPopup('<strong>Você está aqui</strong>')
+                .openPopup();
+
+            mapa.setView([lat, lng], 14);
+        },
+        // Erro: negou permissão ou falhou
+        function(err) {
+            if (err.code === err.PERMISSION_DENIED) {
+                alert('Permissão de localização negada. Você pode ativá-la nas configurações do navegador.');
+            } else {
+                alert('Não foi possível obter sua localização.');
+            }
+        }
+    );
+};
