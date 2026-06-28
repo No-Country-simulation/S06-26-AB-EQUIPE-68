@@ -113,6 +113,7 @@ function renderGrid() {
             </div>
             <div class="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between">
                 <div class="flex flex-wrap gap-1">${(p.tags || []).map(t => `<span class="text-[9px] text-slate-500">#${t}</span>`).join(' ')}</div>
+                <button onclick="focarNoMapa(${p.id})" class="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition mr-3" aria-label="Ver ${p.nome} no mapa">📍 No mapa</button>
                 <button onclick="abrirModal(${p.id})" class="text-xs font-semibold text-amber-400 hover:text-amber-300 transition focus:outline-none focus:ring-2 focus:ring-amber-500 rounded" aria-label="Ver detalhes de ${p.nome}">Detalhes →</button>
             </div>
         `;
@@ -202,3 +203,51 @@ document.addEventListener('DOMContentLoaded', () => {
     populateFilters();
     applyFilters();
 });
+
+// ============================================================
+// MAPA LEAFLET — Camada 1: marcadores + interação com cards
+// ============================================================
+let mapa = null;
+const marcadores = {}; // índice: id do ponto → marcador no mapa
+
+function initMapa() {
+    const el = document.getElementById('mapa');
+    if (!el || mapa) return; // se não existe a div ou já foi criado, sai
+
+    // Cria o mapa centrado em Florianópolis
+    mapa = L.map('mapa').setView([-27.5954, -48.5480], 12);
+
+    // Camada de base (OpenStreetMap — gratuito, sem chave)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 19
+    }).addTo(mapa);
+
+    // Plota um marcador para cada ponto de interesse
+    pontosData.forEach(p => {
+        const coord = REGION_COORDS[p.regiao];
+        if (!coord) return; // se a região não tem coordenada, pula
+
+        const marcador = L.marker([coord.lat, coord.lng]).addTo(mapa);
+        marcador.bindPopup(
+            '<strong>' + p.nome + '</strong><br>' +
+            '<span style="color:#666">' + p.tipo + '</span><br>' +
+            p.horario
+        );
+        marcadores[p.id] = marcador; // guarda no índice por id
+    });
+}
+
+// Chamada pelos cards: centraliza o mapa no ponto e abre o popup
+window.focarNoMapa = function(id) {
+    const marcador = marcadores[id];
+    if (!marcador) return;
+    const pos = marcador.getLatLng();
+    mapa.setView(pos, 15);        // voa até o ponto com zoom
+    marcador.openPopup();          // abre o popup
+    // rola a tela até o mapa, para o usuário ver o resultado
+    document.getElementById('mapa').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Inicializa o mapa quando a página carrega
+document.addEventListener('DOMContentLoaded', initMapa);

@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Lazer e cultura em Florianópolis — pontos de interesse, parques, teatros e atrações gratuitas mapeados pela rede VISent." />
     <title>Lazer & Cultura - App BiT</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -125,12 +127,7 @@
 
         <section aria-label="Mapa de pontos de interesse" class="mb-8">
             <div class="rounded-3xl overflow-hidden border border-slate-800 shadow-2xl" style="height: 400px;">
-                <iframe
-                    src="https://www.google.com/maps/d/embed?mid=1AbCdEfGhIjKlMnOpQrStUvWxYz&ll=-27.5954,-48.5480&z=12"
-                    width="100%" height="100%" style="border:0; filter: saturate(0.8) brightness(0.9);" allowfullscreen loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade"
-                    title="Mapa de pontos de interesse em Florianópolis">
-                </iframe>
+                <div id="mapa" style="height: 100%; width: 100%;"></div>
             </div>
             <div id="mapFallback" class="hidden rounded-3xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-900 flex items-center justify-center" style="height: 400px;">
                 <div class="text-center space-y-3 p-8">
@@ -159,7 +156,7 @@
         <p id="lazerStatus" class="mt-6 text-sm text-slate-500 text-center" role="status"></p>
     </main>
 
-    <div id="lazerModal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Detalhes do ponto">
+    <div id="lazerModal" class="fixed inset-0 z-[1100] hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Detalhes do ponto">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-8 shadow-2xl relative">
             <button id="closeModal" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl" aria-label="Fechar">&times;</button>
             <div id="modalContent"></div>
