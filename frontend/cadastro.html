@@ -1,11 +1,11 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description"
-        content="BiT App â€” Crie sua conta e comece sua jornada na tecnologia." />
+        content="BiT App – Crie sua conta e comece sua jornada na tecnologia." />
     <title>BiT App - Cadastro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -23,7 +23,7 @@
 </head>
 
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
-    <a href="#conteudo-principal" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-cyan-500 focus:text-slate-950 focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold">Pular para o conteÃºdo</a>
+    <a href="#conteudo-principal" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-cyan-500 focus:text-slate-950 focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold">Pular para o conteúdo</a>
 
     <nav class="sticky top-0 z-50 bg-slate-900/80 border-b border-slate-800 backdrop-blur-lg" aria-label="Menu principal">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -122,7 +122,7 @@
             </div>
 
             <div class="rounded-3xl bg-slate-900 border border-slate-800 p-8 shadow-2xl">
-                <form id="formCadastro" class="space-y-5" novalidate aria-label="FormulÃ¡rio de cadastro">
+                <form id="formCadastro" class="space-y-5" novalidate aria-label="Formulário de cadastro">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="regNome" class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
@@ -144,27 +144,27 @@
                     <div>
                         <label for="regPassword" class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
                             Senha <span class="text-rose-400">*</span>
-                            <span class="normal-case text-slate-500">(mÃ­nimo 6 caracteres)</span>
+                            <span class="normal-case text-slate-500">(mínimo 6 caracteres)</span>
                         </label>
                         <input type="password" id="regPassword" name="password" required minlength="6" autocomplete="new-password"
                             aria-required="true" aria-describedby="regPasswordHint"
                             class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition" />
-                        <p id="regPasswordHint" class="mt-1 text-xs text-slate-500">Use pelo menos 6 caracteres com letras e nÃºmeros.</p>
+                        <p id="regPasswordHint" class="mt-1 text-xs text-slate-500">Use pelo menos 6 caracteres com letras e números.</p>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label for="regCidade" class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Cidade / RegiÃ£o</label>
+                            <label for="regCidade" class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Cidade / Região</label>
                             <select id="regCidade" name="cidade"
                                 class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition">
-                                <option value="">Selecione sua regiÃ£o</option>
-                                <option value="TRINDADE">FlorianÃ³polis â€” Trindade</option>
-                                <option value="CBD_BEIRAMAR">FlorianÃ³polis â€” Centro/Beiramar</option>
-                                <option value="UFSC">FlorianÃ³polis â€” UFSC</option>
-                                <option value="CAMPECHE">FlorianÃ³polis â€” Campeche</option>
-                                <option value="INGLESES">FlorianÃ³polis â€” Ingleses</option>
-                                <option value="LAGOA_CONCEICAO">FlorianÃ³polis â€” Lagoa da ConceiÃ§Ã£o</option>
-                                <option value="ESTREITO_CAPOEIRAS">FlorianÃ³polis â€” Estreito/Capoeiras</option>
-                                <option value="SAO_JOSE_CENTRO">SÃ£o JosÃ© â€” Centro</option>
+                                <option value="">Selecione sua região</option>
+                                <option value="TRINDADE">Florianópolis – Trindade</option>
+                                <option value="CBD_BEIRAMAR">Florianópolis – Centro/Beiramar</option>
+                                <option value="UFSC">Florianópolis – UFSC</option>
+                                <option value="CAMPECHE">Florianópolis – Campeche</option>
+                                <option value="INGLESES">Florianópolis – Ingleses</option>
+                                <option value="LAGOA_CONCEICAO">Florianópolis – Lagoa da Conceição</option>
+                                <option value="ESTREITO_CAPOEIRAS">Florianópolis – Estreito/Capoeiras</option>
+                                <option value="SAO_JOSE_CENTRO">São José – Centro</option>
                             </select>
                         </div>
                         <div>
@@ -179,12 +179,12 @@
                             <select id="regNivel" name="nivelProfissional"
                                 class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition">
                                 <option value="Estudante">Estudante</option>
-                                <option value="Transicao">TransiÃ§Ã£o de Carreira</option>
-                                <option value="Graduado">Graduado sem experiÃªncia</option>
+                                <option value="Transicao">Transição de Carreira</option>
+                                <option value="Graduado">Graduado sem experiência</option>
                             </select>
                         </div>
                         <div>
-                            <label for="regArea" class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Ãrea Alvo</label>
+                            <label for="regArea" class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Área Alvo</label>
                             <select id="regArea" name="areaTecnologia"
                                 class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition">
                                 <option value="Java">Java Back-End</option>
@@ -192,8 +192,8 @@
                                 <option value="Dados">Data Analysis & BI</option>
                                 <option value="Mobile">Mobile (Android/iOS)</option>
                                 <option value="DevOps">DevOps & Cloud</option>
-                                <option value="Ciberseguranca">CiberseguranÃ§a</option>
-                                <option value="IA">InteligÃªncia Artificial</option>
+                                <option value="Ciberseguranca">Cibersegurança</option>
+                                <option value="IA">Inteligência Artificial</option>
                                 <option value="Games">Game Development</option>
                                 <option value="UIUX">UI/UX Design</option>
                                 <option value="Infraestrutura">Infraestrutura & Redes</option>
@@ -202,7 +202,7 @@
                     </div>
                     <div>
                         <label for="regSkills" class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Habilidades Atuais</label>
-                        <textarea id="regSkills" name="competenciasAtuais" rows="2" placeholder="Ex: HTML, CSS, Java bÃ¡sico"
+                        <textarea id="regSkills" name="competenciasAtuais" rows="2" placeholder="Ex: HTML, CSS, Java básico"
                             class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition"></textarea>
                     </div>
 
@@ -216,14 +216,14 @@
                         </button>
                         <button type="button" id="btnLimpar"
                             class="rounded-2xl border border-slate-700 px-6 py-4 text-sm font-bold text-slate-400 hover:text-white hover:border-slate-500 transition active:scale-[0.98] focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-900 outline-none"
-                            aria-label="Limpar formulÃ¡rio">
+                            aria-label="Limpar formulário">
                             Limpar
                         </button>
                     </div>
                 </form>
 
                 <div class="mt-6 pt-6 border-t border-slate-800 text-center">
-                    <p class="text-sm text-slate-400">JÃ¡ tem uma conta?</p>
+                    <p class="text-sm text-slate-400">Já tem uma conta?</p>
                     <a href="index.html"
                         class="inline-block mt-2 text-sm font-bold text-cyan-400 hover:text-cyan-300 transition">
                         Voltar para o Login
@@ -234,11 +234,11 @@
             <div class="rounded-2xl bg-slate-900/40 p-5 border border-slate-800 backdrop-blur-md">
                 <h2 class="text-sm font-bold text-cyan-400 mb-2">Acessibilidade</h2>
                 <ul class="text-xs text-slate-400 space-y-1.5 leading-relaxed">
-                    <li>â€¢ Use <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">Tab</kbd> para navegar entre os campos do formulÃ¡rio.</li>
-                    <li>â€¢ Campos obrigatÃ³rios estÃ£o marcados com <span class="text-rose-400">*</span>.</li>
-                    <li>â€¢ Todos os campos possuem rÃ³tulos acessÃ­veis para leitores de tela.</li>
-                    <li>â€¢ Use <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">Enter</kbd> para enviar o formulÃ¡rio.</li>
-                    <li>â€¢ Em caso de dificuldade, ligue para <a href="tel:188" class="text-rose-400 font-semibold hover:text-rose-300">188 (CVV)</a>.</li>
+                    <li>"¢ Use <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">Tab</kbd> para navegar entre os campos do formulário.</li>
+                    <li>"¢ Campos obrigatórios estão marcados com <span class="text-rose-400">*</span>.</li>
+                    <li>"¢ Todos os campos possuem rótulos acessíveis para leitores de tela.</li>
+                    <li>"¢ Use <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">Enter</kbd> para enviar o formulário.</li>
+                    <li>"¢ Em caso de dificuldade, ligue para <a href="tel:188" class="text-rose-400 font-semibold hover:text-rose-300">188 (CVV)</a>.</li>
                 </ul>
             </div>
         </div>
@@ -248,7 +248,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-2">
                 <span class="font-bold text-slate-400">BiT App</span>
-                <span>Â© 2026 Ecossistema de InclusÃ£o TecnolÃ³gica.</span>
+                <span>© 2026 Ecossistema de Inclusão Tecnológica.</span>
             </div>
             <div class="flex space-x-6">
                 <span class="hover:text-white transition cursor-pointer">Termos de Uso</span>
@@ -290,12 +290,12 @@
                     const json = await resp.json();
                     if (json.success && json.data) {
                         const d = json.data;
-                        text.textContent = d.status === 'Estavel' ? 'Rede EstÃ¡vel â€” ' + (d.tecnologiaPredominante || '4G') : 'Rede InstÃ¡vel';
+                        text.textContent = d.status === 'Estavel' ? 'Rede Estável – ' + (d.tecnologiaPredominante || '4G') : 'Rede Instável';
                         return;
                     }
                 }
-                text.textContent = 'Rede EstÃ¡vel â€” 4G';
-            } catch(e) { text.textContent = 'Rede EstÃ¡vel â€” 4G'; }
+                text.textContent = 'Rede Estável – 4G';
+            } catch(e) { text.textContent = 'Rede Estável – 4G'; }
         })();
     </script>
 </body>
