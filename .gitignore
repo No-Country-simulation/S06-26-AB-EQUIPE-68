@@ -51,3 +51,6 @@ docker/logs/
 # ─── Temporários ──────────────────────────────────────────────────────────
 cookies.txt
 build_log.txt
+
+# Frontend copiado pelo maven-resources-plugin (gerado no build)
+backend/src/main/resources/static/
