@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:8080' : '';
 
 function getToken() {
     return localStorage.getItem('bitapp_token');
@@ -9,7 +9,7 @@ async function apiFetch(path, options = {}) {
     const token = getToken();
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
-    }
+    }c
 
     const response = await fetch(`${API_BASE_URL}${path}`, {
         ...options,
