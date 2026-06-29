@@ -113,6 +113,7 @@ function renderGrid() {
             </div>
             <div class="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between">
                 <div class="flex flex-wrap gap-1">${(p.tags || []).map(t => `<span class="text-[9px] text-slate-500">#${t}</span>`).join(' ')}</div>
+                <button onclick="tracarRota(${p.id})" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition mr-3" aria-label="Tracar rota ate ${p.nome}">🛣️ Rota</button>
                 <button onclick="focarNoMapa(${p.id})" class="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition mr-3" aria-label="Ver ${p.nome} no mapa">📍 No mapa</button>
                 <button onclick="abrirModal(${p.id})" class="text-xs font-semibold text-amber-400 hover:text-amber-300 transition focus:outline-none focus:ring-2 focus:ring-amber-500 rounded" aria-label="Ver detalhes de ${p.nome}">Detalhes →</button>
             </div>
@@ -282,6 +283,7 @@ window.localizarUsuario = function() {
                 iconAnchor: [9, 9]
             });
 
+            coordsUsuario = [lat, lng];
             marcadorUsuario = L.marker([lat, lng], { icon: iconeUsuario })
                 .addTo(mapa)
                 .bindPopup('<strong>Você está aqui</strong>')
@@ -299,3 +301,65 @@ window.localizarUsuario = function() {
         }
     );
 };
+
+
+
+// ============================================================
+// CAMADA 3: Rota via OpenRouteService (pelo backend)
+// ============================================================
+let coordsUsuario = null;   // [lat, lng] da localizacao do usuario
+let linhaRota = null;       // a linha desenhada no mapa
+
+// Chamada pelo botao "Rota" no card — ja recebe o id do destino
+window.tracarRota = async function(idDestino) {
+    if (!coordsUsuario) {
+        alert('Primeiro clique em "Minha localização" para definir o ponto de partida.');
+        return;
+    }
+
+    const ponto = pontosData.find(p => p.id === idDestino);
+    const coordDestino = REGION_COORDS[ponto.regiao];
+    if (!coordDestino) {
+        alert('Este ponto não tem coordenada disponível.');
+        return;
+    }
+
+    try {
+        const resp = await fetch(API_BASE_URL + '/api/rota', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                origem:  [coordsUsuario[1], coordsUsuario[0]],
+                destino: [coordDestino.lng, coordDestino.lat]
+            })
+        });
+
+        if (!resp.ok) {
+            abrirNoGoogleMaps(coordsUsuario, coordDestino);
+            return;
+        }
+
+        const dados = await resp.json();
+        const coords = dados.features[0].geometry.coordinates;
+
+        if (linhaRota) mapa.removeLayer(linhaRota);
+
+        const pontosLinha = coords.map(c => [c[1], c[0]]);
+        linhaRota = L.polyline(pontosLinha, { color: '#06b6d4', weight: 5, opacity: 0.8 }).addTo(mapa);
+        mapa.fitBounds(linhaRota.getBounds(), { padding: [40, 40] });
+
+        const dist = (dados.features[0].properties.summary.distance / 1000).toFixed(1);
+        const min = Math.round(dados.features[0].properties.summary.duration / 60);
+        document.getElementById('mapa').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        alert('Rota tracada: ' + dist + ' km - aprox. ' + min + ' min de carro ate ' + ponto.nome);
+
+    } catch (err) {
+        abrirNoGoogleMaps(coordsUsuario, coordDestino);
+    }
+};
+
+// Fallback: abre a rota no Google Maps em nova aba
+function abrirNoGoogleMaps(origem, destino) {
+    const url = 'https://www.google.com/maps/dir/' + origem[0] + ',' + origem[1] + '/' + destino.lat + ',' + destino.lng;
+    window.open(url, '_blank');
+}
