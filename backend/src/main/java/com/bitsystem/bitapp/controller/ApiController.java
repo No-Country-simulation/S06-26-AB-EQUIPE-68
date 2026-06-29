@@ -41,6 +41,12 @@ public class ApiController {
         return ResponseEntity.ok(StandardApiResponse.ok(saudeMentalService.avaliarEstadoMental(request)));
     }
 
+    @GetMapping("/saude/historico")
+    public ResponseEntity<StandardApiResponse<java.util.List<SaudeDto.HistoricoResponse>>> historicoSaude(
+            @RequestParam Long usuarioId) {
+        return ResponseEntity.ok(StandardApiResponse.ok(saudeMentalService.buscarHistorico(usuarioId)));
+    }
+
     @GetMapping("/network-status/{usuarioId}")
     public ResponseEntity<StandardApiResponse<NetworkStatusDto>> getNetworkStatus(
             @PathVariable Long usuarioId,

@@ -74,6 +74,13 @@ public class OrientacaoService {
                 jsonStr = jsonStr.replaceAll("```json\\s*", "").replaceAll("```\\s*", "");
             }
 
+            // Extrair apenas o bloco JSON (ignorar texto antes/depois)
+            int start = jsonStr.indexOf('{');
+            int end = jsonStr.lastIndexOf('}');
+            if (start >= 0 && end > start) {
+                jsonStr = jsonStr.substring(start, end + 1);
+            }
+
             JsonNode root = objectMapper.readTree(jsonStr);
 
             int gapPercentual = root.path("gapPercentual").asInt(30);

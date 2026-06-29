@@ -75,4 +75,19 @@ public class SaudeDto {
         /** Ação bruta do Gemini */
         String acaoSugerida
     ) {}
+
+    /**
+     * RESPOSTA: Item do histórico de check-ins
+     * 
+     * Retornado por GET /api/saude/historico
+     * Lista de registros anteriores do usuário
+     */
+    public record HistoricoResponse(
+        Long id,
+        String humor,
+        Integer notaSemanal,
+        String contexto,
+        Boolean derivouCvv,
+        java.time.LocalDateTime createdAt
+    ) {}
 }

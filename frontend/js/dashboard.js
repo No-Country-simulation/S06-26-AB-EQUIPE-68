@@ -31,8 +31,8 @@ document.getElementById('menuToggle')?.addEventListener('click', () => {
     toggle.setAttribute('aria-expanded', String(!isOpen));
 });
 
-function handleLogout() {
-    logout();
+async function handleLogout() {
+    await logout();
     window.location.href = 'index.html';
 }
 window.handleLogout = handleLogout;

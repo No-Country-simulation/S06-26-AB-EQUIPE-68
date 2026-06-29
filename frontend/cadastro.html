@@ -31,44 +31,73 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-3">
-                    <a href="index.html"
-                        class="text-2xl font-black tracking-wider bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">BiT</a>
+                    <span
+                        class="text-2xl font-black tracking-wider bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">BiT</span>
                     <span
                         class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Cadastro</span>
                 </div>
 
                 <button id="menuToggle" type="button"
                     class="md:hidden p-2 rounded-lg border border-slate-700 text-slate-300" aria-label="Abrir menu"
-                    aria-expanded="false">â˜°</button>
+                    aria-expanded="false">☰</button>
 
                 <div id="navLinks" class="hidden md:flex items-center space-x-2">
-                    <a href="index.html"
-                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Login</a>
-                    <a href="vagas.html"
-                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
-                    <a href="cursos.html"
-                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
-                    <a href="lazer.html"
-                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
-                    <a href="saude-mental.html"
-                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde Mental</a>
-
+                    <div id="navLoggedOut">
+                        <a href="vagas.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
+                        <a href="cursos.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
+                        <a href="lazer.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
+                        <a href="saude-mental.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde Mental</a>
+                    </div>
+                    <div id="navLoggedIn" class="hidden">
+                        <a href="dashboard.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Dashboard</a>
+                        <a href="vagas.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
+                        <a href="cursos.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
+                        <a href="lazer.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
+                        <a href="saude-mental.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde Mental</a>
+                        <a href="perfil.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Meu Perfil</a>
+                        <button onclick="handleLogout()"
+                            class="text-sm font-medium text-rose-400 hover:text-rose-300 transition py-2 px-3">Sair</button>
+                    </div>
                 </div>
             </div>
 
             <div id="mobileNav" class="hidden md:hidden pb-4 space-y-2">
-                <a href="index.html"
-                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Login</a>
-                <a href="vagas.html"
-                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
-                <a href="cursos.html"
-                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
-                <a href="lazer.html"
-                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
-                <a href="saude-mental.html"
-                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde
-                    Mental</a>
-
+                <div id="mobileNavLoggedOut">
+                    <a href="vagas.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
+                    <a href="cursos.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
+                    <a href="lazer.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
+                    <a href="saude-mental.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde Mental</a>
+                </div>
+                <div id="mobileNavLoggedIn" class="hidden">
+                    <a href="dashboard.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Dashboard</a>
+                    <a href="vagas.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
+                    <a href="cursos.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
+                    <a href="lazer.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
+                    <a href="saude-mental.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde Mental</a>
+                    <a href="perfil.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Meu Perfil</a>
+                    <button onclick="handleLogout()"
+                        class="block w-full text-left text-sm font-medium text-rose-400 py-2 px-3 rounded-lg border border-slate-800">Sair</button>
+                </div>
             </div>
         </div>
     </nav>
@@ -118,6 +147,15 @@
             checkScreenSize();
         });
     </script>
+    <script>
+        const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
+        if (usuario) {
+            document.getElementById('navLoggedOut')?.classList.add('hidden');
+            document.getElementById('navLoggedIn')?.classList.remove('hidden');
+            document.getElementById('mobileNavLoggedOut')?.classList.add('hidden');
+            document.getElementById('mobileNavLoggedIn')?.classList.remove('hidden');
+        }
+    </script>
 
     <main id="conteudo-principal" class="flex-grow flex items-center justify-center px-4 py-10">
         <div class="w-full max-w-lg space-y-8 animate-fade-in">
@@ -160,9 +198,19 @@
                             Senha <span class="text-rose-400">*</span>
                             <span class="normal-case text-slate-500">(mínimo 6 caracteres)</span>
                         </label>
-                        <input type="password" id="regPassword" name="password" required minlength="6"
-                            autocomplete="new-password" aria-required="true" aria-describedby="regPasswordHint"
-                            class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition" />
+                        <div class="relative">
+                            <input type="password" id="regPassword" name="password" required minlength="6"
+                                autocomplete="new-password" aria-required="true" aria-describedby="regPasswordHint"
+                                class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 pr-12 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition" />
+                            <button type="button" id="toggleRegPassword" tabindex="-1"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition"
+                                aria-label="Mostrar senha">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
                         <p id="regPasswordHint" class="mt-1 text-xs text-slate-500">Use pelo menos 6 caracteres com
                             letras e números.</p>
                     </div>
@@ -282,9 +330,8 @@
                 <span>© 2026 Ecossistema de Inclusão Tecnológica.</span>
             </div>
             <div class="flex space-x-6">
-                <span class="hover:text-white transition cursor-pointer">Termos de Uso</span>
-                <a href="tel:188" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188
-                    (CVV)</a>
+                <span>Termos de Uso</span>
+                <span>Suporte 188 (CVV)</span>
             </div>
         </div>
     </footer>
@@ -307,6 +354,34 @@
             setTimeout(limpar, 500);
             var btnLimpar = document.getElementById('btnLimpar');
             if (btnLimpar) btnLimpar.addEventListener('click', limpar);
+        });
+    </script>
+    <script>
+        document.getElementById('menuToggle')?.addEventListener('click', () => {
+            const mobileNav = document.getElementById('mobileNav');
+            const toggle = document.getElementById('menuToggle');
+            const isOpen = !mobileNav.classList.contains('hidden');
+            mobileNav.classList.toggle('hidden', isOpen);
+            toggle.setAttribute('aria-expanded', String(!isOpen));
+        });
+
+        const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
+        if (usuario) {
+            document.getElementById('navLoggedOut')?.classList.add('hidden');
+            document.getElementById('navLoggedIn')?.classList.remove('hidden');
+            document.getElementById('mobileNavLoggedOut')?.classList.add('hidden');
+            document.getElementById('mobileNavLoggedIn')?.classList.remove('hidden');
+        }
+
+        document.getElementById('toggleRegPassword')?.addEventListener('click', function() {
+            const input = document.getElementById('regPassword');
+            if (!input) return;
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            this.setAttribute('aria-label', isPassword ? 'Ocultar senha' : 'Mostrar senha');
+            this.innerHTML = isPassword
+                ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>'
+                : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>';
         });
     </script>
     <script>

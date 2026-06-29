@@ -33,9 +33,8 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-3">
-                    <a href="index.html"
-                        class="text-2xl font-black tracking-wider bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent"
-                        aria-label="BiT App - Página inicial">BiT</a>
+                    <span
+                        class="text-2xl font-black tracking-wider bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">BiT</span>
                     <span
                         class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Lazer</span>
                 </div>
@@ -45,22 +44,29 @@
                     aria-expanded="false">☰</button>
 
                 <div id="navLinks" class="hidden md:flex items-center space-x-2">
-                    <a href="index.html"
-                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Login</a>
-
-                    <a href="vagas.html"
-                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
-                    <a href="cursos.html"
-                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
-                    <a href="lazer.html"
-                        class="text-sm font-medium text-amber-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Lazer</a>
-                    <a href="saude-mental.html"
-                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde Mental</a>
-
-                    <div id="authSection" class="hidden">
+                    <div id="navLoggedOut">
+                        <a href="vagas.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
+                        <a href="cursos.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
+                        <a href="lazer.html"
+                            class="text-sm font-medium text-amber-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Lazer</a>
+                        <a href="saude-mental.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde Mental</a>
+                    </div>
+                    <div id="navLoggedIn" class="hidden">
                         <a href="dashboard.html"
-                            class="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition py-2 px-3">Meu
-                            Painel</a>
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Dashboard</a>
+                        <a href="vagas.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
+                        <a href="cursos.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
+                        <a href="lazer.html"
+                            class="text-sm font-medium text-amber-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Lazer</a>
+                        <a href="saude-mental.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde Mental</a>
+                        <a href="perfil.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Meu Perfil</a>
                         <button onclick="handleLogout()"
                             class="text-sm font-medium text-rose-400 hover:text-rose-300 transition py-2 px-3">Sair</button>
                     </div>
@@ -68,26 +74,32 @@
             </div>
 
             <div id="mobileNav" class="hidden md:hidden pb-4 space-y-2">
-                <a href="index.html"
-                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Login</a>
-
-                <a href="dashboard.html"
-                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Painel</a>
-                <a href="vagas.html"
-                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
-                <a href="cursos.html"
-                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
-                <a href="lazer.html"
-                    class="block text-sm font-medium text-amber-400 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
-                <a href="saude-mental.html"
-                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde
-                    Mental</a>
-
-                <a href="dashboard.html"
-                    class="block text-sm font-medium text-cyan-400 py-2 px-3 rounded-lg border border-slate-800">Meu
-                    Painel</a>
-                <button onclick="handleLogout()"
-                    class="block w-full text-left text-sm font-medium text-rose-400 py-2 px-3 rounded-lg border border-slate-800">Sair</button>
+                <div id="mobileNavLoggedOut">
+                    <a href="vagas.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
+                    <a href="cursos.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
+                    <a href="lazer.html"
+                        class="block text-sm font-medium text-amber-400 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
+                    <a href="saude-mental.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde Mental</a>
+                </div>
+                <div id="mobileNavLoggedIn" class="hidden">
+                    <a href="dashboard.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Dashboard</a>
+                    <a href="vagas.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
+                    <a href="cursos.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
+                    <a href="lazer.html"
+                        class="block text-sm font-medium text-amber-400 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
+                    <a href="saude-mental.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde Mental</a>
+                    <a href="perfil.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Meu Perfil</a>
+                    <button onclick="handleLogout()"
+                        class="block w-full text-left text-sm font-medium text-rose-400 py-2 px-3 rounded-lg border border-slate-800">Sair</button>
+                </div>
             </div>
         </div>
     </nav>
@@ -219,9 +231,8 @@
             class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <span class="font-bold text-slate-400">BiT App</span>
             <div class="flex space-x-6">
-                <span class="hover:text-white transition cursor-pointer">Termos de Uso</span>
-                <a href="tel:188" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188
-                    (CVV)</a>
+                <span>Termos de Uso</span>
+                <span>Suporte 188 (CVV)</span>
             </div>
         </div>
     </footer>
@@ -245,7 +256,10 @@
 
         const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
         if (usuario) {
-            document.getElementById('authSection')?.classList.remove('hidden');
+            document.getElementById('navLoggedOut')?.classList.add('hidden');
+            document.getElementById('navLoggedIn')?.classList.remove('hidden');
+            document.getElementById('mobileNavLoggedOut')?.classList.add('hidden');
+            document.getElementById('mobileNavLoggedIn')?.classList.remove('hidden');
         }
 
         function handleLogout() {

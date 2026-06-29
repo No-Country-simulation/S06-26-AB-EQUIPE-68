@@ -1,4 +1,4 @@
-import { saudeCheckin } from './api.js';
+import { saudeCheckin, historicoSaude } from './api.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -181,3 +181,41 @@ function carregarDicasLazer() {
 }
 
 document.addEventListener('DOMContentLoaded', carregarDicasLazer);
+
+const MOOD_EMOJIS = {
+    feliz: '😊',
+    cansado: '😴',
+    triste: '😢',
+    ansioso: '😰',
+    sobrecarregado: '🤯',
+};
+
+async function carregarHistorico() {
+    const grid = document.getElementById('historicoGrid');
+    const empty = document.getElementById('historicoEmpty');
+    if (!grid || !empty || !usuario?.id) return;
+
+    try {
+        const registros = await historicoSaude(usuario.id);
+        if (!registros || registros.length === 0) {
+            empty.classList.remove('hidden');
+            return;
+        }
+        empty.classList.add('hidden');
+        grid.innerHTML = registros.slice(0, 10).map(r => `
+            <div class="rounded-2xl bg-slate-900/60 border border-slate-800 p-4 flex items-center gap-4">
+                <span class="text-2xl">${MOOD_EMOJIS[r.humor] || '❓'}</span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-white capitalize">${r.humor || '—'}</p>
+                    <p class="text-xs text-slate-400 truncate">${r.contexto || 'Sem contexto'}</p>
+                </div>
+                <span class="text-[10px] text-slate-500 shrink-0">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('pt-BR') : '—'}</span>
+            </div>
+        `).join('');
+    } catch {
+        empty.classList.remove('hidden');
+        empty.textContent = 'Erro ao carregar histórico.';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', carregarHistorico);

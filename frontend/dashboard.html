@@ -31,14 +31,14 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-3">
-                    <a href="index.html"
-                        class="text-2xl font-black tracking-wider bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">BiT</a>
+                    <span
+                        class="text-2xl font-black tracking-wider bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">BiT</span>
                     <span
                         class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Dashboard</span>
                 </div>
                 <button id="menuToggle" type="button"
                     class="md:hidden p-2 rounded-lg border border-slate-700 text-slate-300" aria-label="Abrir menu"
-                    aria-expanded="false">â˜°</button>
+                    aria-expanded="false">☰</button>
                 <div id="navLinks" class="hidden md:flex items-center space-x-2">
                     <a href="dashboard.html"
                         class="text-sm font-medium text-cyan-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Dashboard</a>
@@ -51,6 +51,8 @@
                         class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
                     <a href="lazer.html"
                         class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
+                    <a href="perfil.html"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Meu Perfil</a>
 
                     <button onclick="handleLogout()"
                         class="text-sm font-medium text-rose-400 hover:text-rose-300 transition py-2 px-3">Sair</button>
@@ -68,6 +70,8 @@
                     class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
                 <a href="lazer.html"
                     class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
+                <a href="perfil.html"
+                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Meu Perfil</a>
 
                 <button onclick="handleLogout()"
                     class="block w-full text-left text-sm font-medium text-rose-400 py-2 px-3 rounded-lg border border-slate-800">Sair</button>
@@ -180,9 +184,8 @@
             class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div><span class="font-bold text-slate-400">BiT App</span> © 2026</div>
             <div class="flex space-x-6">
-                <span class="hover:text-white transition cursor-pointer">Termos de Uso</span>
-                <a href="tel:188" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188
-                    (CVV)</a>
+                <span>Termos de Uso</span>
+                <span>Suporte 188 (CVV)</span>
             </div>
         </div>
     </footer>

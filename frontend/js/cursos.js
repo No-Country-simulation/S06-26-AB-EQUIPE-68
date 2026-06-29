@@ -1,4 +1,4 @@
-import { listarCursos, buscarCurso, listarRegioesCursos } from './api.js';
+import { listarCursos, buscarCurso, listarRegioesCursos, inscreverCurso } from './api.js';
 
 const grid = document.getElementById('cursosGrid');
 const statusEl = document.getElementById('cursosStatus');
@@ -155,6 +155,13 @@ async function abrirModal(id) {
                 <div class="text-xs text-slate-500 text-right">
                     Publicado em ${new Date(c.createdAt).toLocaleDateString('pt-BR')}
                 </div>
+                <div id="inscreverCursoArea">
+                    <button onclick="inscreverNoCurso(${c.id})"
+                        class="w-full rounded-2xl bg-emerald-500 px-6 py-3 text-sm font-bold text-slate-950 shadow-xl transition hover:bg-emerald-400 transform active:scale-[0.98] focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900 outline-none">
+                        Inscrever-se
+                    </button>
+                    <p id="inscreverCursoMsg" class="mt-2 text-xs text-center hidden"></p>
+                </div>
             </div>`;
         modal.classList.remove('hidden');
     } catch (err) {
@@ -166,6 +173,28 @@ closeModal?.addEventListener('click', () => modal.classList.add('hidden'));
 modal?.addEventListener('click', (e) => {
     if (e.target === modal) modal.classList.add('hidden');
 });
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+        modal.classList.add('hidden');
+    }
+});
+
+window.inscreverNoCurso = async function(cursoId) {
+    const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
+    if (!usuario) { window.location.href = 'index.html?msg=auth_required'; return; }
+    const msgEl = document.getElementById('inscreverCursoMsg');
+    const area = document.getElementById('inscreverCursoArea');
+    const btn = area?.querySelector('button');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Inscrevendo...'; }
+    try {
+        await inscreverCurso(cursoId, usuario.id);
+        if (msgEl) { msgEl.textContent = 'Inscrição realizada com sucesso!'; msgEl.className = 'mt-2 text-xs text-center text-emerald-400'; }
+        if (btn) { btn.textContent = 'Inscrito ✓'; btn.classList.remove('bg-emerald-500'); btn.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border', 'border-emerald-500/30'); }
+    } catch (err) {
+        if (msgEl) { msgEl.textContent = err.message || 'Erro ao inscrever-se.'; msgEl.className = 'mt-2 text-xs text-center text-rose-400'; }
+        if (btn) { btn.disabled = false; btn.textContent = 'Inscrever-se'; }
+    }
+};
 
 async function aplicarFiltros() {
     const params = {

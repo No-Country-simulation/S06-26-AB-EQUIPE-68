@@ -1,17 +1,17 @@
 package com.bitsystem.bitapp.service;
 
-import com.bitsystem.bitapp.domain.User;
 import com.bitsystem.bitapp.dto.SaudeDto;
-import com.bitsystem.bitapp.exception.BusinessException;
 import com.bitsystem.bitapp.integration.GeminiClient;
 import com.bitsystem.bitapp.model.HistoricoSaude;
 import com.bitsystem.bitapp.repository.HistoricoSaudeRepository;
-import com.bitsystem.bitapp.repository.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class SaudeMentalService {
@@ -19,7 +19,6 @@ public class SaudeMentalService {
     private static final Logger log = LoggerFactory.getLogger(SaudeMentalService.class);
 
     private final HistoricoSaudeRepository saudeRepository;
-    private final UserRepository userRepository;
     private final EmotionResponseProvider emotionResponseProvider;
     private final FallbackStorage fallbackStorage;
     private final GeminiClient geminiClient;
@@ -27,13 +26,11 @@ public class SaudeMentalService {
 
     public SaudeMentalService(
             HistoricoSaudeRepository saudeRepository,
-            UserRepository userRepository,
             EmotionResponseProvider emotionResponseProvider,
             FallbackStorage fallbackStorage,
             GeminiClient geminiClient,
             ObjectMapper objectMapper) {
         this.saudeRepository = saudeRepository;
-        this.userRepository = userRepository;
         this.emotionResponseProvider = emotionResponseProvider;
         this.fallbackStorage = fallbackStorage;
         this.geminiClient = geminiClient;
@@ -69,13 +66,8 @@ public class SaudeMentalService {
                 alerta);
 
         try {
-            User user = userRepository
-                    .findById(request.usuarioId())
-                    .orElseThrow(() -> new BusinessException("USER_NOT_FOUND",
-                            "Utilizador nao encontrado para o ID informado: " + request.usuarioId()));
-
             HistoricoSaude historico = HistoricoSaude.builder()
-                    .user(user)
+                    .userId(request.usuarioId())
                     .humor(request.humor())
                     .notaSemanal(request.notaSemanal())
                     .contexto(request.contexto())
@@ -84,9 +76,6 @@ public class SaudeMentalService {
             saudeRepository.save(historico);
 
             log.info("[SaudeMentalService] Historico salvo no banco: usuarioId={}", request.usuarioId());
-
-        } catch (BusinessException ex) {
-            throw ex;
 
         } catch (Exception ex) {
             log.warn("[SaudeMentalService] Banco indisponivel, salvando em memoria: {}", ex.getMessage());
@@ -138,6 +127,12 @@ public class SaudeMentalService {
                 jsonStr = jsonStr.replaceAll("```json\\s*", "").replaceAll("```\\s*", "");
             }
 
+            int start = jsonStr.indexOf('{');
+            int end = jsonStr.lastIndexOf('}');
+            if (start >= 0 && end > start) {
+                jsonStr = jsonStr.substring(start, end + 1);
+            }
+
             JsonNode root = objectMapper.readTree(jsonStr);
 
             String mensagem = root.path("mensagem").asText("Resposta nao disponivel.");
@@ -149,5 +144,38 @@ public class SaudeMentalService {
             log.error("[SaudeMentalService] Erro ao parsear resposta Gemini: {}", ex.getMessage());
             throw new RuntimeException("Falha ao processar resposta da IA", ex);
         }
+    }
+
+    public List<SaudeDto.HistoricoResponse> buscarHistorico(Long usuarioId) {
+        List<SaudeDto.HistoricoResponse> resultado = new ArrayList<>();
+
+        try {
+            List<HistoricoSaude> registros = saudeRepository.findByUserIdOrderByCreatedAtDesc(usuarioId);
+            for (HistoricoSaude h : registros) {
+                resultado.add(new SaudeDto.HistoricoResponse(
+                        h.getId(),
+                        h.getHumor(),
+                        h.getNotaSemanal(),
+                        h.getContexto(),
+                        h.getDerivouCvv(),
+                        h.getCreatedAt()
+                ));
+            }
+        } catch (Exception ex) {
+            log.warn("[SaudeMentalService] DB indisponivel, buscando historico em memoria: {}", ex.getMessage());
+            List<FallbackStorage.SaudeRecord> fallbackRecords = fallbackStorage.findSaudeByUserId(usuarioId);
+            for (FallbackStorage.SaudeRecord r : fallbackRecords) {
+                resultado.add(new SaudeDto.HistoricoResponse(
+                        r.id(),
+                        r.humor(),
+                        r.notaSemanal(),
+                        r.contexto(),
+                        r.derivouCvv(),
+                        r.createdAt()
+                ));
+            }
+        }
+
+        return resultado;
     }
 }

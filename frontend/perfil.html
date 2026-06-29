@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="BiT App — Edite seu perfil e preferências." />
+    <title>Meu Perfil - BiT App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { gold: '#FFD700', orange: '#FF4500', darkBg: '#020617' },
+                    },
+                },
+            },
+        };
+    </script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+    <a href="#conteudo-principal"
+        class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-cyan-500 focus:text-slate-950 focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold">Pular
+        para o conteúdo</a>
+
+    <nav class="sticky top-0 z-50 bg-slate-900/80 border-b border-slate-800 backdrop-blur-lg"
+        aria-label="Menu principal">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <span
+                        class="text-2xl font-black tracking-wider bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">BiT</span>
+                    <span
+                        class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Meu
+                        Perfil</span>
+                </div>
+                <button id="menuToggle" type="button"
+                    class="md:hidden p-2 rounded-lg border border-slate-700 text-slate-300" aria-label="Abrir menu"
+                    aria-expanded="false">☰</button>
+                <div id="navLinks" class="hidden md:flex items-center space-x-2">
+                    <div id="navLoggedOut">
+                        <a href="vagas.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
+                        <a href="cursos.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
+                        <a href="lazer.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
+                        <a href="saude-mental.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde Mental</a>
+                    </div>
+                    <div id="navLoggedIn" class="hidden">
+                        <a href="dashboard.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Dashboard</a>
+                        <a href="vagas.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
+                        <a href="cursos.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
+                        <a href="lazer.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
+                        <a href="saude-mental.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde Mental</a>
+                        <a href="perfil.html"
+                            class="text-sm font-medium text-cyan-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Meu Perfil</a>
+                        <button onclick="handleLogout()"
+                            class="text-sm font-medium text-rose-400 hover:text-rose-300 transition py-2 px-3">Sair</button>
+                    </div>
+                </div>
+            </div>
+            <div id="mobileNav" class="hidden md:hidden pb-4 space-y-2">
+                <div id="mobileNavLoggedOut">
+                    <a href="vagas.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
+                    <a href="cursos.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
+                    <a href="lazer.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
+                    <a href="saude-mental.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde Mental</a>
+                </div>
+                <div id="mobileNavLoggedIn" class="hidden">
+                    <a href="dashboard.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Dashboard</a>
+                    <a href="vagas.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
+                    <a href="cursos.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
+                    <a href="lazer.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
+                    <a href="saude-mental.html"
+                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde Mental</a>
+                    <a href="perfil.html"
+                        class="block text-sm font-medium text-cyan-400 py-2 px-3 rounded-lg border border-slate-800">Meu Perfil</a>
+                    <button onclick="handleLogout()"
+                        class="block w-full text-left text-sm font-medium text-rose-400 py-2 px-3 rounded-lg border border-slate-800">Sair</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="signalBadge"
+        class="hidden sm:flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-yellow-500/10 text-yellow-400 border-b border-yellow-500/20"
+        role="status" aria-label="Status da rede">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+                d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
+        </svg>
+        <span id="signalText">Rede Estável — 4G</span>
+    </div>
+
+    <main id="conteudo-principal" class="flex-grow max-w-2xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="text-center space-y-2 mb-8 animate-fade-in">
+            <h1 class="text-3xl font-extrabold text-white">👤 Meu Perfil</h1>
+            <p class="text-slate-400 text-sm">Edite suas informações e preferências.</p>
+        </div>
+
+        <div class="rounded-3xl bg-slate-900 border border-slate-800 p-8 shadow-2xl space-y-6 animate-fade-in">
+            <form id="formPerfil" class="space-y-5" novalidate aria-label="Formulário de perfil">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="perfilNome"
+                            class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                            Nome Completo <span class="text-rose-400">*</span>
+                        </label>
+                        <input type="text" id="perfilNome" name="nome" required
+                            class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition" />
+                    </div>
+                    <div>
+                        <label for="perfilEmail"
+                            class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                            E-mail
+                        </label>
+                        <input type="email" id="perfilEmail" name="email" disabled
+                            class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-500 cursor-not-allowed" />
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="perfilCidade"
+                            class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Cidade
+                            / Região</label>
+                        <select id="perfilCidade" name="cidade"
+                            class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition">
+                            <option value="">Selecione sua região</option>
+                            <option value="TRINDADE">Florianópolis — Trindade</option>
+                            <option value="CBD_BEIRAMAR">Florianópolis — Centro/Beiramar</option>
+                            <option value="UFSC">Florianópolis — UFSC</option>
+                            <option value="CAMPECHE">Florianópolis — Campeche</option>
+                            <option value="INGLESES">Florianópolis — Ingleses</option>
+                            <option value="LAGOA_CONCEICAO">Florianópolis — Lagoa da Conceição</option>
+                            <option value="ESTREITO_CAPOEIRAS">Florianópolis — Estreito/Capoeiras</option>
+                            <option value="SAO_JOSE_CENTRO">São José — Centro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="perfilWhatsapp"
+                            class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">WhatsApp</label>
+                        <input type="text" id="perfilWhatsapp" name="whatsapp" placeholder="(00) 00000-0000"
+                            class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition" />
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="perfilNivel"
+                            class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Momento
+                            de Carreira</label>
+                        <select id="perfilNivel" name="nivelProfissional"
+                            class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition">
+                            <option value="Estudante">Estudante</option>
+                            <option value="Transicao">Transição de Carreira</option>
+                            <option value="Graduado">Graduado sem experiência</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="perfilArea"
+                            class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Área
+                            Alvo</label>
+                        <select id="perfilArea" name="areaTecnologia"
+                            class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition">
+                            <option value="Java">Java Back-End</option>
+                            <option value="Web">Web Development</option>
+                            <option value="Dados">Data Analysis & BI</option>
+                            <option value="Mobile">Mobile (Android/iOS)</option>
+                            <option value="DevOps">DevOps & Cloud</option>
+                            <option value="Ciberseguranca">Cibersegurança</option>
+                            <option value="IA">Inteligência Artificial</option>
+                            <option value="Games">Game Development</option>
+                            <option value="UIUX">UI/UX Design</option>
+                            <option value="Infraestrutura">Infraestrutura & Redes</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label for="perfilSkills"
+                        class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Habilidades
+                        Atuais</label>
+                    <textarea id="perfilSkills" name="competenciasAtuais" rows="2"
+                        placeholder="Ex: HTML, CSS, Java básico"
+                        class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition"></textarea>
+                </div>
+
+                <p id="formPerfilMsg" class="text-sm text-center hidden" role="status"></p>
+
+                <div class="flex gap-3">
+                    <button id="btnSalvar" type="submit"
+                        class="flex-1 rounded-2xl bg-cyan-500 px-6 py-4 text-sm font-bold text-slate-950 shadow-xl transition hover:bg-cyan-400 transform active:scale-[0.98] focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-slate-900 outline-none"
+                        aria-label="Salvar alterações">
+                        Salvar Alterações
+                    </button>
+                    <button type="button" id="btnCancelar"
+                        class="rounded-2xl border border-slate-700 px-6 py-4 text-sm font-bold text-slate-400 hover:text-white hover:border-slate-500 transition active:scale-[0.98] focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-900 outline-none"
+                        aria-label="Cancelar">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="bg-slate-900 border-t border-slate-800 py-8 mt-auto text-slate-500 text-xs" role="contentinfo">
+        <div
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div><span class="font-bold text-slate-400">BiT App</span> © 2026</div>
+            <div class="flex space-x-6">
+                <span>Termos de Uso</span>
+                <span>Suporte 188 (CVV)</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        (function() {
+            var usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
+            if (!usuario) {
+                window.location.href = 'index.html?msg=auth_required';
+                return;
+            }
+            document.getElementById('perfilNome').value = usuario.nome || '';
+            document.getElementById('perfilEmail').value = usuario.email || '';
+            document.getElementById('perfilCidade').value = usuario.cidade || '';
+            document.getElementById('perfilWhatsapp').value = usuario.whatsapp || '';
+            document.getElementById('perfilNivel').value = usuario.nivelProfissional || 'Estudante';
+            document.getElementById('perfilArea').value = usuario.areaTecnologia || 'Web';
+            document.getElementById('perfilSkills').value = usuario.competenciasAtuais || '';
+        })();
+    </script>
+    <script>
+        document.getElementById('menuToggle')?.addEventListener('click', () => {
+            const mobileNav = document.getElementById('mobileNav');
+            const toggle = document.getElementById('menuToggle');
+            const isOpen = !mobileNav.classList.contains('hidden');
+            mobileNav.classList.toggle('hidden', isOpen);
+            toggle.setAttribute('aria-expanded', String(!isOpen));
+        });
+
+        const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
+        if (usuario) {
+            document.getElementById('navLoggedOut')?.classList.add('hidden');
+            document.getElementById('navLoggedIn')?.classList.remove('hidden');
+            document.getElementById('mobileNavLoggedOut')?.classList.add('hidden');
+            document.getElementById('mobileNavLoggedIn')?.classList.remove('hidden');
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('bitapp_token');
+            localStorage.removeItem('bitapp_refresh');
+            localStorage.removeItem('bitapp_usuario');
+            window.location.href = 'index.html';
+        }
+        window.handleLogout = handleLogout;
+    </script>
+    <script type="module" src="js/perfil.js"></script>
+    <script>
+        (async function loadSignal() {
+            const badge = document.getElementById('signalBadge');
+            const text = document.getElementById('signalText');
+            if (!badge || !text) return;
+            badge.classList.remove('hidden');
+            try {
+                const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
+                if (usuario?.id) {
+                    const resp = await fetch('http://localhost:8080/api/network-status/' + usuario.id);
+                    const json = await resp.json();
+                    if (json.success && json.data) {
+                        const d = json.data;
+                        text.textContent = d.status === 'Estavel' ? 'Rede Estável — ' + (d.tecnologiaPredominante || '4G') : 'Rede Instável';
+                        return;
+                    }
+                }
+                text.textContent = 'Rede Estável — 4G';
+            } catch (e) { text.textContent = 'Rede Estável — 4G'; }
+        })();
+    </script>
+</body>
+
+</html>
