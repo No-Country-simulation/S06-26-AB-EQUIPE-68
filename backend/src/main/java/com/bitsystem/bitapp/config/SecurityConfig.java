@@ -73,6 +73,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/usuarios").permitAll()
                 .requestMatchers("/api/orientar").permitAll()
                 .requestMatchers("/api/saude").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/rota").permitAll()
                 .requestMatchers("/api/network-status/**").permitAll()
                 .requestMatchers("/api/assessment/**").permitAll()
                 .requestMatchers("/api/mental-health/**").permitAll()
