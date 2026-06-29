@@ -56,6 +56,9 @@
                         class="text-sm font-medium text-cyan-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Cursos</a>
                     <a href="lazer.html"
                         class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
+                    <a href="saude-mental.html"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde
+                        Mental</a>
 
                     <div id="authSection" class="hidden">
                         <a href="dashboard.html"
@@ -79,6 +82,9 @@
                     class="block text-sm font-medium text-cyan-400 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
                 <a href="lazer.html"
                     class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
+                <a href="saude-mental.html"
+                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde
+                    Mental</a>
                 <a href="dashboard.html"
                     class="block text-sm font-medium text-cyan-400 py-2 px-3 rounded-lg border border-slate-800">Meu
                     Painel</a>
@@ -114,6 +120,30 @@
                 </div>
             </div>
         </header>
+
+        <section aria-label="Mapa de pontos de interesse" class="mb-8">
+            <div class="rounded-3xl overflow-hidden border border-slate-800 shadow-2xl" style="height: 400px;">
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d452702.64161207515!2d-48.79993855195544!3d-27.57059754299388!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9527394eb2c632d7%3A0x81bc550b6a04c746!2sFlorian%C3%B3polis%2C%20SC!5e0!3m2!1spt-BR!2sbr!4v1782512540868!5m2!1spt-BR!2sbr"
+                    width="100%" height="100%" style="border: 0; filter: saturate(0.8) brightness(0.9);" allowfullscreen
+                    loading="lazy" referrerpolicy="strict-origin-when-cross-origin"
+                    title="Mapa de pontos de interesse em Florianópolis">
+                </iframe>
+            </div>
+            <div id="mapFallback"
+                class="hidden rounded-3xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-900 flex items-center justify-center"
+                style="height: 400px;">
+                <div class="text-center space-y-3 p-8">
+                    <svg class="w-16 h-16 mx-auto text-amber-400/40" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                    <p class="text-sm text-slate-400">Mapa interativo</p>
+                    <div id="antennaMarkers" class="flex flex-wrap justify-center gap-2 mt-4"></div>
+                </div>
+            </div>
+        </section>
 
         <div class="flex flex-wrap gap-3 mb-6">
             <button id="btnTodos" onclick="filtroGratuito(null)"
@@ -203,6 +233,14 @@
         </div>
     </footer>
 
+    <script>
+        (function () {
+            var usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
+            if (!usuario) {
+                window.location.href = 'index.html?msg=auth_required';
+            }
+        })();
+    </script>
     <script>
         document.getElementById('menuToggle')?.addEventListener('click', () => {
             const mobileNav = document.getElementById('mobileNav');

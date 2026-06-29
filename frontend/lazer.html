@@ -54,6 +54,8 @@
                         class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
                     <a href="lazer.html"
                         class="text-sm font-medium text-amber-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Lazer</a>
+                    <a href="saude-mental.html"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde Mental</a>
 
                     <div id="authSection" class="hidden">
                         <a href="dashboard.html"
@@ -77,6 +79,9 @@
                     class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
                 <a href="lazer.html"
                     class="block text-sm font-medium text-amber-400 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
+                <a href="saude-mental.html"
+                    class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde
+                    Mental</a>
 
                 <a href="dashboard.html"
                     class="block text-sm font-medium text-cyan-400 py-2 px-3 rounded-lg border border-slate-800">Meu
@@ -221,6 +226,14 @@
         </div>
     </footer>
 
+    <script>
+        (function() {
+            var usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
+            if (!usuario) {
+                window.location.href = 'index.html?msg=auth_required';
+            }
+        })();
+    </script>
     <script>
         document.getElementById('menuToggle')?.addEventListener('click', () => {
             const mobileNav = document.getElementById('mobileNav');

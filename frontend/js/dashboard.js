@@ -1,4 +1,4 @@
-import { orientar, saudeCheckin, logout, listarVagas, listarCursos } from './api.js';
+import { orientar, logout, listarVagas, listarCursos } from './api.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -16,22 +16,6 @@ if (usuario) {
     const nomeEl = document.getElementById('dashUsuarioNome');
     if (nomeEl) nomeEl.textContent = `Olá, ${usuario.nome}`;
 }
-
-function switchTab(tabName) {
-    ['dashboard', 'saude'].forEach(t => {
-        document.getElementById(`tab-${t}`)?.classList.add('hidden');
-    });
-    document.getElementById(`tab-${tabName}`)?.classList.remove('hidden');
-    document.querySelectorAll('.nav-tab').forEach(btn => {
-        const active = btn.dataset.tab === tabName;
-        btn.classList.toggle('bg-slate-800', active);
-        btn.classList.toggle('border', active);
-        btn.classList.toggle('border-slate-700', active);
-        btn.classList.toggle('rounded-full', active);
-    });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-window.switchTab = switchTab;
 
 function closeMobileMenu() {
     document.getElementById('mobileNav')?.classList.add('hidden');
@@ -103,64 +87,6 @@ async function carregarOrientacao() {
     } catch (err) {
         const vagaTitulo = document.getElementById('dashVagaTitulo');
         if (vagaTitulo) vagaTitulo.textContent = 'Análise indisponível';
-    }
-}
-
-let selectedMoodState = null;
-let selectedNoteState = 5;
-
-function selectMood(btn, mood, note) {
-    document.querySelectorAll('.mood-btn').forEach(el => {
-        el.classList.remove('border-cyan-500', 'bg-slate-800');
-        el.classList.add('border-slate-800', 'bg-slate-950');
-        el.setAttribute('aria-pressed', 'false');
-    });
-    btn.classList.remove('border-slate-800', 'bg-slate-950');
-    btn.classList.add('border-cyan-500', 'bg-slate-800');
-    btn.setAttribute('aria-pressed', 'true');
-    selectedMoodState = mood;
-    selectedNoteState = note;
-}
-window.selectMood = selectMood;
-
-document.getElementById('formSaude')?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if (!selectedMoodState) { alert('Selecione um emoji.'); return; }
-    const submitBtn = event.target.querySelector('button[type="submit"]');
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="loader"></span> Salvando...'; }
-    try {
-        const data = await saudeCheckin({
-            usuarioId: usuario.id,
-            humor: selectedMoodState,
-            notaSemanal: selectedNoteState,
-            contexto: document.getElementById('healthContext')?.value || '',
-        });
-        renderAiResponse(data);
-    } catch { alert('Erro ao salvar check-in.'); }
-    finally { if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Enviar Registro Diário'; } }
-});
-
-function renderAiResponse(data) {
-    const container = document.getElementById('aiResponseContainer');
-    const title = document.getElementById('aiResponseTitle');
-    const msg = document.getElementById('aiResponseMsg');
-    const action = document.getElementById('aiResponseAction');
-    container.classList.remove('hidden');
-    if (data.derivarCvv) {
-        container.className = 'p-6 rounded-3xl border border-rose-900 bg-rose-950/30 mt-6 animate-fade-in';
-        title.className = 'text-sm font-bold uppercase tracking-wider mb-2 text-rose-400 flex items-center gap-2';
-        title.innerHTML = '⚠️ Suporte Crítico Ativado';
-        msg.innerText = data.mensagem;
-        action.innerHTML = `<div class="p-4 bg-slate-950 border border-rose-800/50 rounded-2xl space-y-2">
-            <p class="text-sm font-bold text-white">CVV — Disque 188</p>
-            <p class="text-xs text-slate-400">${data.acaoSugerida}</p></div>`;
-    } else {
-        container.className = 'p-6 rounded-3xl border border-slate-800 bg-slate-900/60 mt-6 animate-fade-in';
-        title.className = 'text-sm font-bold uppercase tracking-wider mb-2 text-cyan-400';
-        title.innerText = '✨ Resposta do Agente BiT';
-        msg.innerText = data.mensagem;
-        action.innerHTML = `<p class="text-xs text-slate-400 font-semibold mb-1">Ação:</p>
-            <p class="text-sm text-slate-200">${data.acaoSugerida}</p>`;
     }
 }
 

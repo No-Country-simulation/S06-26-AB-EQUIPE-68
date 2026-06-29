@@ -8,4 +8,6 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
+HEALTHCHECK --interval=15s --timeout=5s --retries=5 \
+  CMD wget -qO- http://localhost:8080/api/usuarios || exit 1
 ENTRYPOINT ["java","-jar","app.jar"]

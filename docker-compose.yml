@@ -32,7 +32,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
     healthcheck:
-      test: ["CMD", "wget", "--spider", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/api/usuarios"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -59,6 +59,8 @@ services:
     restart: unless-stopped
     ports:
       - "5679:5678"
+    env_file:
+      - .env.production
     environment:
       N8N_HOST: localhost
       N8N_PORT: 5678

@@ -3,9 +3,12 @@ package com.bitsystem.bitapp.service;
 import com.bitsystem.bitapp.domain.User;
 import com.bitsystem.bitapp.dto.SaudeDto;
 import com.bitsystem.bitapp.exception.BusinessException;
+import com.bitsystem.bitapp.integration.GeminiClient;
 import com.bitsystem.bitapp.model.HistoricoSaude;
 import com.bitsystem.bitapp.repository.HistoricoSaudeRepository;
 import com.bitsystem.bitapp.repository.UserRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -19,27 +22,44 @@ public class SaudeMentalService {
     private final UserRepository userRepository;
     private final EmotionResponseProvider emotionResponseProvider;
     private final FallbackStorage fallbackStorage;
+    private final GeminiClient geminiClient;
+    private final ObjectMapper objectMapper;
 
     public SaudeMentalService(
             HistoricoSaudeRepository saudeRepository,
             UserRepository userRepository,
             EmotionResponseProvider emotionResponseProvider,
-            FallbackStorage fallbackStorage) {
+            FallbackStorage fallbackStorage,
+            GeminiClient geminiClient,
+            ObjectMapper objectMapper) {
         this.saudeRepository = saudeRepository;
         this.userRepository = userRepository;
         this.emotionResponseProvider = emotionResponseProvider;
         this.fallbackStorage = fallbackStorage;
+        this.geminiClient = geminiClient;
+        this.objectMapper = objectMapper;
     }
 
     public SaudeDto.Response avaliarEstadoMental(SaudeDto.Request request) {
         boolean derivarCvv = request.notaSemanal() < 4;
 
-        // ── EmotionResponseProvider é 100% local, sempre funciona ──────────
-        SaudeDto.RawResponse rawResponse = emotionResponseProvider.resolve(request.humor(), request.notaSemanal());
+        SaudeDto.RawResponse rawResponse;
+
+        if (geminiClient.isConfigured()) {
+            try {
+                rawResponse = chamarGemini(request);
+                log.info("[SaudeMentalService] Resposta gerada via Gemini para usuarioId={}", request.usuarioId());
+            } catch (Exception ex) {
+                log.warn("[SaudeMentalService] Gemini indisponivel, usando fallback local: {}", ex.getMessage());
+                rawResponse = emotionResponseProvider.resolve(request.humor(), request.notaSemanal());
+            }
+        } else {
+            rawResponse = emotionResponseProvider.resolve(request.humor(), request.notaSemanal());
+        }
 
         String alerta = derivarCvv
                 ? "ALERTA_CRITICO: Indicadores de sofrimento severo ou humor debilitado. Direcionando canais de apoio imediato."
-                : "ESTÁVEL";
+                : "ESTAVEL";
 
         SaudeDto.Response response = new SaudeDto.Response(
                 rawResponse.mensagem(),
@@ -48,12 +68,11 @@ public class SaudeMentalService {
                 request.notaSemanal(),
                 alerta);
 
-        // ── Tentar salvar no banco ─────────────────────────────────────────
         try {
             User user = userRepository
                     .findById(request.usuarioId())
                     .orElseThrow(() -> new BusinessException("USER_NOT_FOUND",
-                            "Utilizador não encontrado para o ID informado: " + request.usuarioId()));
+                            "Utilizador nao encontrado para o ID informado: " + request.usuarioId()));
 
             HistoricoSaude historico = HistoricoSaude.builder()
                     .user(user)
@@ -64,14 +83,13 @@ public class SaudeMentalService {
                     .build();
             saudeRepository.save(historico);
 
-            log.info("[SaudeMentalService] Histórico salvo no banco: usuarioId={}", request.usuarioId());
+            log.info("[SaudeMentalService] Historico salvo no banco: usuarioId={}", request.usuarioId());
 
         } catch (BusinessException ex) {
             throw ex;
 
         } catch (Exception ex) {
-            // ── Fallback: salvar em memória ────────────────────────────────
-            log.warn("[SaudeMentalService] Banco indisponível, salvando em memória: {}", ex.getMessage());
+            log.warn("[SaudeMentalService] Banco indisponivel, salvando em memoria: {}", ex.getMessage());
             fallbackStorage.saveSaudeRecord(
                 request.usuarioId(), request.humor(), request.notaSemanal(),
                 request.contexto(), derivarCvv
@@ -79,5 +97,57 @@ public class SaudeMentalService {
         }
 
         return response;
+    }
+
+    private SaudeDto.RawResponse chamarGemini(SaudeDto.Request request) throws Exception {
+        String prompt = buildPrompt(request);
+        String resposta = geminiClient.generateContent(prompt);
+        return parsearResposta(resposta);
+    }
+
+    private String buildPrompt(SaudeDto.Request request) {
+        return String.format("""
+            Voce e um profissional de saude mental especializado em acolhimento de pessoas em transicao de carreira.
+            Analise o check-in do usuario e retorne um JSON EXATAMENTE neste formato:
+
+            {
+              "mensagem": "sua mensagem empatica e acolhedora",
+              "acaoSugerida": "acao pratica e imediata que o usuario pode tomar agora"
+            }
+
+            Check-in do usuario:
+            - Humor: %s
+            - Nota semanal (1-5): %d
+            - Contexto: %s
+
+            Regras:
+            - Se a nota for menor que 4, seja mais acolhedor e direcione para o CVV (188)
+            - Se a nota for 4 ou 5, seja encorajador e motivador
+            - Retorne APENAS o JSON, sem texto adicional
+            """,
+            request.humor(),
+            request.notaSemanal(),
+            request.contexto() != null && !request.contexto().isBlank() ? request.contexto() : "Nenhum contexto fornecido"
+        );
+    }
+
+    private SaudeDto.RawResponse parsearResposta(String resposta) {
+        try {
+            String jsonStr = resposta.trim();
+            if (jsonStr.contains("```")) {
+                jsonStr = jsonStr.replaceAll("```json\\s*", "").replaceAll("```\\s*", "");
+            }
+
+            JsonNode root = objectMapper.readTree(jsonStr);
+
+            String mensagem = root.path("mensagem").asText("Resposta nao disponivel.");
+            String acaoSugerida = root.path("acaoSugerida").asText("Tente novamente mais tarde.");
+
+            return new SaudeDto.RawResponse(mensagem, acaoSugerida);
+
+        } catch (Exception ex) {
+            log.error("[SaudeMentalService] Erro ao parsear resposta Gemini: {}", ex.getMessage());
+            throw new RuntimeException("Falha ao processar resposta da IA", ex);
+        }
     }
 }

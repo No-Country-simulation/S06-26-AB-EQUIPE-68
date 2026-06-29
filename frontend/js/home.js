@@ -108,5 +108,10 @@ document.getElementById('loginPassword')?.addEventListener('input', function() {
 });
 
 (function init() {
-    // Removed auto-redirect: login page is the initial landing page
+    var msg = new URLSearchParams(window.location.search).get('msg');
+    if (msg === 'auth_required') {
+        var authMsg = document.getElementById('authMessage');
+        if (authMsg) authMsg.classList.remove('hidden');
+        window.history.replaceState({}, '', 'index.html');
+    }
 })();
