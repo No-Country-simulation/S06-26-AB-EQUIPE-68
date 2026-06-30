@@ -14,7 +14,6 @@ backend/target/
 *.ear
 
 # ─── Credenciais e configurações locais ────────────────────────────────────
-backend/src/main/resources/application.properties
 backend/src/main/resources/application.yml
 src/main/resources/application.properties
 src/main/resources/application.yml
@@ -51,3 +50,6 @@ docker/logs/
 # ─── Temporários ──────────────────────────────────────────────────────────
 cookies.txt
 build_log.txt
+
+# Frontend copiado pelo maven-resources-plugin (gerado no build)
+backend/src/main/resources/static/
