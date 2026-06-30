@@ -64,6 +64,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.GET, "/", "/index.html", "/*.html", "/css/**", "/js/**", "/img/**", "/assets/**", "/favicon.ico").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
@@ -72,6 +73,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/usuarios").permitAll()
                 .requestMatchers("/api/orientar").permitAll()
                 .requestMatchers("/api/saude/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/rota").permitAll()
                 .requestMatchers("/api/network-status/**").permitAll()
                 .requestMatchers("/api/assessment/**").permitAll()
                 .requestMatchers("/api/mental-health/**").permitAll()

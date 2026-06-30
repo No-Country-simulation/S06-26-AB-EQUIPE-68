@@ -20,23 +20,26 @@ const REGION_COORDS = {
     LAGOA_CONCEICAO: { lat: -27.6120, lng: -48.4610 },
 };
 
+// Cada ponto tem lat/lng PRÓPRIOS (geocodificados via OpenStreetMap/Nominatim).
+// O campo `regiao` é mantido pois alimenta filtro, dropdown, etiqueta do card,
+// estatísticas e modal. O mapa e a rota usam p.lat/p.lng diretamente.
 const pontosData = [
-    { id: 1, nome: 'Parque Municipal da Lagoa da Conceição', tipo: 'Parque', regiao: 'LAGOA_CONCEICAO', descricao: 'Trilhas ecológicas, áreas de lazer à beira da lagoa, playground e espaço para piquenique. Ideal para caminhadas ao entardecer.', gratuito: true, acessivel: true, horario: 'Diário 6h–20h', tags: ['natureza', 'caminhada', 'família'] },
-    { id: 2, nome: 'Teatro Ademir Rosa', tipo: 'Teatro', regiao: 'TRINDADE', descricao: 'Principal casa de espetáculos de Florianópolis. Teatro, dança, música e ópera com programação cultural diversificada.', gratuito: false, acessivel: true, horario: 'Seg–Sáb 10h–20h', tags: ['cultura', 'espetáculos', 'teatro'] },
-    { id: 3, nome: 'Parque da Cidade Dona Sarah Kubitschek', tipo: 'Parque', regiao: 'ESTREITO_CAPOEIRAS', descricao: 'Maior parque urbano da ilha com 870 mil m². Lago, trilhas, quadras esportivas, rocha de escalada e playground.', gratuito: true, acessivel: true, horario: 'Diário 6h–21h', tags: ['natureza', 'esporte', 'família'] },
-    { id: 4, nome: 'Museu da UFSC', tipo: 'Museu', regiao: 'UFSC', descricao: 'Acervo de artes visuais, fotografias e exposições temporárias. Entrada gratuita para estudantes.', gratuito: true, acessivel: true, horario: 'Seg–Sex 9h–17h', tags: ['cultura', 'arte', 'educação'] },
-    { id: 5, nome: 'Feira de São José', tipo: 'Feira', regiao: 'SAO_JOSE_CENTRO', descricao: 'Feira artesanal e gastronômica com produtos regionais, artesanato catarinense e comidas típicas.', gratuito: true, acessivel: false, horario: 'Sáb 8h–13h', tags: ['gastronomia', 'compras', 'regional'] },
-    { id: 6, nome: 'Biblioteca Pública Alcides Carlos de Carvalho', tipo: 'Biblioteca', regiao: 'TRINDADE', descricao: 'Acervo de mais de 100 mil títulos. Espaço de estudo, wifi gratuito, salas de reunião e programação cultural.', gratuito: true, acessivel: true, horario: 'Seg–Sáb 9h–20h', tags: ['estudo', 'leitura', 'wifi'] },
-    { id: 7, nome: 'Centro Cultural García de Resende', tipo: 'Centro Cultural', regiao: 'CBD_BEIRAMAR', descricao: 'Espaço cultural com exposições, oficinas de arte, eventos musicais e teatrais. Programação gratuita.', gratuito: true, acessivel: true, horario: 'Ter–Dom 10h–18h', tags: ['cultura', 'arte', 'oficinas'] },
-    { id: 8, nome: 'Praia do Campeche', tipo: 'Praia', regiao: 'CAMPECHE', descricao: 'Uma das praias mais bonitas de Floripa. Águas claras, arrecife de corais e acesso ao Parque Estadual.', gratuito: true, acessivel: false, horario: 'Diário 6h–18h', tags: ['praia', 'natureza', 'mergulho'] },
-    { id: 9, nome: 'Parque Estadual do Campeche', tipo: 'Parque', regiao: 'CAMPECHE', descricao: 'Ilha com sítios arqueológicos, trilhas, mirantes e piscinas naturais. Patrimônio histórico e ecológico.', gratuito: true, acessivel: false, horario: 'Diário 8h–16h', tags: ['natureza', 'história', 'trilhas'] },
-    { id: 10, nome: 'Teatro da UFSC', tipo: 'Teatro', regiao: 'UFSC', descricao: 'Espetáculos de graduação em Artes Cênicas. Teatro, dança e música com ingressos acessíveis.', gratuito: false, acessivel: true, horario: 'Conforme programação', tags: ['teatro', 'cultura', 'estudantes'] },
-    { id: 11, nome: 'Praia da Joaquina', tipo: 'Praia', regiao: 'LAGOA_CONCEICAO', descricao: 'Famosa pelo surf e dunas de areia. Área de camping e trilha para o Morro da Lagoa.', gratuito: true, acessivel: false, horario: 'Diário', tags: ['praia', 'surf', 'natureza'] },
-    { id: 12, nome: 'Mercado Público de Florianópolis', tipo: 'Feira', regiao: 'CBD_BEIRAMAR', descricao: 'Mercado centenário com peixarias, barracas de café, artesanato e gastronomia local. Patrimônio histórico.', gratuito: true, acessivel: true, horario: 'Seg–Sáb 6h–18h', tags: ['gastronomia', 'história', 'compras'] },
-    { id: 13, nome: 'Parque do Morro da Lagoa', tipo: 'Parque', regiao: 'LAGOA_CONCEICAO', descricao: 'Mirante com vista panorâmica da lagoa e da ilha. Trilha de dificuldade moderada, ideal para fotografia.', gratuito: true, acessivel: false, horario: 'Diário 6h–18h', tags: ['natureza', 'mirante', 'fotografia'] },
-    { id: 14, nome: 'Biblioteca Comunitário do Ingleses', tipo: 'Biblioteca', regiao: 'INGLESES', descricao: 'Espaço comunitário com acervo de livros, atividades de leitura para crianças e wi-fi aberto.', gratuito: true, acessivel: true, horario: 'Seg–Sex 9h–17h', tags: ['leitura', 'comunidade', 'wifi'] },
-    { id: 15, nome: 'Centro de Convenções Pella Giordano', tipo: 'Centro Cultural', regiao: 'ESTREITO_CAPOEIRAS', descricao: 'Grandes shows, feiras e eventos culturais. Programação diversificada durante o ano.', gratuito: false, acessivel: true, horario: 'Conforme eventos', tags: ['shows', 'eventos', 'cultura'] },
-    { id: 16, nome: 'Parque Municipal da Lagoa do Peri', tipo: 'Parque', regiao: 'CAMPECHE', descricao: 'Lagoa de águas negras cercada por mata atlântica. Trilhas, observação de aves e área de piquenique.', gratuito: true, acessivel: true, horario: 'Diário 8h–17h', tags: ['natureza', 'trilhas', 'aves'] },
+    { id: 1, nome: 'Lagoa da Conceição', tipo: 'Parque', regiao: 'LAGOA_CONCEICAO', lat: -27.609074, lng: -48.454245, descricao: 'Cartão-postal de Floripa: lagoa cercada por morros, com bares à beira d\'água, esportes náuticos (stand-up, caiaque) e a Avenida das Rendeiras.', gratuito: true, acessivel: true, horario: 'Diário 24h', tags: ['natureza', 'esporte', 'gastronomia'] },
+    { id: 2, nome: 'Teatro Ademir Rosa (CIC)', tipo: 'Teatro', regiao: 'CBD_BEIRAMAR', lat: -27.577496, lng: -48.526197, descricao: 'Principal casa de espetáculos de Florianópolis, no Centro Integrado de Cultura. Teatro, dança, música e ópera com programação diversificada.', gratuito: false, acessivel: true, horario: 'Seg–Sáb 10h–20h', tags: ['cultura', 'espetáculos', 'teatro'] },
+    { id: 3, nome: 'Parque de Coqueiros', tipo: 'Parque', regiao: 'ESTREITO_CAPOEIRAS', lat: -27.601751, lng: -48.574500, descricao: 'Parque urbano à beira-mar no continente, com pista de caminhada, ciclovia, academia ao ar livre e playground. Vista para a Baía Sul.', gratuito: true, acessivel: true, horario: 'Diário 6h–21h', tags: ['natureza', 'esporte', 'família'] },
+    { id: 4, nome: 'MArquE – Museu de Arqueologia e Etnologia da UFSC', tipo: 'Museu', regiao: 'UFSC', lat: -27.602345, lng: -48.523926, descricao: 'Museu da UFSC com acervo de sambaquis, cultura indígena e exposições temporárias. Entrada gratuita.', gratuito: true, acessivel: true, horario: 'Ter–Sex 9h–18h', tags: ['cultura', 'história', 'educação'] },
+    { id: 5, nome: 'Mercado Público de São José', tipo: 'Feira', regiao: 'SAO_JOSE_CENTRO', lat: -27.613403, lng: -48.625779, descricao: 'Mercado no centro histórico de São José, famoso pelas ostras frescas, gastronomia local e artesanato catarinense.', gratuito: true, acessivel: false, horario: 'Seg–Sex 7h–18h, Sáb 7h–14h', tags: ['gastronomia', 'regional', 'compras'] },
+    { id: 6, nome: 'Biblioteca Pública de Santa Catarina', tipo: 'Biblioteca', regiao: 'CBD_BEIRAMAR', lat: -27.595258, lng: -48.552666, descricao: 'Maior biblioteca pública do estado, no centro de Floripa. Amplo acervo, salas de estudo, wi-fi e programação cultural.', gratuito: true, acessivel: true, horario: 'Seg–Sex 8h–19h, Sáb 9h–13h', tags: ['estudo', 'leitura', 'wifi'] },
+    { id: 7, nome: 'Museu Histórico de SC (Palácio Cruz e Sousa)', tipo: 'Museu', regiao: 'CBD_BEIRAMAR', lat: -27.596914, lng: -48.550084, descricao: 'Museu na Praça XV, dentro do histórico Palácio Cruz e Sousa. Mobiliário de época, arte e a história de Santa Catarina.', gratuito: true, acessivel: false, horario: 'Ter–Sex 10h–18h, Sáb–Dom 10h–16h', tags: ['cultura', 'história', 'arte'] },
+    { id: 8, nome: 'Praia do Campeche', tipo: 'Praia', regiao: 'CAMPECHE', lat: -27.685926, lng: -48.480379, descricao: 'Uma das praias mais extensas do sul da ilha. Águas claras e fortes, ótima para surf e longas caminhadas na areia.', gratuito: true, acessivel: false, horario: 'Diário', tags: ['praia', 'surf', 'natureza'] },
+    { id: 9, nome: 'Praia da Armação', tipo: 'Praia', regiao: 'CAMPECHE', lat: -27.736035, lng: -48.507903, descricao: 'Antiga vila de pescadores no sul da ilha. Praia tranquila, igreja histórica e ponto de partida para a trilha da Lagoinha do Leste.', gratuito: true, acessivel: false, horario: 'Diário', tags: ['praia', 'história', 'natureza'] },
+    { id: 10, nome: 'Teatro da UFSC', tipo: 'Teatro', regiao: 'UFSC', lat: -27.597853, lng: -48.521633, descricao: 'Espetáculos ligados à graduação em Artes Cênicas. Teatro, dança e música com ingressos acessíveis.', gratuito: false, acessivel: true, horario: 'Conforme programação', tags: ['teatro', 'cultura', 'estudantes'] },
+    { id: 11, nome: 'Praia da Joaquina', tipo: 'Praia', regiao: 'LAGOA_CONCEICAO', lat: -27.634363, lng: -48.454295, descricao: 'Famosa pelo surf e pelas dunas de areia. Área de sandboard e trilha para o Morro da Lagoa.', gratuito: true, acessivel: false, horario: 'Diário', tags: ['praia', 'surf', 'natureza'] },
+    { id: 12, nome: 'Mercado Público de Florianópolis', tipo: 'Feira', regiao: 'CBD_BEIRAMAR', lat: -27.597329, lng: -48.553060, descricao: 'Mercado centenário com peixarias, boxes de café, artesanato e gastronomia local. Patrimônio histórico da cidade.', gratuito: true, acessivel: true, horario: 'Seg–Sáb 6h–18h', tags: ['gastronomia', 'história', 'compras'] },
+    { id: 13, nome: 'Parque Ecológico do Córrego Grande', tipo: 'Parque', regiao: 'TRINDADE', lat: -27.596584, lng: -48.510198, descricao: 'Parque urbano com trilhas, viveiro de mudas, orquidário, playground e fauna local. Ótimo para famílias e caminhadas.', gratuito: true, acessivel: true, horario: 'Ter–Dom 8h–18h', tags: ['natureza', 'família', 'caminhada'] },
+    { id: 14, nome: 'Praia dos Ingleses', tipo: 'Praia', regiao: 'INGLESES', lat: -27.429447, lng: -48.396534, descricao: 'Praia movimentada no norte da ilha, com boa infraestrutura, restaurantes e mar próprio para banho. Ideal para famílias.', gratuito: true, acessivel: false, horario: 'Diário', tags: ['praia', 'família', 'gastronomia'] },
+    { id: 15, nome: 'CentroSul – Centro de Eventos', tipo: 'Centro Cultural', regiao: 'CBD_BEIRAMAR', lat: -27.602035, lng: -48.552115, descricao: 'Maior centro de eventos de Floripa. Sedia feiras, shows, congressos e exposições durante todo o ano.', gratuito: false, acessivel: true, horario: 'Conforme eventos', tags: ['shows', 'eventos', 'cultura'] },
+    { id: 16, nome: 'Parque da Lagoa do Peri', tipo: 'Parque', regiao: 'CAMPECHE', lat: -27.726084, lng: -48.507971, descricao: 'Lagoa de água doce cercada por mata atlântica. Trilhas, banho na lagoa, observação de aves e área de piquenique.', gratuito: true, acessivel: true, horario: 'Diário 8h–18h', tags: ['natureza', 'trilhas', 'aves'] },
 ];
 
 let filteredPoints = [...pontosData];
@@ -113,6 +116,8 @@ function renderGrid() {
             </div>
             <div class="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between">
                 <div class="flex flex-wrap gap-1">${(p.tags || []).map(t => `<span class="text-[9px] text-slate-500">#${t}</span>`).join(' ')}</div>
+                <button onclick="tracarRota(${p.id})" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition mr-3" aria-label="Tracar rota ate ${p.nome}">🛣️ Rota</button>
+                <button onclick="focarNoMapa(${p.id})" class="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition mr-3" aria-label="Ver ${p.nome} no mapa">📍 No mapa</button>
                 <button onclick="abrirModal(${p.id})" class="text-xs font-semibold text-amber-400 hover:text-amber-300 transition focus:outline-none focus:ring-2 focus:ring-amber-500 rounded" aria-label="Ver detalhes de ${p.nome}">Detalhes →</button>
             </div>
         `;
@@ -202,3 +207,161 @@ document.addEventListener('DOMContentLoaded', () => {
     populateFilters();
     applyFilters();
 });
+
+// ============================================================
+// MAPA LEAFLET — Camada 1: marcadores + interação com cards
+// ============================================================
+let mapa = null;
+const marcadores = {}; // índice: id do ponto → marcador no mapa
+
+function initMapa() {
+    const el = document.getElementById('mapa');
+    if (!el || mapa) return; // se não existe a div ou já foi criado, sai
+
+    // Cria o mapa centrado em Florianópolis
+    mapa = L.map('mapa').setView([-27.5954, -48.5480], 12);
+
+    // Camada de base (OpenStreetMap — gratuito, sem chave)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 19
+    }).addTo(mapa);
+
+    // Plota um marcador para cada ponto de interesse
+    pontosData.forEach(p => {
+        if (p.lat == null || p.lng == null) return; // sem coordenada própria, pula
+
+        const marcador = L.marker([p.lat, p.lng]).addTo(mapa);
+        marcador.bindPopup(
+            '<strong>' + p.nome + '</strong><br>' +
+            '<span style="color:#666">' + p.tipo + '</span><br>' +
+            p.horario
+        );
+        marcadores[p.id] = marcador; // guarda no índice por id
+    });
+}
+
+// Chamada pelos cards: centraliza o mapa no ponto e abre o popup
+window.focarNoMapa = function(id) {
+    const marcador = marcadores[id];
+    if (!marcador) return;
+    const pos = marcador.getLatLng();
+    mapa.setView(pos, 15);        // voa até o ponto com zoom
+    marcador.openPopup();          // abre o popup
+    // rola a tela até o mapa, para o usuário ver o resultado
+    document.getElementById('mapa').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Inicializa o mapa quando a página carrega
+document.addEventListener('DOMContentLoaded', initMapa);
+
+// ============================================================
+// CAMADA 2: Localização do usuário
+// ============================================================
+let marcadorUsuario = null;
+
+window.localizarUsuario = function() {
+    if (!navigator.geolocation) {
+        alert('Seu navegador não suporta geolocalização.');
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        // Sucesso: pegou a localização
+        function(pos) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+
+            // Remove marcador anterior se já existir
+            if (marcadorUsuario) {
+                mapa.removeLayer(marcadorUsuario);
+            }
+
+            // Ícone azul diferente para "você"
+            const iconeUsuario = L.divIcon({
+                html: '<div style="background:#06b6d4;width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 0 8px rgba(6,182,212,0.8);"></div>',
+                className: '',
+                iconSize: [18, 18],
+                iconAnchor: [9, 9]
+            });
+
+            coordsUsuario = [lat, lng];
+            marcadorUsuario = L.marker([lat, lng], { icon: iconeUsuario })
+                .addTo(mapa)
+                .bindPopup('<strong>Você está aqui</strong>')
+                .openPopup();
+
+            mapa.setView([lat, lng], 14);
+        },
+        // Erro: negou permissão ou falhou
+        function(err) {
+            if (err.code === err.PERMISSION_DENIED) {
+                alert('Permissão de localização negada. Você pode ativá-la nas configurações do navegador.');
+            } else {
+                alert('Não foi possível obter sua localização.');
+            }
+        }
+    );
+};
+
+
+
+// ============================================================
+// CAMADA 3: Rota via OpenRouteService (pelo backend)
+// ============================================================
+let coordsUsuario = null;   // [lat, lng] da localizacao do usuario
+let linhaRota = null;       // a linha desenhada no mapa
+
+// Chamada pelo botao "Rota" no card — ja recebe o id do destino
+window.tracarRota = async function(idDestino) {
+    if (!coordsUsuario) {
+        alert('Primeiro clique em "Minha localização" para definir o ponto de partida.');
+        return;
+    }
+
+    const ponto = pontosData.find(p => p.id === idDestino);
+    if (!ponto || ponto.lat == null || ponto.lng == null) {
+        alert('Este ponto não tem coordenada disponível.');
+        return;
+    }
+    const coordDestino = { lat: ponto.lat, lng: ponto.lng };
+
+    try {
+        const resp = await fetch(API_BASE_URL + '/api/rota', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                origem:  [coordsUsuario[1], coordsUsuario[0]],
+                destino: [coordDestino.lng, coordDestino.lat]
+            })
+        });
+
+        if (!resp.ok) {
+            abrirNoGoogleMaps(coordsUsuario, coordDestino);
+            return;
+        }
+
+        const dados = await resp.json();
+        const coords = dados.features[0].geometry.coordinates;
+
+        if (linhaRota) mapa.removeLayer(linhaRota);
+
+        const pontosLinha = coords.map(c => [c[1], c[0]]);
+        linhaRota = L.polyline(pontosLinha, { color: '#06b6d4', weight: 5, opacity: 0.8 }).addTo(mapa);
+        mapa.fitBounds(linhaRota.getBounds(), { padding: [40, 40] });
+
+        const dist = (dados.features[0].properties.summary.distance / 1000).toFixed(1);
+        const min = Math.round(dados.features[0].properties.summary.duration / 60);
+        document.getElementById('mapa').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        alert('Rota tracada: ' + dist + ' km - aprox. ' + min + ' min de carro ate ' + ponto.nome);
+
+    } catch (err) {
+        abrirNoGoogleMaps(coordsUsuario, coordDestino);
+    }
+};
+
+// Fallback: abre a rota no Google Maps em nova aba
+function abrirNoGoogleMaps(origem, destino) {
+    const url = 'https://www.google.com/maps/dir/' + origem[0] + ',' + origem[1] + '/' + destino.lat + ',' + destino.lng;
+    window.open(url, '_blank');
+}
