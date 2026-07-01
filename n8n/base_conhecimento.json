@@ -1,8 +1,120 @@
 {
   "roadmaps": {
-    "frontend": {
-      "titulo": "Desenvolvedor Frontend",
-      "descricao": "Habilidades necessárias para atuar como dev frontend completo",
+    "java_backend": {
+      "titulo": "Java Back-End",
+      "descricao": "Habilidades para atuar como desenvolvedor back-end com Java",
+      "habilidades": {
+        "fundamentos": {
+          "obrigatorio": true,
+          "itens": [
+            {
+              "nome": "Lógica de Programação",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Java",
+              "nivel_minimo": "avancado"
+            },
+            {
+              "nome": "Orientação a Objetos (POO)",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Git",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Terminal/CLI",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "HTTP/APIs REST",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Banco de Dados SQL",
+              "nivel_minimo": "intermediario"
+            }
+          ]
+        },
+        "frameworks": {
+          "obrigatorio": true,
+          "descricao": "Pelo menos um framework Java",
+          "itens": [
+            {
+              "nome": "Spring Boot",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Quarkus",
+              "nivel_minimo": "intermediario"
+            }
+          ]
+        },
+        "complementares": {
+          "obrigatorio": false,
+          "itens": [
+            {
+              "nome": "Docker",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Autenticação (JWT/OAuth2)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Banco de Dados NoSQL",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Testes Unitários (JUnit)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Mensageria (RabbitMQ/Kafka)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "CI/CD",
+              "nivel_minimo": "basico"
+            }
+          ]
+        }
+      },
+      "cursos": {
+        "Java": {
+          "nome": "Java Completo",
+          "plataforma": "Udemy"
+        },
+        "Spring Boot": {
+          "nome": "Spring Boot do Zero",
+          "plataforma": "Alura"
+        },
+        "Banco de Dados SQL": {
+          "nome": "SQL para Desenvolvedores",
+          "plataforma": "Alura"
+        },
+        "Docker": {
+          "nome": "Docker do Zero",
+          "plataforma": "DIO"
+        },
+        "Autenticação (JWT/OAuth2)": {
+          "nome": "Segurança com Spring Security",
+          "plataforma": "Alura"
+        },
+        "Testes Unitários (JUnit)": {
+          "nome": "Testes em Java com JUnit",
+          "plataforma": "Alura"
+        },
+        "Mensageria (RabbitMQ/Kafka)": {
+          "nome": "Mensageria com Kafka",
+          "plataforma": "Udemy"
+        }
+      }
+    },
+    "web_development": {
+      "titulo": "Web Development",
+      "descricao": "Habilidades para desenvolvimento web frontend completo",
       "habilidades": {
         "fundamentos": {
           "obrigatorio": true,
@@ -30,12 +142,16 @@
             {
               "nome": "HTTP/APIs REST",
               "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Responsividade/Mobile First",
+              "nivel_minimo": "intermediario"
             }
           ]
         },
         "frameworks": {
           "obrigatorio": true,
-          "descricao": "Pelo menos um framework principal",
+          "descricao": "Pelo menos um framework frontend",
           "itens": [
             {
               "nome": "React",
@@ -53,7 +169,6 @@
         },
         "complementares": {
           "obrigatorio": false,
-          "descricao": "Diferenciais importantes no mercado",
           "itens": [
             {
               "nome": "TypeScript",
@@ -64,15 +179,15 @@
               "nivel_minimo": "basico"
             },
             {
-              "nome": "Responsividade/Mobile First",
-              "nivel_minimo": "intermediario"
-            },
-            {
               "nome": "Acessibilidade (WCAG)",
               "nivel_minimo": "basico"
             },
             {
               "nome": "Performance Web",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Next.js",
               "nivel_minimo": "basico"
             }
           ]
@@ -99,17 +214,918 @@
           "nome": "Ignite React",
           "plataforma": "Rocketseat"
         },
-        "TypeScript": {
-          "nome": "TypeScript do Zero",
-          "plataforma": "Alura"
-        },
         "Vue": {
           "nome": "Vue.js Completo",
           "plataforma": "Udemy"
         },
+        "TypeScript": {
+          "nome": "TypeScript do Zero",
+          "plataforma": "Alura"
+        },
+        "Next.js": {
+          "nome": "Next.js do Zero",
+          "plataforma": "Rocketseat"
+        },
         "Testes (Jest/Vitest)": {
           "nome": "Testes em JavaScript",
           "plataforma": "Alura"
+        }
+      }
+    },
+    "data_analysis_bi": {
+      "titulo": "Data Analysis & BI",
+      "descricao": "Habilidades para análise de dados e business intelligence",
+      "habilidades": {
+        "fundamentos": {
+          "obrigatorio": true,
+          "itens": [
+            {
+              "nome": "Python",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "SQL",
+              "nivel_minimo": "avancado"
+            },
+            {
+              "nome": "Estatística Básica",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Git",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Excel Avançado",
+              "nivel_minimo": "intermediario"
+            }
+          ]
+        },
+        "ferramentas": {
+          "obrigatorio": true,
+          "descricao": "Pelo menos uma ferramenta de BI",
+          "itens": [
+            {
+              "nome": "Power BI",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Tableau",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Looker Studio",
+              "nivel_minimo": "basico"
+            }
+          ]
+        },
+        "bibliotecas": {
+          "obrigatorio": true,
+          "itens": [
+            {
+              "nome": "Pandas",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Matplotlib/Seaborn",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "NumPy",
+              "nivel_minimo": "basico"
+            }
+          ]
+        },
+        "complementares": {
+          "obrigatorio": false,
+          "itens": [
+            {
+              "nome": "Spark/PySpark",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Airflow",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "dbt",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Cloud (AWS/GCP/Azure)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Machine Learning básico",
+              "nivel_minimo": "basico"
+            }
+          ]
+        }
+      },
+      "cursos": {
+        "Python": {
+          "nome": "Python para Dados",
+          "plataforma": "Alura"
+        },
+        "SQL": {
+          "nome": "SQL Completo",
+          "plataforma": "Udemy"
+        },
+        "Power BI": {
+          "nome": "Power BI do Zero",
+          "plataforma": "DIO"
+        },
+        "Tableau": {
+          "nome": "Tableau Completo",
+          "plataforma": "Udemy"
+        },
+        "Pandas": {
+          "nome": "Pandas na Prática",
+          "plataforma": "Alura"
+        },
+        "Matplotlib/Seaborn": {
+          "nome": "Visualização de Dados com Python",
+          "plataforma": "Alura"
+        },
+        "Spark/PySpark": {
+          "nome": "Engenharia de Dados com Spark",
+          "plataforma": "Udemy"
+        },
+        "Machine Learning básico": {
+          "nome": "Machine Learning do Zero",
+          "plataforma": "Alura"
+        }
+      }
+    },
+    "mobile": {
+      "titulo": "Mobile (Android/iOS)",
+      "descricao": "Habilidades para desenvolvimento de aplicativos mobile",
+      "habilidades": {
+        "fundamentos": {
+          "obrigatorio": true,
+          "itens": [
+            {
+              "nome": "Lógica de Programação",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Git",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "HTTP/APIs REST",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "UI/UX Mobile",
+              "nivel_minimo": "basico"
+            }
+          ]
+        },
+        "plataforma": {
+          "obrigatorio": true,
+          "descricao": "Escolha entre nativo ou cross-platform",
+          "itens": [
+            {
+              "nome": "React Native",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Flutter",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Swift (iOS nativo)",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Kotlin (Android nativo)",
+              "nivel_minimo": "intermediario"
+            }
+          ]
+        },
+        "complementares": {
+          "obrigatorio": false,
+          "itens": [
+            {
+              "nome": "TypeScript",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Publicação nas Stores",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Push Notifications",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Offline First/AsyncStorage",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Testes em Mobile",
+              "nivel_minimo": "basico"
+            }
+          ]
+        }
+      },
+      "cursos": {
+        "React Native": {
+          "nome": "Ignite React Native",
+          "plataforma": "Rocketseat"
+        },
+        "Flutter": {
+          "nome": "Flutter do Zero",
+          "plataforma": "Udemy"
+        },
+        "Kotlin (Android nativo)": {
+          "nome": "Android com Kotlin",
+          "plataforma": "Alura"
+        },
+        "Swift (iOS nativo)": {
+          "nome": "iOS com Swift",
+          "plataforma": "Udemy"
+        },
+        "TypeScript": {
+          "nome": "TypeScript do Zero",
+          "plataforma": "Alura"
+        },
+        "Testes em Mobile": {
+          "nome": "Testes para Apps Mobile",
+          "plataforma": "Udemy"
+        }
+      }
+    },
+    "devops_cloud": {
+      "titulo": "DevOps & Cloud",
+      "descricao": "Habilidades para infraestrutura, automação e computação em nuvem",
+      "habilidades": {
+        "fundamentos": {
+          "obrigatorio": true,
+          "itens": [
+            {
+              "nome": "Linux/Terminal",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Git",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Redes (TCP/IP, DNS, HTTP)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Scripting (Bash ou Python)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Docker",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Kubernetes",
+              "nivel_minimo": "basico"
+            }
+          ]
+        },
+        "cloud": {
+          "obrigatorio": true,
+          "descricao": "Pelo menos um provedor de nuvem",
+          "itens": [
+            {
+              "nome": "AWS",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Google Cloud (GCP)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Microsoft Azure",
+              "nivel_minimo": "basico"
+            }
+          ]
+        },
+        "complementares": {
+          "obrigatorio": false,
+          "itens": [
+            {
+              "nome": "CI/CD (GitHub Actions/Jenkins)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Terraform (IaC)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Monitoramento (Prometheus/Grafana)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Ansible",
+              "nivel_minimo": "basico"
+            }
+          ]
+        }
+      },
+      "cursos": {
+        "Docker": {
+          "nome": "Docker do Zero",
+          "plataforma": "DIO"
+        },
+        "Kubernetes": {
+          "nome": "Kubernetes para Iniciantes",
+          "plataforma": "Udemy"
+        },
+        "AWS": {
+          "nome": "AWS Cloud Practitioner",
+          "plataforma": "Udemy"
+        },
+        "Google Cloud (GCP)": {
+          "nome": "GCP Associate Cloud Engineer",
+          "plataforma": "Udemy"
+        },
+        "Microsoft Azure": {
+          "nome": "Azure Fundamentals AZ-900",
+          "plataforma": "Udemy"
+        },
+        "CI/CD (GitHub Actions/Jenkins)": {
+          "nome": "CI/CD com GitHub Actions",
+          "plataforma": "DIO"
+        },
+        "Terraform (IaC)": {
+          "nome": "Terraform do Zero",
+          "plataforma": "Udemy"
+        },
+        "Linux/Terminal": {
+          "nome": "Linux do Zero",
+          "plataforma": "Alura"
+        }
+      }
+    },
+    "ciberseguranca": {
+      "titulo": "Cibersegurança",
+      "descricao": "Habilidades para atuar com segurança da informação e proteção de sistemas",
+      "habilidades": {
+        "fundamentos": {
+          "obrigatorio": true,
+          "itens": [
+            {
+              "nome": "Redes (TCP/IP, DNS, HTTP/S)",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Linux/Terminal",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Criptografia básica",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Sistemas Operacionais",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Scripting (Python ou Bash)",
+              "nivel_minimo": "basico"
+            }
+          ]
+        },
+        "areas": {
+          "obrigatorio": true,
+          "descricao": "Pelo menos uma área de atuação",
+          "itens": [
+            {
+              "nome": "Pentest/Ethical Hacking",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Blue Team (Defesa)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Análise de Malware",
+              "nivel_minimo": "basico"
+            }
+          ]
+        },
+        "complementares": {
+          "obrigatorio": false,
+          "itens": [
+            {
+              "nome": "OWASP Top 10",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "SIEM (Splunk/Wazuh)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Forense Digital",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Cloud Security",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Certificação CompTIA Security+",
+              "nivel_minimo": "basico"
+            }
+          ]
+        }
+      },
+      "cursos": {
+        "Redes (TCP/IP, DNS, HTTP/S)": {
+          "nome": "Redes de Computadores",
+          "plataforma": "Alura"
+        },
+        "Linux/Terminal": {
+          "nome": "Linux do Zero",
+          "plataforma": "Alura"
+        },
+        "Pentest/Ethical Hacking": {
+          "nome": "Ethical Hacking Completo",
+          "plataforma": "Udemy"
+        },
+        "OWASP Top 10": {
+          "nome": "Segurança Web com OWASP",
+          "plataforma": "Udemy"
+        },
+        "SIEM (Splunk/Wazuh)": {
+          "nome": "SOC e SIEM na Prática",
+          "plataforma": "Udemy"
+        },
+        "Certificação CompTIA Security+": {
+          "nome": "CompTIA Security+ Prep",
+          "plataforma": "Udemy"
+        },
+        "Scripting (Python ou Bash)": {
+          "nome": "Python para Segurança",
+          "plataforma": "Udemy"
+        }
+      }
+    },
+    "inteligencia_artificial": {
+      "titulo": "Inteligência Artificial",
+      "descricao": "Habilidades para construir produtos e sistemas com IA aplicada",
+      "habilidades": {
+        "fundamentos": {
+          "obrigatorio": true,
+          "itens": [
+            {
+              "nome": "Python",
+              "nivel_minimo": "avancado"
+            },
+            {
+              "nome": "Matemática (Álgebra Linear e Estatística)",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "APIs REST",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Git",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "SQL básico",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Fundamentos de ML",
+              "nivel_minimo": "intermediario"
+            }
+          ]
+        },
+        "ia_aplicada": {
+          "obrigatorio": true,
+          "itens": [
+            {
+              "nome": "LLMs (OpenAI/Anthropic/Gemini)",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Prompt Engineering",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "RAG (Retrieval-Augmented Generation)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "LangChain ou LlamaIndex",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Vector Databases",
+              "nivel_minimo": "basico"
+            }
+          ]
+        },
+        "backend_e_deploy": {
+          "obrigatorio": true,
+          "itens": [
+            {
+              "nome": "FastAPI",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Docker",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Deploy em Cloud",
+              "nivel_minimo": "basico"
+            }
+          ]
+        },
+        "complementares": {
+          "obrigatorio": false,
+          "itens": [
+            {
+              "nome": "Fine-tuning de modelos",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Agentes de IA (LangGraph/CrewAI)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Observabilidade (LangSmith/Langfuse)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Visão Computacional (OpenCV)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Processamento de Linguagem Natural (NLP)",
+              "nivel_minimo": "basico"
+            }
+          ]
+        }
+      },
+      "cursos": {
+        "Python": {
+          "nome": "Python do Zero ao Avançado",
+          "plataforma": "Udemy"
+        },
+        "Fundamentos de ML": {
+          "nome": "Machine Learning do Zero",
+          "plataforma": "Alura"
+        },
+        "FastAPI": {
+          "nome": "FastAPI do Zero",
+          "plataforma": "Dunossauro"
+        },
+        "LLMs (OpenAI/Anthropic/Gemini)": {
+          "nome": "LLM Engineering",
+          "plataforma": "DeepLearning.AI"
+        },
+        "Prompt Engineering": {
+          "nome": "Prompt Engineering for Developers",
+          "plataforma": "DeepLearning.AI"
+        },
+        "RAG (Retrieval-Augmented Generation)": {
+          "nome": "Building RAG Agents",
+          "plataforma": "DeepLearning.AI"
+        },
+        "LangChain ou LlamaIndex": {
+          "nome": "LangChain com Python",
+          "plataforma": "Udemy"
+        },
+        "Docker": {
+          "nome": "Docker do Zero",
+          "plataforma": "DIO"
+        },
+        "Agentes de IA (LangGraph/CrewAI)": {
+          "nome": "AI Agents com LangGraph",
+          "plataforma": "DeepLearning.AI"
+        }
+      }
+    },
+    "game_development": {
+      "titulo": "Game Development",
+      "descricao": "Habilidades para desenvolver jogos digitais",
+      "habilidades": {
+        "fundamentos": {
+          "obrigatorio": true,
+          "itens": [
+            {
+              "nome": "Lógica de Programação",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Matemática (Vetores e Trigonometria)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Git",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Orientação a Objetos (POO)",
+              "nivel_minimo": "intermediario"
+            }
+          ]
+        },
+        "engine": {
+          "obrigatorio": true,
+          "descricao": "Pelo menos uma engine de jogos",
+          "itens": [
+            {
+              "nome": "Unity (C#)",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Unreal Engine (C++ ou Blueprints)",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Godot (GDScript)",
+              "nivel_minimo": "intermediario"
+            }
+          ]
+        },
+        "complementares": {
+          "obrigatorio": false,
+          "itens": [
+            {
+              "nome": "Design de Níveis",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Animação 2D/3D básica",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Física de Jogos",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Monetização e publicação (Steam/Stores)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Shaders e Efeitos Visuais",
+              "nivel_minimo": "basico"
+            }
+          ]
+        }
+      },
+      "cursos": {
+        "Unity (C#)": {
+          "nome": "Unity do Zero ao Avançado",
+          "plataforma": "Udemy"
+        },
+        "Unreal Engine (C++ ou Blueprints)": {
+          "nome": "Unreal Engine para Iniciantes",
+          "plataforma": "Udemy"
+        },
+        "Godot (GDScript)": {
+          "nome": "Godot Game Development",
+          "plataforma": "Udemy"
+        },
+        "Design de Níveis": {
+          "nome": "Level Design na Prática",
+          "plataforma": "Udemy"
+        },
+        "Animação 2D/3D básica": {
+          "nome": "Animação para Games",
+          "plataforma": "Udemy"
+        },
+        "Shaders e Efeitos Visuais": {
+          "nome": "Shaders com Unity",
+          "plataforma": "Udemy"
+        }
+      }
+    },
+    "ui_ux_design": {
+      "titulo": "UI/UX Design",
+      "descricao": "Habilidades para design de interfaces e experiência do usuário",
+      "habilidades": {
+        "fundamentos": {
+          "obrigatorio": true,
+          "itens": [
+            {
+              "nome": "Princípios de Design Visual",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Tipografia e Cores",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Heurísticas de Usabilidade (Nielsen)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Design Responsivo",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Acessibilidade (WCAG)",
+              "nivel_minimo": "basico"
+            }
+          ]
+        },
+        "ferramentas": {
+          "obrigatorio": true,
+          "descricao": "Pelo menos uma ferramenta de design",
+          "itens": [
+            {
+              "nome": "Figma",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Adobe XD",
+              "nivel_minimo": "intermediario"
+            }
+          ]
+        },
+        "ux": {
+          "obrigatorio": true,
+          "itens": [
+            {
+              "nome": "Pesquisa com Usuários",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Wireframing e Prototipagem",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Testes de Usabilidade",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Design System",
+              "nivel_minimo": "basico"
+            }
+          ]
+        },
+        "complementares": {
+          "obrigatorio": false,
+          "itens": [
+            {
+              "nome": "Motion Design (After Effects)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "HTML/CSS básico",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Copywriting para UX",
+              "nivel_minimo": "basico"
+            }
+          ]
+        }
+      },
+      "cursos": {
+        "Figma": {
+          "nome": "Figma do Zero ao Avançado",
+          "plataforma": "Alura"
+        },
+        "Princípios de Design Visual": {
+          "nome": "Fundamentos de UX Design",
+          "plataforma": "Google (Coursera)"
+        },
+        "Pesquisa com Usuários": {
+          "nome": "UX Research na Prática",
+          "plataforma": "Alura"
+        },
+        "Wireframing e Prototipagem": {
+          "nome": "Prototipagem com Figma",
+          "plataforma": "Alura"
+        },
+        "Testes de Usabilidade": {
+          "nome": "Testes de Usabilidade",
+          "plataforma": "Alura"
+        },
+        "Design System": {
+          "nome": "Design System do Zero",
+          "plataforma": "Udemy"
+        },
+        "Motion Design (After Effects)": {
+          "nome": "Motion Design para UI",
+          "plataforma": "Udemy"
+        }
+      }
+    },
+    "infraestrutura_redes": {
+      "titulo": "Infraestrutura & Redes",
+      "descricao": "Habilidades para administração de redes e infraestrutura de TI",
+      "habilidades": {
+        "fundamentos": {
+          "obrigatorio": true,
+          "itens": [
+            {
+              "nome": "Redes (Modelo OSI/TCP-IP)",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Linux Server",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Windows Server",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Protocolos (DNS, DHCP, HTTP, FTP)",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Roteamento e Switching",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Firewall e Segurança de Rede",
+              "nivel_minimo": "basico"
+            }
+          ]
+        },
+        "ferramentas": {
+          "obrigatorio": true,
+          "itens": [
+            {
+              "nome": "Virtualização (VMware/VirtualBox)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Active Directory",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Monitoramento (Zabbix/Nagios)",
+              "nivel_minimo": "basico"
+            }
+          ]
+        },
+        "complementares": {
+          "obrigatorio": false,
+          "itens": [
+            {
+              "nome": "Docker",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Cloud (AWS/Azure)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "VPN e Segurança Perimetral",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Certificação CCNA (Cisco)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Scripting (Bash/PowerShell)",
+              "nivel_minimo": "basico"
+            }
+          ]
+        }
+      },
+      "cursos": {
+        "Redes (Modelo OSI/TCP-IP)": {
+          "nome": "Redes de Computadores Completo",
+          "plataforma": "Udemy"
+        },
+        "Linux Server": {
+          "nome": "Linux Server do Zero",
+          "plataforma": "Alura"
+        },
+        "Windows Server": {
+          "nome": "Windows Server na Prática",
+          "plataforma": "Udemy"
+        },
+        "Roteamento e Switching": {
+          "nome": "CCNA 200-301 Completo",
+          "plataforma": "Udemy"
+        },
+        "Virtualização (VMware/VirtualBox)": {
+          "nome": "Virtualização com VMware",
+          "plataforma": "Udemy"
+        },
+        "Monitoramento (Zabbix/Nagios)": {
+          "nome": "Zabbix do Zero",
+          "plataforma": "Udemy"
+        },
+        "Certificação CCNA (Cisco)": {
+          "nome": "CCNA 200-301 Prep",
+          "plataforma": "Udemy"
+        },
+        "Docker": {
+          "nome": "Docker do Zero",
+          "plataforma": "DIO"
         }
       }
     }
