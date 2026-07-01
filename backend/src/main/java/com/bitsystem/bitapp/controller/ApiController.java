@@ -29,11 +29,17 @@ public class ApiController {
         this.authService = authService;
     }
 
-    @PostMapping("/orientar")
-    public ResponseEntity<StandardApiResponse<OrientacaoDto.Response>> orientar(
-            @RequestBody @Valid OrientacaoDto.Request request) {
-        return ResponseEntity.ok(StandardApiResponse.ok(orientacaoService.processarOrientacao(request)));
-    }
+    // ────────────────────────────────────────────────────────────────────────
+    // DESATIVADO (2026-07): o Dashboard passou a usar o Assessment Agent do Tiago
+    // (POST /api/assessment). O endpoint /api/orientar (Gemini direto) fica
+    // comentado para retomada futura — não deve ser chamado nem atrapalhar.
+    // O bean OrientacaoService segue existindo, porém sem rota exposta.
+    // ────────────────────────────────────────────────────────────────────────
+    // @PostMapping("/orientar")
+    // public ResponseEntity<StandardApiResponse<OrientacaoDto.Response>> orientar(
+    //         @RequestBody @Valid OrientacaoDto.Request request) {
+    //     return ResponseEntity.ok(StandardApiResponse.ok(orientacaoService.processarOrientacao(request)));
+    // }
 
     @PostMapping("/saude")
     public ResponseEntity<StandardApiResponse<SaudeDto.Response>> verificarSaude(

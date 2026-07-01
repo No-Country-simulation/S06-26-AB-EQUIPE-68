@@ -116,7 +116,7 @@ public class AssessmentService {
         // Gaps padrão se nenhum específico foi detectado
         if (gaps.isEmpty()) {
             gaps.add("Segurança de APIs e boas práticas de autenticação");
-            gaps.add("版本控制 avançado com Git e CI/CD");
+            gaps.add("Controle de versão avançado com Git e CI/CD");
             gaps.add("Testes automatizados e TDD");
         }
         if (planoDesenvolvimento.isEmpty()) {

@@ -1,19 +1,68 @@
 package com.bitsystem.bitapp.service;
 
 import com.bitsystem.bitapp.domain.Curso;
+import com.bitsystem.bitapp.domain.InscricaoCurso;
 import com.bitsystem.bitapp.dto.CursoDto;
+import com.bitsystem.bitapp.dto.InscricaoCursoDto;
+import com.bitsystem.bitapp.exception.BusinessException;
 import com.bitsystem.bitapp.repository.CursoRepository;
+import com.bitsystem.bitapp.repository.InscricaoCursoRepository;
+import com.bitsystem.bitapp.repository.UserRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CursoService {
 
-    private final CursoRepository cursoRepository;
+    private static final Logger log = LoggerFactory.getLogger(CursoService.class);
 
-    public CursoService(CursoRepository cursoRepository) {
+    private final CursoRepository cursoRepository;
+    private final InscricaoCursoRepository inscricaoRepository;
+    private final UserRepository userRepository;
+
+    public CursoService(CursoRepository cursoRepository,
+                        InscricaoCursoRepository inscricaoRepository,
+                        UserRepository userRepository) {
         this.cursoRepository = cursoRepository;
+        this.inscricaoRepository = inscricaoRepository;
+        this.userRepository = userRepository;
+    }
+
+    /**
+     * Inscreve o usuário no curso, evitando duplicidade (mesmo usuarioId+cursoId).
+     * usuarioId vem do payload; se ausente, deriva do usuário autenticado (JWT).
+     */
+    public InscricaoCursoDto.Response inscrever(InscricaoCursoDto.Request request, String emailAutenticado) {
+        Long usuarioId = request.usuarioId();
+        if (usuarioId == null || usuarioId <= 0) {
+            usuarioId = userRepository.findByEmail(emailAutenticado)
+                    .map(u -> u.getId())
+                    .orElseThrow(() -> new BusinessException("USUARIO_NAO_IDENTIFICADO",
+                            "Não foi possível identificar o usuário da inscrição."));
+        }
+
+        Long cursoId = request.cursoId();
+        cursoRepository.findById(cursoId)
+                .orElseThrow(() -> new BusinessException("CURSO_NAO_ENCONTRADO", "Curso não encontrado: " + cursoId));
+
+        Optional<InscricaoCurso> existente = inscricaoRepository.findByUsuarioIdAndCursoId(usuarioId, cursoId);
+        if (existente.isPresent()) {
+            log.info("[CursoService] Inscrição já existente: usuarioId={}, cursoId={}", usuarioId, cursoId);
+            return InscricaoCursoDto.Response.from(existente.get(), true);
+        }
+
+        InscricaoCurso nova = InscricaoCurso.builder()
+                .usuarioId(usuarioId)
+                .cursoId(cursoId)
+                .status("INSCRITO")
+                .build();
+        nova = inscricaoRepository.save(nova);
+        log.info("[CursoService] Inscrição criada: id={}, usuarioId={}, cursoId={}", nova.getId(), usuarioId, cursoId);
+        return InscricaoCursoDto.Response.from(nova, false);
     }
 
     public List<CursoDto> listarTodas() {

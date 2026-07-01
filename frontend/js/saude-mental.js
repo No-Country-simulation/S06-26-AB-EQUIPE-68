@@ -116,10 +116,12 @@ function selectMood(btn, mood, note) {
 }
 window.selectMood = selectMood;
 
-document.getElementById('formSaude')?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if (!selectedMoodState) { alert('Selecione um emoji.'); return; }
-    const submitBtn = event.target.querySelector('button[type="submit"]');
+const formSaude = document.getElementById('formSaude');
+
+// Envio real do check-in — só chega aqui após a confirmação (quando aplicável).
+// É a ÚNICA porta de gravação: um clique acidental cancelado nem toca no banco.
+async function enviarCheckin() {
+    const submitBtn = formSaude?.querySelector('button[type="submit"]');
     if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="loader"></span> Salvando...'; }
     try {
         const data = await saudeCheckin({
@@ -131,6 +133,32 @@ document.getElementById('formSaude')?.addEventListener('submit', async (event) =
         renderAiResponse(data);
     } catch { alert('Erro ao salvar check-in.'); }
     finally { if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Enviar Registro'; } }
+}
+
+// Passo de confirmação empática (Plano A): para nota <= 2, confirma antes de gravar.
+// A confirmação é o único filtro do clique acidental — texto e IA nunca cancelam nada.
+const confirmModal = document.getElementById('confirmModal');
+function abrirConfirmacao() { confirmModal?.classList.remove('hidden'); }
+function fecharConfirmacao() { confirmModal?.classList.add('hidden'); }
+
+document.getElementById('confirmSim')?.addEventListener('click', () => {
+    fecharConfirmacao();
+    enviarCheckin();
+});
+document.getElementById('confirmNao')?.addEventListener('click', () => {
+    // Cancela o envio: não submete, não grava. O usuário pode reescolher o humor.
+    fecharConfirmacao();
+});
+confirmModal?.addEventListener('click', (e) => { if (e.target === confirmModal) fecharConfirmacao(); });
+
+formSaude?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!selectedMoodState) { alert('Selecione um emoji.'); return; }
+    if (selectedNoteState <= 2) {
+        abrirConfirmacao();
+        return;
+    }
+    await enviarCheckin();
 });
 
 function renderAiResponse(data) {

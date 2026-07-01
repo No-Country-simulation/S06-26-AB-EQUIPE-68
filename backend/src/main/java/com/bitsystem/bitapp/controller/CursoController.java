@@ -2,9 +2,12 @@ package com.bitsystem.bitapp.controller;
 
 import com.bitsystem.bitapp.dto.StandardApiResponse;
 import com.bitsystem.bitapp.dto.CursoDto;
+import com.bitsystem.bitapp.dto.InscricaoCursoDto;
 import com.bitsystem.bitapp.service.CursoService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -34,6 +37,16 @@ public class CursoController {
     public ResponseEntity<StandardApiResponse<CursoDto>> buscarPorId(@PathVariable Long id) {
         CursoDto curso = cursoService.buscarPorId(id);
         return ResponseEntity.ok(StandardApiResponse.ok(curso));
+    }
+
+    // Ação de usuário logado — cai em anyRequest().authenticated() (POST não é liberado).
+    @PostMapping("/inscrever")
+    public ResponseEntity<StandardApiResponse<InscricaoCursoDto.Response>> inscrever(
+            @RequestBody @Valid InscricaoCursoDto.Request request,
+            Authentication authentication) {
+        String email = authentication != null ? authentication.getName() : null;
+        InscricaoCursoDto.Response response = cursoService.inscrever(request, email);
+        return ResponseEntity.ok(StandardApiResponse.ok(response));
     }
 
     @GetMapping("/regioes")

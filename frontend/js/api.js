@@ -30,12 +30,14 @@ async function apiFetch(path, options = {}) {
     return json.data;
 }
 
-export async function orientar(dados) {
-    return apiFetch('/api/orientar', {
-        method: 'POST',
-        body: JSON.stringify(dados),
-    });
-}
+// DESATIVADO (2026-07): o Dashboard passou a usar o Assessment Agent (assessment()).
+// A chamada a /api/orientar fica comentada para retomada futura.
+// export async function orientar(dados) {
+//     return apiFetch('/api/orientar', {
+//         method: 'POST',
+//         body: JSON.stringify(dados),
+//     });
+// }
 
 export async function saudeCheckin(dados) {
     return apiFetch('/api/saude', {

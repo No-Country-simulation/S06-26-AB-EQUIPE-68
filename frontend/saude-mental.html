@@ -129,17 +129,17 @@
                     class="mood-btn text-3xl py-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl transition group focus:ring-2 focus:ring-cyan-500 outline-none">
                     😴 <span class="block text-[10px] text-slate-500 font-medium mt-1">Cansado</span>
                 </button>
-                <button type="button" onclick="selectMood(this, 'triste', 3)" aria-pressed="false"
-                    class="mood-btn text-3xl py-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl transition group focus:ring-2 focus:ring-cyan-500 outline-none">
-                    😢 <span class="block text-[10px] text-slate-500 font-medium mt-1">Triste</span>
-                </button>
                 <button type="button" onclick="selectMood(this, 'ansioso', 3)" aria-pressed="false"
                     class="mood-btn text-3xl py-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl transition group focus:ring-2 focus:ring-cyan-500 outline-none">
                     😰 <span class="block text-[10px] text-slate-500 font-medium mt-1">Ansioso</span>
                 </button>
-                <button type="button" onclick="selectMood(this, 'sobrecarregado', 2)" aria-pressed="false"
+                <button type="button" onclick="selectMood(this, 'triste', 2)" aria-pressed="false"
                     class="mood-btn text-3xl py-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl transition group focus:ring-2 focus:ring-cyan-500 outline-none">
-                    🤯 <span class="block text-[10px] text-slate-500 font-medium mt-1">Exausto</span>
+                    😢 <span class="block text-[10px] text-slate-500 font-medium mt-1">Triste</span>
+                </button>
+                <button type="button" onclick="selectMood(this, 'sobrecarregado', 1)" aria-pressed="false"
+                    class="mood-btn text-3xl py-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl transition group focus:ring-2 focus:ring-cyan-500 outline-none">
+                    🤯 <span class="block text-[10px] text-slate-500 font-medium mt-1">Sobrecarregado</span>
                 </button>
             </div>
             <form id="formSaude" class="space-y-4">
@@ -154,6 +154,27 @@
                     Enviar Registro
                 </button>
             </form>
+        </div>
+
+        <div id="confirmModal" class="hidden fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm px-4"
+            role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+            <div class="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900 p-8 shadow-2xl space-y-5 text-center animate-fade-in">
+                <div class="text-4xl" aria-hidden="true">🫶</div>
+                <h3 id="confirmTitle" class="text-lg font-bold text-white">Um instante</h3>
+                <p class="text-sm text-slate-300 leading-relaxed">
+                    Percebemos que você marcou um momento difícil. Isso reflete como você está agora?
+                </p>
+                <div class="flex flex-col gap-3">
+                    <button type="button" id="confirmSim"
+                        class="w-full rounded-2xl bg-cyan-500 px-6 py-3 text-sm font-bold text-slate-950 shadow-xl transition hover:bg-cyan-400 transform active:scale-[0.98]">
+                        Sim, quero apoio
+                    </button>
+                    <button type="button" id="confirmNao"
+                        class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-600">
+                        Cliquei sem querer
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div id="aiResponseContainer" class="hidden p-6 rounded-3xl border transition-all duration-300 mt-6">

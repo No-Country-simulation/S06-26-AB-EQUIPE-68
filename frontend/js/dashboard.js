@@ -1,4 +1,4 @@
-import { orientar, logout, listarVagas, listarCursos } from './api.js';
+import { assessment, logout, listarVagas, listarCursos } from './api.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -37,52 +37,56 @@ async function handleLogout() {
 }
 window.handleLogout = handleLogout;
 
-function formatConfianca(valor) {
-    if (typeof valor === 'number') {
-        return valor >= 0.8 ? 'Alta' : valor >= 0.5 ? 'Média' : 'Baixa';
-    }
-    return valor || 'Alta';
-}
-
-async function carregarOrientacao() {
+// Dashboard usa o Assessment Agent (POST /api/assessment). Enquanto o n8n do Tiago
+// não estiver plugado, o backend responde com o FALLBACK do AssessmentService — o que
+// é o comportamento esperado. Formato: {compatibilidade, nivel, pontosFortes[], gaps[],
+// planoDesenvolvimento[]}.
+async function carregarAssessment() {
     if (!usuario) return;
     try {
-        const data = await orientar({
-            usuarioId: usuario.id,
-            perfil: usuario.competenciasAtuais || 'Perfil em formação',
-            nivel: usuario.nivelProfissional || 'Junior',
-            regiao: usuario.cidade || 'BR-SP',
-            idioma: 'PT',
-            lat: null,
-            lng: null,
-        });
-        const match = 100 - (data.gapPercentual || 30);
+        // Monta o request a partir do que existir no perfil do usuário logado.
+        const competencias = (usuario.competenciasAtuais || '')
+            .split(',').map(s => s.trim()).filter(Boolean);
+        const data = await assessment({
+            nome: usuario.nome || 'Usuário',
+            idade: null,
+            escolaridade: null,
+            experiencia: usuario.nivelProfissional || null,
+            hardSkills: competencias,
+            softSkills: [],
+            tecnologias: usuario.areaTecnologia ? [usuario.areaTecnologia] : [],
+        }, usuario.id);
+
+        const match = typeof data.compatibilidade === 'number' ? data.compatibilidade : 0;
         const matchEl = document.getElementById('dashMatchPercent');
         if (matchEl) matchEl.textContent = match + '%';
+
         const gapList = document.getElementById('dashGapItens');
         if (gapList) {
-            gapList.innerHTML = (data.gapItens || []).map(item =>
+            gapList.innerHTML = (data.gaps || []).map(item =>
                 `<li class="rounded-xl bg-slate-950 px-4 py-3 border border-slate-800/60 flex items-center gap-2">
                     <span class="text-rose-500">❌</span> ${item}</li>`
             ).join('');
         }
+
         const trilha = document.getElementById('dashTrilha');
         if (trilha) {
-            trilha.innerHTML = (data.trilhaSugerida || []).map(item =>
+            trilha.innerHTML = (data.planoDesenvolvimento || []).map(item =>
                 `<article class="rounded-2xl bg-slate-950/80 p-5 border border-slate-800 hover:border-slate-700 transition">
                     <h3 class="text-base font-bold text-white">${item}</h3>
-                    <span class="inline-block mt-2 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 px-2.5 py-1 text-xs font-bold">Gratuito</span>
+                    <span class="inline-block mt-2 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 px-2.5 py-1 text-xs font-bold">Recomendado</span>
                 </article>`
             ).join('');
         }
-        const vagas = data.vagasCompatibles || [];
+
         const vagaTitulo = document.getElementById('dashVagaTitulo');
         const vagaDesc = document.getElementById('dashVagaDesc');
-        if (vagas.length > 0 && vagaTitulo) {
-            vagaTitulo.textContent = vagas[0];
-            if (vagaDesc) {
-                vagaDesc.textContent = `Mercado atende ${match}% das necessidades. Foque nos ${data.gapPercentual || 30}% restantes.`;
-            }
+        if (vagaTitulo) vagaTitulo.textContent = data.nivel ? `Nível estimado: ${data.nivel}` : 'Perfil analisado';
+        if (vagaDesc) {
+            const fortes = data.pontosFortes || [];
+            vagaDesc.textContent = fortes.length > 0
+                ? `Pontos fortes: ${fortes.join('; ')}.`
+                : `Compatibilidade de ${match}% com o mercado. Foque no seu plano de desenvolvimento.`;
         }
     } catch (err) {
         const vagaTitulo = document.getElementById('dashVagaTitulo');
@@ -90,7 +94,7 @@ async function carregarOrientacao() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', carregarOrientacao);
+document.addEventListener('DOMContentLoaded', carregarAssessment);
 
 async function loadSignal() {
     const badge = document.getElementById('signalBadge');
