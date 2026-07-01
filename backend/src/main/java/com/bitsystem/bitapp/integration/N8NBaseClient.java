@@ -8,6 +8,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 public abstract class N8NBaseClient {
@@ -23,7 +24,11 @@ public abstract class N8NBaseClient {
         this.webhookUrl = webhookUrl;
         this.timeout = timeout;
         this.maxRetries = maxRetries;
-        this.restTemplate = new RestTemplate();
+
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofSeconds(5));
+        factory.setReadTimeout(Duration.ofMillis(timeout));
+        this.restTemplate = new RestTemplate(factory);
     }
 
     protected <T, R> R callWebhook(T request, Class<R> responseType) {
