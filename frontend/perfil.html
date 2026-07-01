@@ -224,8 +224,8 @@
             class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div><span class="font-bold text-slate-400">BiT App</span> © 2026</div>
             <div class="flex space-x-6">
-                <span>Termos de Uso</span>
-                <span>Suporte 188 (CVV)</span>
+                <a href="termos.html" class="hover:text-white transition">Termos de Uso</a>
+                <a href="tel:188" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188 (CVV)</a>
             </div>
         </div>
     </footer>
@@ -272,7 +272,8 @@
         window.handleLogout = handleLogout;
     </script>
     <script type="module" src="js/perfil.js"></script>
-    <script>
+    <script type="module">
+        import { networkStatus } from './js/api.js';
         (async function loadSignal() {
             const badge = document.getElementById('signalBadge');
             const text = document.getElementById('signalText');
@@ -281,13 +282,9 @@
             try {
                 const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
                 if (usuario?.id) {
-                    const resp = await fetch('http://localhost:8080/api/network-status/' + usuario.id);
-                    const json = await resp.json();
-                    if (json.success && json.data) {
-                        const d = json.data;
-                        text.textContent = d.status === 'Estavel' ? 'Rede Estável — ' + (d.tecnologiaPredominante || '4G') : 'Rede Instável';
-                        return;
-                    }
+                    const d = await networkStatus(usuario.id);
+                    text.textContent = d.status === 'Estavel' ? 'Rede Estável — ' + (d.tecnologiaPredominante || '4G') : 'Rede Instável';
+                    return;
                 }
                 text.textContent = 'Rede Estável — 4G';
             } catch (e) { text.textContent = 'Rede Estável — 4G'; }

@@ -43,14 +43,6 @@
 
                 <div id="navLinks" class="hidden md:flex items-center space-x-2">
                     <div id="navLoggedOut">
-                        <a href="vagas.html"
-                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
-                        <a href="cursos.html"
-                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
-                        <a href="lazer.html"
-                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
-                        <a href="saude-mental.html"
-                            class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde Mental</a>
                     </div>
                     <div id="navLoggedIn" class="hidden">
                         <a href="dashboard.html"
@@ -73,14 +65,6 @@
 
             <div id="mobileNav" class="hidden md:hidden pb-4 space-y-2">
                 <div id="mobileNavLoggedOut">
-                    <a href="vagas.html"
-                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
-                    <a href="cursos.html"
-                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
-                    <a href="lazer.html"
-                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
-                    <a href="saude-mental.html"
-                        class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde Mental</a>
                 </div>
                 <div id="mobileNavLoggedIn" class="hidden">
                     <a href="dashboard.html"
@@ -330,8 +314,8 @@
                 <span>© 2026 Ecossistema de Inclusão Tecnológica.</span>
             </div>
             <div class="flex space-x-6">
-                <span>Termos de Uso</span>
-                <span>Suporte 188 (CVV)</span>
+                <a href="termos.html" class="hover:text-white transition">Termos de Uso</a>
+                <a href="tel:188" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188 (CVV)</a>
             </div>
         </div>
     </footer>
@@ -384,7 +368,8 @@
                 : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>';
         });
     </script>
-    <script>
+    <script type="module">
+        import { networkStatus } from './js/api.js';
         (async function loadSignal() {
             const badge = document.getElementById('signalBadge');
             const text = document.getElementById('signalText');
@@ -393,13 +378,9 @@
             try {
                 const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
                 if (usuario?.id) {
-                    const resp = await fetch('http://localhost:8080/api/network-status/' + usuario.id);
-                    const json = await resp.json();
-                    if (json.success && json.data) {
-                        const d = json.data;
-                        text.textContent = d.status === 'Estavel' ? 'Rede Estável — ' + (d.tecnologiaPredominante || '4G') : 'Rede Instável';
-                        return;
-                    }
+                    const d = await networkStatus(usuario.id);
+                    text.textContent = d.status === 'Estavel' ? 'Rede Estável — ' + (d.tecnologiaPredominante || '4G') : 'Rede Instável';
+                    return;
                 }
                 text.textContent = 'Rede Estável — 4G';
             } catch (e) { text.textContent = 'Rede Estável — 4G'; }

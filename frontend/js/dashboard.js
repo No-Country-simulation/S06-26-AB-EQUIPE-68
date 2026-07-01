@@ -1,4 +1,4 @@
-import { assessment, logout, listarVagas, listarCursos } from './api.js';
+import { assessment, logout, listarVagas, listarCursos, networkStatus } from './api.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -103,13 +103,9 @@ async function loadSignal() {
     badge.classList.remove('hidden');
     try {
         if (usuario?.id) {
-            const resp = await fetch(`http://localhost:8080/api/network-status/${usuario.id}`);
-            const json = await resp.json();
-            if (json.success && json.data) {
-                const d = json.data;
-                text.textContent = d.status === 'Estavel' ? `Rede Estável — ${d.tecnologiaPredominante || '4G'}` : 'Rede Instável';
-                return;
-            }
+            const d = await networkStatus(usuario.id);
+            text.textContent = d.status === 'Estavel' ? `Rede Estável — ${d.tecnologiaPredominante || '4G'}` : 'Rede Instável';
+            return;
         }
         text.textContent = 'Rede Estável — 4G';
     } catch { text.textContent = 'Rede Estável — 4G'; }

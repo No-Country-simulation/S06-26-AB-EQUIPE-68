@@ -208,7 +208,7 @@
                 <span>© 2026 Ecossistema de Inclusão Tecnológica.</span>
             </div>
             <div class="flex space-x-6">
-                <span>Termos de Uso</span>
+                <a href="termos.html" class="hover:text-slate-300 transition">Termos de Uso</a>
                 <a href="tel:188" class="text-red-400 font-semibold hover:text-red-300 transition">Suporte 188 (CVV)</a>
             </div>
         </div>
@@ -244,7 +244,8 @@
             }, 500);
         });
     </script>
-    <script>
+    <script type="module">
+        import { networkStatus } from './js/api.js';
         (async function loadSignal() {
             const badge = document.getElementById('signalBadge');
             const text = document.getElementById('signalText');
@@ -253,17 +254,13 @@
             try {
                 const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
                 if (usuario?.id) {
-                    const resp = await fetch('http://localhost:8080/api/network-status/' + usuario.id);
-                    const json = await resp.json();
-                    if (json.success && json.data) {
-                        const d = json.data;
-                        text.textContent = 'Rede Estável — ' + (d.tecnologiaPredominante || '4G');
-                        if (d.status !== 'Estavel') {
-                            badge.classList.remove('bg-yellow-500/10', 'text-yellow-400', 'border-yellow-500/20');
-                            badge.classList.add('bg-red-500/10', 'text-red-400', 'border-red-500/20');
-                        }
-                        return;
+                    const d = await networkStatus(usuario.id);
+                    text.textContent = 'Rede Estável — ' + (d.tecnologiaPredominante || '4G');
+                    if (d.status !== 'Estavel') {
+                        badge.classList.remove('bg-yellow-500/10', 'text-yellow-400', 'border-yellow-500/20');
+                        badge.classList.add('bg-red-500/10', 'text-red-400', 'border-red-500/20');
                     }
+                    return;
                 }
                 text.textContent = 'Rede Estável — 4G';
             } catch (e) {
