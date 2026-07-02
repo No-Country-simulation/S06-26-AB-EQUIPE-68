@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Configuration;
  * @version 1.0.0
  */
 @Configuration
-@ConditionalOnProperty(name = "bitapp.visent.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "visent.enabled", havingValue = "true")
 public class VisentDataInitializer implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(
