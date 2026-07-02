@@ -349,8 +349,8 @@
             toggle.setAttribute('aria-expanded', String(!isOpen));
         });
 
-        const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
-        if (usuario) {
+        const usuarioNav = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
+        if (usuarioNav) {
             document.getElementById('navLoggedOut')?.classList.add('hidden');
             document.getElementById('navLoggedIn')?.classList.remove('hidden');
             document.getElementById('mobileNavLoggedOut')?.classList.add('hidden');
