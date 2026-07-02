@@ -1,0 +1,1124 @@
+openapi: 3.0.3
+
+info:
+  title: App BiT — API de Orientação Pessoal
+  version: "2.0.0"
+  description: |
+    API REST do App BiT — orientação de carreira, saúde mental, cursos, vagas
+    e infraestrutura de rede para jovens em transição de carreira tech.
+
+    **Regra de crise (CVV):** a decisão de derivar um usuário para o CVV
+    (Centro de Valorização da Vida) é **determinística no Backend**
+    (`SaudeMentalService.deveDerivarParaCvv`), baseada apenas em
+    `notaSemanal` e no histórico de check-ins — **nunca é delegada ao agente
+    de IA** (Gemini ou Mental Health Agent via n8n). A IA só gera a mensagem
+    de acolhimento (texto); ela nunca decide, aciona ou cancela o CVV.
+    Gatilhos: `notaSemanal == 1` (crise aguda, imediato) OU 3 ou mais
+    check-ins com nota ≤ 2 dentro dos últimos 5 check-ins (tendência).
+
+    **Convenções:**
+    - Datas em ISO 8601 (`timestamp` de resposta e `createdAt`/`dataEnvio`/
+      `dataInscricao` de entidades).
+    - Idiomas suportados: `pt` | `es` (campo `idioma` de `/api/orientar`).
+    - Coordenadas geográficas em WGS 84 (latitude/longitude decimais).
+    - Toda resposta segue o envelope `StandardApiResponse`: `success`,
+      `data` (quando `success=true`), `error` + `codigo` (quando
+      `success=false`), `timestamp`. Campos nulos são omitidos
+      (`@JsonInclude(NON_NULL)`).
+    - `codigo` é um identificador estável (ex.: `CURSO_NAO_ENCONTRADO`) para
+      tratamento programático de erros pelo frontend; `error` é a mensagem
+      legível.
+    - Enums fechados nos campos categóricos (`humor`, `nivel`, `area`,
+      `modalidade`, `nivelProfissional`, `idioma`, etc.) — ver os schemas
+      de cada um.
+  contact:
+    name: André Teixeira (Backend)
+
+servers:
+  - url: http://localhost:8080
+    description: Desenvolvimento local
+  - url: https://s06-26-ab-equipe-68.onrender.com
+    description: Produção
+
+tags:
+  - name: Orientação
+    description: Análise de gap de competências e trilha de estudo (Gemini + fallback determinístico)
+  - name: Saúde Mental
+    description: Check-ins de bem-estar e regra determinística de derivação ao CVV
+  - name: Assessment
+    description: Avaliação de compatibilidade de carreira (Assessment Agent)
+  - name: Cursos
+    description: Catálogo de cursos e inscrições
+  - name: Vagas
+    description: Catálogo de vagas e candidaturas
+  - name: Rede
+    description: Status de infraestrutura de rede (dataset Vísent) próxima ao usuário
+  - name: Rota
+    description: Cálculo de rota (proxy para OpenRouteService)
+  - name: Autenticação
+    description: Registro, login e perfil do usuário
+  - name: Usuários
+    description: Listagem administrativa de usuários
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ───────────────────────────── Orientação ─────────────────────────────
+  /api/orientar:
+    post:
+      tags: [Orientação]
+      summary: Gera análise de gap de competências e trilha de estudo
+      description: |
+        Processa o perfil do usuário via Gemini; sem `GEMINI_API_KEY`
+        configurada, cai automaticamente no fallback determinístico
+        (heurística local, sem chamada de IA).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrientacaoRequest'
+      responses:
+        '200':
+          description: Análise gerada com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/OrientacaoResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  # ───────────────────────────── Saúde Mental ─────────────────────────────
+  /api/saude:
+    post:
+      tags: [Saúde Mental]
+      summary: Registra check-in de bem-estar e retorna acolhimento
+      description: |
+        A derivação ao CVV (`derivarCvv`) é 100% determinística no backend —
+        ver descrição da regra de crise no topo deste documento. A mensagem
+        de acolhimento vem do Mental Health Agent (n8n) com fallback
+        gracioso (Gemini ou respostas curadas locais).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaudeRequest'
+      responses:
+        '200':
+          description: Check-in processado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SaudeResponse'
+
+  /api/saude/historico:
+    get:
+      tags: [Saúde Mental]
+      summary: Lista o histórico de check-ins de um usuário
+      security: []
+      parameters:
+        - name: usuarioId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Histórico do usuário
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SaudeHistoricoItem'
+
+  # ───────────────────────────── Assessment ─────────────────────────────
+  /api/assessment:
+    post:
+      tags: [Assessment]
+      summary: Avalia compatibilidade de carreira do usuário
+      security: []
+      parameters:
+        - name: usuarioId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentRequest'
+      responses:
+        '200':
+          description: Assessment processado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AssessmentResponse'
+
+  # ───────────────────────────── Cursos ─────────────────────────────
+  /api/cursos:
+    get:
+      tags: [Cursos]
+      summary: Lista cursos com filtros opcionais
+      security: []
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+          description: Busca livre em título, instituição ou área
+        - name: regiao
+          in: query
+          schema: { type: string }
+          description: >
+            Cursos com regiao="Nacional (EAD)" retornam independente do valor
+            filtrado (são programas online nacionais).
+        - name: area
+          in: query
+          schema: { $ref: '#/components/schemas/CursoArea' }
+        - name: modalidade
+          in: query
+          schema: { $ref: '#/components/schemas/Modalidade' }
+        - name: gratuito
+          in: query
+          schema: { type: boolean }
+        - name: nivel
+          in: query
+          schema: { $ref: '#/components/schemas/Nivel' }
+      responses:
+        '200':
+          description: Lista de cursos
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Curso'
+
+  /api/cursos/{id}:
+    get:
+      tags: [Cursos]
+      summary: Busca um curso por ID
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: Curso encontrado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Curso'
+        '404':
+          description: >
+            Curso não encontrado. Observação: este endpoint específico lança
+            `RuntimeException` (não `BusinessException`), então cai no
+            handler genérico — responde HTTP 200 com `success=false` e
+            `codigo=ERRO_INTERNO`, não HTTP 404 nem `CURSO_NAO_ENCONTRADO`.
+
+  /api/cursos/inscrever:
+    post:
+      tags: [Cursos]
+      summary: Inscreve o usuário autenticado em um curso
+      description: Idempotente — repetir a inscrição retorna a existente com `jaInscrito=true`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InscricaoCursoRequest'
+      responses:
+        '200':
+          description: Inscrição criada ou já existente
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/InscricaoCursoResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/BusinessError'
+
+  /api/cursos/regioes:
+    get:
+      tags: [Cursos]
+      summary: Lista as regiões distintas presentes no catálogo de cursos
+      security: []
+      responses:
+        '200':
+          description: Lista de regiões
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { type: string }
+
+  /api/cursos/gratuitos:
+    get:
+      tags: [Cursos]
+      summary: Lista apenas cursos gratuitos
+      security: []
+      responses:
+        '200':
+          description: Lista de cursos gratuitos
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Curso' }
+
+  /api/cursos/beneficentes:
+    get:
+      tags: [Cursos]
+      summary: Lista cursos marcados como beneficentes/instituição social
+      security: []
+      responses:
+        '200':
+          description: Lista de cursos beneficentes
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Curso' }
+
+  /api/cursos/stats:
+    get:
+      tags: [Cursos]
+      summary: Estatísticas agregadas do catálogo de cursos
+      security: []
+      responses:
+        '200':
+          description: Estatísticas
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          total: { type: integer, format: int64 }
+                          gratuitos: { type: integer, format: int64 }
+                          regioes: { type: integer, format: int64 }
+
+  # ───────────────────────────── Vagas ─────────────────────────────
+  /api/vagas:
+    get:
+      tags: [Vagas]
+      summary: Lista vagas com filtros opcionais
+      security: []
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: regiao
+          in: query
+          schema: { type: string }
+        - name: nivel
+          in: query
+          schema: { $ref: '#/components/schemas/VagaNivel' }
+        - name: area
+          in: query
+          schema: { $ref: '#/components/schemas/CursoArea' }
+        - name: contrato
+          in: query
+          schema: { $ref: '#/components/schemas/TipoContrato' }
+      responses:
+        '200':
+          description: Lista de vagas
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Vaga' }
+
+  /api/vagas/{id}:
+    get:
+      tags: [Vagas]
+      summary: Busca uma vaga por ID
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: Vaga encontrada
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Vaga' }
+
+  /api/vagas/enviar-curriculo:
+    post:
+      tags: [Vagas]
+      summary: Candidata o usuário autenticado a uma vaga
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidaturaVagaRequest'
+      responses:
+        '200':
+          description: Candidatura registrada
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CandidaturaVagaResponse' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/BusinessError'
+
+  /api/vagas/regioes:
+    get:
+      tags: [Vagas]
+      summary: Lista as regiões distintas presentes no catálogo de vagas
+      security: []
+      responses:
+        '200':
+          description: Lista de regiões
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { type: string }
+
+  /api/vagas/stats:
+    get:
+      tags: [Vagas]
+      summary: Estatísticas agregadas do catálogo de vagas
+      security: []
+      responses:
+        '200':
+          description: Estatísticas
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          total: { type: integer, format: int64 }
+                          regioes: { type: integer, format: int64 }
+
+  # ───────────────────────────── Rede ─────────────────────────────
+  /api/network-status/{usuarioId}:
+    get:
+      tags: [Rede]
+      summary: Status da rede (torre mais próxima) para o usuário
+      description: |
+        Busca a infraestrutura de rede (dataset Vísent — 132 antenas reais)
+        dentro do raio informado a partir da localização do usuário
+        (`User.localizacao`). Prioriza 5G > 4G > 3G.
+
+        **Gap conhecido:** nenhum endpoint hoje grava `User.localizacao` —
+        o frontend já captura geolocalização via `navigator.geolocation`
+        (aba Lazer) mas não a envia ao backend. Na prática, a resposta
+        atual é sempre `"Localização do Usuário Não Definida"` até essa
+        lacuna ser fechada em um lote futuro.
+      security: []
+      parameters:
+        - name: usuarioId
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: raioMetros
+          in: query
+          required: false
+          schema: { type: number, format: double, default: 5000 }
+      responses:
+        '200':
+          description: >
+            Sempre HTTP 200 — inclusive para usuário não encontrado, sem
+            localização definida, ou nenhuma torre no raio (variações
+            expressas no campo `status`, não no HTTP status).
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/NetworkStatus' }
+
+  # ───────────────────────────── Rota ─────────────────────────────
+  /api/rota:
+    post:
+      tags: [Rota]
+      summary: Calcula rota rodoviária entre dois pontos (proxy OpenRouteService)
+      description: |
+        Repassa a requisição para a API pública do OpenRouteService
+        (`ors.api.key`). **Não usa o envelope `StandardApiResponse`** — em
+        caso de sucesso repassa o GeoJSON bruto do provedor; em caso de
+        erro retorna um objeto simples `{erro, mensagem}`.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [origem, destino]
+              properties:
+                origem:
+                  type: array
+                  items: { type: number, format: double }
+                  minItems: 2
+                  maxItems: 2
+                  description: "[longitude, latitude]"
+                destino:
+                  type: array
+                  items: { type: number, format: double }
+                  minItems: 2
+                  maxItems: 2
+                  description: "[longitude, latitude]"
+      responses:
+        '200':
+          description: GeoJSON da rota (repassado do OpenRouteService, sem envelope)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: FeatureCollection GeoJSON bruto do OpenRouteService
+        '400':
+          description: Origem ou destino ausentes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  erro: { type: string, example: "Informe origem e destino." }
+        '503':
+          description: OpenRouteService indisponível ou chave não configurada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  erro: { type: string, example: "ROTA_INDISPONIVEL" }
+                  mensagem: { type: string }
+
+  # ───────────────────────────── Autenticação ─────────────────────────────
+  /api/auth/register:
+    post:
+      tags: [Autenticação]
+      summary: Registra um novo usuário
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Usuário criado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AuthResponse' }
+        '422':
+          description: E-mail já cadastrado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      codigo: { type: string, example: EMAIL_EXISTS }
+
+  /api/auth/login:
+    post:
+      tags: [Autenticação]
+      summary: Autentica um usuário e emite tokens JWT
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login realizado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AuthResponse' }
+        '422':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      codigo: { type: string, example: INVALID_CREDENTIALS }
+
+  /api/auth/me:
+    get:
+      tags: [Autenticação]
+      summary: Dados do usuário autenticado
+      responses:
+        '200':
+          description: Usuário autenticado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/UserResponse' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/profile:
+    put:
+      tags: [Autenticação]
+      summary: Atualiza o perfil do usuário autenticado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+      responses:
+        '200':
+          description: Perfil atualizado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/UserResponse' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/logout:
+    post:
+      tags: [Autenticação]
+      summary: Revoga a sessão (token) atual
+      responses:
+        '200':
+          description: Logout efetuado (sempre 200, mesmo com header ausente/malformado)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+
+  # ───────────────────────────── Usuários ─────────────────────────────
+  /api/usuarios:
+    get:
+      tags: [Usuários]
+      summary: Lista todos os usuários cadastrados
+      security: []
+      responses:
+        '200':
+          description: Lista de usuários
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/UsuarioResponse' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Token emitido por /api/auth/register ou /api/auth/login. Endpoints
+        marcados com `security: []` neste documento são públicos
+        (permitAll no SecurityConfig); os demais exigem
+        `Authorization: Bearer <token>`.
+
+  responses:
+    Unauthorized:
+      description: Token ausente, inválido ou expirado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponseBase'
+    ValidationError:
+      description: Falha de validação de campos (bean validation)
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponseBase'
+              - type: object
+                properties:
+                  codigo: { type: string, example: VALIDACAO }
+    BusinessError:
+      description: "Regra de negócio violada (ex.: entidade referenciada não existe)"
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponseBase'
+              - type: object
+                properties:
+                  codigo:
+                    $ref: '#/components/schemas/CodigoErro'
+
+  schemas:
+    ApiResponseBase:
+      type: object
+      description: Envelope padrão de toda resposta da API (campos nulos são omitidos).
+      properties:
+        success: { type: boolean }
+        error:
+          type: string
+          nullable: true
+          description: Mensagem legível do erro (presente quando success=false)
+        codigo:
+          type: string
+          nullable: true
+          description: Código estável do erro para tratamento programático (presente quando success=false)
+        timestamp:
+          type: string
+          format: date-time
+      required: [success, timestamp]
+
+    CodigoErro:
+      type: string
+      description: Códigos estáveis emitidos por BusinessException nos serviços atuais.
+      enum:
+        - USUARIO_NAO_IDENTIFICADO
+        - CURSO_NAO_ENCONTRADO
+        - VAGA_NAO_ENCONTRADA
+        - EMAIL_EXISTS
+        - INVALID_CREDENTIALS
+        - USER_NOT_FOUND
+        - N8N_UNAVAILABLE
+        - WEBHOOK_ERROR
+        - VALIDACAO
+        - ERRO_INTERNO
+        - BUSINESS_ERROR
+
+    # ───────── Orientação ─────────
+    Idioma:
+      type: string
+      enum: [pt, es]
+
+    OrientacaoRequest:
+      type: object
+      properties:
+        usuarioId: { type: integer, format: int64 }
+        perfil: { type: string, description: "Resumo do perfil (competências, experiência, etc.)" }
+        nivel: { type: string, example: "Mid" }
+        regiao: { type: string }
+        idioma: { $ref: '#/components/schemas/Idioma' }
+        lat: { type: number, format: double }
+        lng: { type: number, format: double }
+
+    OrientacaoResponse:
+      type: object
+      properties:
+        gapPercentual: { type: integer, minimum: 0, maximum: 100 }
+        gapItens: { type: array, items: { type: string } }
+        trilhaSugerida: { type: array, items: { type: string } }
+        vagasCompatibles: { type: array, items: { type: string } }
+        confianca: { type: number, format: double, minimum: 0, maximum: 1 }
+
+    # ───────── Saúde Mental ─────────
+    Humor:
+      type: string
+      description: Estado de humor selecionado no check-in (aba Saúde Mental).
+      enum: [feliz, cansado, ansioso, triste, sobrecarregado]
+
+    SaudeRequest:
+      type: object
+      properties:
+        usuarioId: { type: integer, format: int64 }
+        humor: { $ref: '#/components/schemas/Humor' }
+        notaSemanal:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: "1 = crise aguda (deriva CVV imediatamente), 5 = excelente"
+        contexto: { type: string }
+
+    SaudeResponse:
+      type: object
+      properties:
+        mensagem: { type: string }
+        acaoSugerida: { type: string }
+        derivarCvv:
+          type: boolean
+          description: Decisão 100% determinística — nunca definida pela IA.
+        notaAtual: { type: integer }
+        alerta:
+          type: string
+          description: "'ESTAVEL' ou 'ALERTA_CRITICO: ...' (texto descritivo, não é enum fechado)"
+
+    SaudeHistoricoItem:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        humor: { $ref: '#/components/schemas/Humor' }
+        notaSemanal: { type: integer }
+        contexto: { type: string }
+        derivouCvv: { type: boolean }
+        createdAt: { type: string, format: date-time }
+
+    # ───────── Assessment ─────────
+    AssessmentRequest:
+      type: object
+      required: [nome]
+      properties:
+        nome: { type: string }
+        idade: { type: integer, nullable: true }
+        escolaridade: { type: string, nullable: true }
+        experiencia: { type: string, nullable: true }
+        hardSkills: { type: array, items: { type: string } }
+        softSkills: { type: array, items: { type: string } }
+        tecnologias: { type: array, items: { type: string } }
+        tipo: { type: string, nullable: true }
+
+    AssessmentResponse:
+      type: object
+      properties:
+        compatibilidade: { type: integer, minimum: 0, maximum: 100 }
+        nivel: { type: string }
+        pontosFortes: { type: array, items: { type: string } }
+        gaps: { type: array, items: { type: string } }
+        planoDesenvolvimento: { type: array, items: { type: string } }
+
+    # ───────── Cursos ─────────
+    CursoArea:
+      type: string
+      description: Taxonomia de área usada tanto por cursos quanto por vagas.
+      enum: [Java, Web, Dados, Infraestrutura, DevOps, IA, Cibersegurança, Mobile, Games, UI/UX, Programação]
+
+    Nivel:
+      type: string
+      enum: [Básico, Intermediário, Avançado]
+
+    Modalidade:
+      type: string
+      enum: [Online, Presencial, Híbrido]
+
+    Curso:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        titulo: { type: string }
+        instituicao: { type: string }
+        regiao:
+          type: string
+          description: >
+            "Nacional (EAD)" para os programas online nacionais do seed
+            atual; tratado como coringa em qualquer filtro de região.
+        descricao: { type: string }
+        area: { $ref: '#/components/schemas/CursoArea' }
+        nivel: { $ref: '#/components/schemas/Nivel' }
+        duracao: { type: string, example: "80h" }
+        modalidade: { $ref: '#/components/schemas/Modalidade' }
+        gratuito: { type: boolean }
+        certificado: { type: boolean }
+        vagas: { type: string, description: "Vagas abertas (texto livre, ex.: '42')" }
+        link: { type: string, format: uri }
+        beneficente:
+          type: string
+          nullable: true
+          description: "Rótulo de instituição beneficente, quando aplicável (null no seed atual)"
+        ativa: { type: boolean }
+        createdAt: { type: string, format: date-time }
+
+    InscricaoCursoRequest:
+      type: object
+      required: [cursoId]
+      properties:
+        cursoId: { type: integer, format: int64 }
+        usuarioId:
+          type: integer
+          format: int64
+          nullable: true
+          description: "Se ausente, é derivado do usuário autenticado (JWT)."
+
+    InscricaoCursoResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        usuarioId: { type: integer, format: int64 }
+        cursoId: { type: integer, format: int64 }
+        dataInscricao: { type: string, format: date-time }
+        status: { type: string, example: INSCRITO }
+        jaInscrito: { type: boolean, description: "true se já existia inscrição prévia (idempotência)" }
+
+    # ───────── Vagas ─────────
+    VagaNivel:
+      type: string
+      enum: [Estágio, Júnior, Pleno]
+
+    TipoContrato:
+      type: string
+      enum: [CLT, PJ, Estágio, Freelancer]
+
+    Remoto:
+      type: string
+      enum: [Remoto, Híbrido, Presencial, Flexível]
+
+    Vaga:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        titulo: { type: string }
+        empresa: { type: string }
+        regiao: { type: string }
+        descricao: { type: string }
+        nivel: { $ref: '#/components/schemas/VagaNivel' }
+        area: { $ref: '#/components/schemas/CursoArea' }
+        tipoContrato: { $ref: '#/components/schemas/TipoContrato' }
+        salario: { type: string }
+        tecnologias: { type: string }
+        link: { type: string, format: uri }
+        ativa: { type: boolean }
+        remoto: { $ref: '#/components/schemas/Remoto' }
+        createdAt: { type: string, format: date-time }
+
+    CandidaturaVagaRequest:
+      type: object
+      required: [vagaId]
+      properties:
+        vagaId: { type: integer, format: int64 }
+        usuarioId: { type: integer, format: int64, nullable: true }
+        nome: { type: string, nullable: true }
+        email: { type: string, format: email, nullable: true }
+        mensagem: { type: string, nullable: true }
+
+    CandidaturaVagaResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        usuarioId: { type: integer, format: int64 }
+        vagaId: { type: integer, format: int64 }
+        nome: { type: string }
+        email: { type: string, format: email }
+        dataEnvio: { type: string, format: date-time }
+        status: { type: string }
+
+    # ───────── Rede ─────────
+    CourseRecommendation:
+      type: object
+      properties:
+        title: { type: string }
+        description: { type: string }
+        url: { type: string, nullable: true }
+        status: { type: string }
+        targetCareerLevel: { type: string }
+
+    NetworkStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "Estável"
+          description: "'Estável' | 'Instável' | 'Usuário Não Encontrado' | 'Localização do Usuário Não Definida'"
+        tecnologiaPredominante: { type: string, example: "4G" }
+        cssClass: { type: string, description: "Classe CSS sugerida ao frontend" }
+        sugerirOffline: { type: boolean }
+        recomendacao: { type: string }
+        courseRecommendations:
+          type: array
+          items: { $ref: '#/components/schemas/CourseRecommendation' }
+
+    # ───────── Autenticação / Usuários ─────────
+    NivelProfissional:
+      type: string
+      enum: [Estudante, Transicao, Graduado]
+
+    AreaTecnologia:
+      type: string
+      enum: [Java, Web, Dados, Mobile, DevOps, Ciberseguranca, IA, Games, UIUX, Infraestrutura]
+
+    Cidade:
+      type: string
+      description: Cluster geográfico de origem (dataset Vísent, RM Florianópolis).
+      enum:
+        - TRINDADE
+        - CBD_BEIRAMAR
+        - UFSC
+        - CAMPECHE
+        - INGLESES
+        - LAGOA_CONCEICAO
+        - ESTREITO_CAPOEIRAS
+        - SAO_JOSE_CENTRO
+
+    RegisterRequest:
+      type: object
+      required: [nome, email, password]
+      properties:
+        nome: { type: string }
+        email: { type: string, format: email }
+        password: { type: string, format: password, minLength: 6 }
+        cidade: { $ref: '#/components/schemas/Cidade' }
+        whatsapp: { type: string }
+        nivelProfissional: { $ref: '#/components/schemas/NivelProfissional' }
+        areaTecnologia: { $ref: '#/components/schemas/AreaTecnologia' }
+        competenciasAtuais: { type: string }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+
+    ProfileUpdateRequest:
+      type: object
+      properties:
+        nome: { type: string }
+        cidade: { $ref: '#/components/schemas/Cidade' }
+        whatsapp: { type: string }
+        nivelProfissional: { $ref: '#/components/schemas/NivelProfissional' }
+        areaTecnologia: { $ref: '#/components/schemas/AreaTecnologia' }
+        competenciasAtuais: { type: string }
+
+    AuthResponse:
+      type: object
+      properties:
+        token: { type: string, description: "JWT de acesso" }
+        refreshToken: { type: string }
+        userId: { type: integer, format: int64 }
+        nome: { type: string }
+        email: { type: string, format: email }
+        cidade: { $ref: '#/components/schemas/Cidade' }
+        whatsapp: { type: string }
+        nivelProfissional: { $ref: '#/components/schemas/NivelProfissional' }
+        areaTecnologia: { $ref: '#/components/schemas/AreaTecnologia' }
+        competenciasAtuais: { type: string }
+
+    UserResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        nome: { type: string }
+        email: { type: string, format: email }
+        cidade: { $ref: '#/components/schemas/Cidade' }
+        whatsapp: { type: string }
+        nivelProfissional: { $ref: '#/components/schemas/NivelProfissional' }
+        areaTecnologia: { $ref: '#/components/schemas/AreaTecnologia' }
+        competenciasAtuais: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    UsuarioResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        nome: { type: string }
+        email: { type: string, format: email }
+        cidade: { $ref: '#/components/schemas/Cidade' }
+        whatsapp: { type: string }
+        nivelProfissional: { $ref: '#/components/schemas/NivelProfissional' }
+        areaTecnologia: { $ref: '#/components/schemas/AreaTecnologia' }
+        competenciasAtuais: { type: string }
