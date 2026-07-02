@@ -76,7 +76,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/rota").permitAll()
                 .requestMatchers("/api/network-status/**").permitAll()
                 .requestMatchers("/api/assessment/**").permitAll()
-                .requestMatchers("/api/mental-health/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/vagas/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/cursos/**").permitAll()
                 .anyRequest().authenticated()

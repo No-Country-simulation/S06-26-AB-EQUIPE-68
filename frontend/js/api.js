@@ -95,12 +95,6 @@ export async function assessment(dados, usuarioId = 0) {
     });
 }
 
-export async function mentalHealth(usuarioId = 0) {
-    return apiFetch(`/api/mental-health?usuarioId=${usuarioId}`, {
-        method: 'POST',
-    });
-}
-
 export async function listarVagas(params = {}) {
     const qs = new URLSearchParams();
     if (params.q) qs.set('q', params.q);

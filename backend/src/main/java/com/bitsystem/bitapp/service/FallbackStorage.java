@@ -1,7 +1,6 @@
 package com.bitsystem.bitapp.service;
 
 import com.bitsystem.bitapp.dto.AssessmentDto;
-import com.bitsystem.bitapp.dto.MentalHealthDto;
 import com.bitsystem.bitapp.dto.SaudeDto;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -34,9 +33,6 @@ public class FallbackStorage {
     // ── Assessments de Carreira ───────────────────────────────────────────
     private final Map<Long, List<AssessmentRecord>> assessments = new ConcurrentHashMap<>();
 
-    // ── Registros de Saúde Mental (N8N) ──────────────────────────────────
-    private final Map<Long, List<MentalHealthRecord>> mentalHealthRecords = new ConcurrentHashMap<>();
-
     // ════════════════════════════════════════════════════════════════════════
     //  RECORDS internos
     // ════════════════════════════════════════════════════════════════════════
@@ -62,13 +58,6 @@ public class FallbackStorage {
         Long id, Long usuarioId, Integer compatibilidade, String nivel,
         List<String> pontosFortes, List<String> gaps,
         List<String> planoDesenvolvimento, LocalDateTime createdAt
-    ) {}
-
-    public record MentalHealthRecord(
-        Long id, Long usuarioId, String nivel, String alerta,
-        List<String> recomendacoes, List<String> acoes,
-        List<String> canaisApoio, Boolean derivarCvv, Integer scoreRisco,
-        LocalDateTime createdAt
     ) {}
 
     // ════════════════════════════════════════════════════════════════════════
@@ -202,26 +191,6 @@ public class FallbackStorage {
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    //  MENTAL HEALTH operations
-    // ════════════════════════════════════════════════════════════════════════
-
-    public void saveMentalHealthRecord(Long usuarioId, MentalHealthDto.Response response) {
-        long id = mentalHealthRecords.values().stream().mapToLong(List::size).sum() + 1;
-        MentalHealthRecord record = new MentalHealthRecord(
-            id, usuarioId, response.nivel(), response.alerta(),
-            response.recomendacoes(), response.acoes(),
-            response.canaisApoio(), response.derivarCvv(),
-            response.scoreRisco(), LocalDateTime.now()
-        );
-        mentalHealthRecords.computeIfAbsent(usuarioId, k -> new ArrayList<>()).add(record);
-        log.info("[FallbackStorage] Registro de saúde mental salvo: usuarioId={}", usuarioId);
-    }
-
-    public List<MentalHealthRecord> findMentalHealthByUserId(Long usuarioId) {
-        return mentalHealthRecords.getOrDefault(usuarioId, Collections.emptyList());
-    }
-
-    // ════════════════════════════════════════════════════════════════════════
     //  Stats
     // ════════════════════════════════════════════════════════════════════════
 
@@ -234,8 +203,7 @@ public class FallbackStorage {
             "users", users.size(),
             "sessions", sessions.size(),
             "saudeRecords", saudeHistory.values().stream().mapToInt(List::size).sum(),
-            "assessments", assessments.values().stream().mapToInt(List::size).sum(),
-            "mentalHealthRecords", mentalHealthRecords.values().stream().mapToInt(List::size).sum()
+            "assessments", assessments.values().stream().mapToInt(List::size).sum()
         );
     }
 }
