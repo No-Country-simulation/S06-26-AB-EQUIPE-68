@@ -8,13 +8,18 @@ public record StandardApiResponse<T>(
     boolean success,
     T data,
     String error,
+    String codigo,
     String timestamp
 ) {
     public static <T> StandardApiResponse<T> ok(T data) {
-        return new StandardApiResponse<>(true, data, null, LocalDateTime.now().toString());
+        return new StandardApiResponse<>(true, data, null, null, LocalDateTime.now().toString());
     }
 
     public static <T> StandardApiResponse<T> error(String error) {
-        return new StandardApiResponse<>(false, null, error, LocalDateTime.now().toString());
+        return new StandardApiResponse<>(false, null, error, null, LocalDateTime.now().toString());
+    }
+
+    public static <T> StandardApiResponse<T> error(String error, String codigo) {
+        return new StandardApiResponse<>(false, null, error, codigo, LocalDateTime.now().toString());
     }
 }
