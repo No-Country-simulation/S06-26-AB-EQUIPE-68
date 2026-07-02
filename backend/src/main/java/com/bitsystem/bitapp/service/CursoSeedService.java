@@ -2,81 +2,153 @@ package com.bitsystem.bitapp.service;
 
 import com.bitsystem.bitapp.domain.Curso;
 import com.bitsystem.bitapp.repository.CursoRepository;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+/**
+ * Seed de cursos com programas REAIS (Oracle Next Education, Alura, Santander
+ * Open Academy, Bootcamps DIO, Google Cloud Skills Boost, Escola Virtual
+ * Fundação Bradesco) — cada um desdobrado em trilhas reais dessas instituições.
+ *
+ * Todos são programas nacionais 100% online: regiao = "Nacional (EAD)".
+ * O CursoRepository trata esse valor como coringa nos filtros por região.
+ */
 @Service
 public class CursoSeedService implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(CursoSeedService.class);
 
+    private static final String REGIAO_NACIONAL = "Nacional (EAD)";
+
     private final CursoRepository cursoRepository;
 
-    private static final String[] INSTITUICOES_GRATUITAS = {
-        "SENAI Florianópolis", "SENAI São José", "SENAI Biguaçu",
-        "SENAIC", "SENAC Florianópolis", "SENAC São José",
-        "SENAT Florianópolis", "IFSC - Instituto Federal de SC",
-        "CETEJ - Centro de Tecnologia da Informação",
-        "Projeto Futuro Digital", "Fundação Catarinense de Educação",
-        "Associação Comunitária Monte Azul", "Casa de Apoio Social",
-        "ONG Ação Comunitária", "Centro Social Padre Eustáquio"
-    };
+    private record Trilha(
+        String titulo, String instituicao, String descricao, String area,
+        String nivel, String duracao, boolean gratuito, String link
+    ) {}
 
-    private static final String[] INSTITUICOES_PAGAS = {
-        "Unicesumar", "UNISUL", "PUCRS Online", "Estácio EAD",
-        "Kroton Educacional", "Anhanguera Digital", "Descomplica Faculdade",
-        "FIAP Online", "DIO - Digital Innovation One", "Rocketseat",
-        "Alura", "Udemy Business", "Coursera for Business"
-    };
-
-    private static final String[][] CURSO_TEMPLATES = {
-        // {titulo, area, nivel, duracao, modalidade, gratuitasTags}
-        {"Lógica de Programação", "Programação", "Básico", "40h", "Online", "true"},
-        {"Desenvolvimento Web Completo", "Web", "Básico", "120h", "Online", "true"},
-        {"Java para Iniciantes", "Java", "Básico", "80h", "Online", "true"},
-        {"Python e Ciência de Dados", "Dados", "Básico", "60h", "Online", "true"},
-        {"HTML, CSS e JavaScript", "Web", "Básico", "50h", "Online", "true"},
-        {"React do Zero ao Pro", "Web", "Intermediário", "90h", "Online", "true"},
-        {"Spring Boot Essencial", "Java", "Intermediário", "70h", "Online", "true"},
-        {"SQL e Banco de Dados", "Dados", "Básico", "40h", "Online", "true"},
-        {"Power BI para Negócios", "Dados", "Básico", "30h", "Online", "true"},
-        {"DevOps e Cloud Computing", "DevOps", "Intermediário", "100h", "Online", "true"},
-        {"Docker e Kubernetes", "DevOps", "Intermediário", "60h", "Online", "true"},
-        {"Inteligência Artificial com Python", "IA", "Intermediário", "80h", "Online", "true"},
-        {"Machine Learning Aplicado", "IA", "Avançado", "100h", "Online", "true"},
-        {"Segurança da Informação", "Cibersegurança", "Básico", "40h", "Online", "true"},
-        {"Redes de Computadores", "Infraestrutura", "Básico", "60h", "Presencial", "true"},
-        {"Administração de Linux", "Infraestrutura", "Intermediário", "50h", "Presencial", "true"},
-        {"Flutter - Apps Mobile", "Mobile", "Básico", "70h", "Online", "true"},
-        {"Unity para Iniciantes", "Games", "Básico", "80h", "Online", "true"},
-        {"UI/UX Design com Figma", "UI/UX", "Básico", "40h", "Online", "true"},
-        {"Automação com Python", "Dados", "Intermediário", "45h", "Online", "true"},
-        {"JavaScript Avançado", "Web", "Avançado", "60h", "Online", "false"},
-        {"Arquitetura de Microsserviços", "Java", "Avançado", "80h", "Online", "false"},
-        {"Data Engineering com Spark", "Dados", "Avançado", "90h", "Online", "false"},
-        {"AWS Certified Solutions Architect", "DevOps", "Avançado", "120h", "Online", "false"},
-        {"Certificação LPIC-1 Linux", "Infraestrutura", "Intermediário", "80h", "Presencial", "false"},
-        {"Desenvolvimento iOS com Swift", "Mobile", "Intermediário", "100h", "Online", "false"},
-        {"Criação de Games com Unreal", "Games", "Intermediário", "120h", "Online", "false"},
-        {"Design System e Componentização", "UI/UX", "Intermediário", "50h", "Online", "false"},
-    };
-
-    private static final String[] AREAS = {"Programação", "Web", "Java", "Dados", "DevOps",
-                                            "IA", "Cibersegurança", "Infraestrutura", "Mobile",
-                                            "Games", "UI/UX"};
-
-    private static final String[] NIVEIS = {"Básico", "Intermediário", "Avançado"};
-
-    private static final String[] MODALIDADES = {"Online", "Presencial", "Híbrido"};
+    private static final List<Trilha> TRILHAS = List.of(
+        new Trilha(
+            "Oracle Next Education — Formação Back-End (Java)", "Oracle & Alura",
+            "Programa educacional gratuito da Oracle em parceria com a Alura, com formação técnica em " +
+            "desenvolvimento back-end Java e preparação para o mercado de trabalho.",
+            "Java", "Básico", "15 meses", true,
+            "https://www.oracle.com/br/education/oracle-next-education/"
+        ),
+        new Trilha(
+            "Oracle Next Education — Formação Front-End", "Oracle & Alura",
+            "Programa educacional gratuito da Oracle em parceria com a Alura, com formação técnica em " +
+            "desenvolvimento front-end e preparação para o mercado de trabalho.",
+            "Web", "Básico", "15 meses", true,
+            "https://www.oracle.com/br/education/oracle-next-education/"
+        ),
+        new Trilha(
+            "Formação Java", "Alura",
+            "Trilha completa de back-end com Java e Spring Boot, da plataforma Alura, cobrindo desde " +
+            "fundamentos da linguagem até arquitetura de APIs REST.",
+            "Java", "Intermediário", "80h", false,
+            "https://www.alura.com.br"
+        ),
+        new Trilha(
+            "Formação Front-end", "Alura",
+            "Trilha de desenvolvimento front-end da Alura, cobrindo HTML, CSS, JavaScript moderno e " +
+            "frameworks de interface.",
+            "Web", "Intermediário", "80h", false,
+            "https://www.alura.com.br"
+        ),
+        new Trilha(
+            "Formação Dados", "Alura",
+            "Trilha de dados da Alura, cobrindo análise, visualização e ciência de dados com Python e SQL.",
+            "Dados", "Intermediário", "80h", false,
+            "https://www.alura.com.br"
+        ),
+        new Trilha(
+            "Santander Open Academy — Trilha de Programação", "Santander",
+            "Programa gratuito do Santander Open Academy com trilha de programação voltada à empregabilidade " +
+            "em tecnologia.",
+            "Java", "Básico", "40h", true,
+            "https://www.santanderopenacademy.com"
+        ),
+        new Trilha(
+            "Santander Open Academy — Trilha de Dados", "Santander",
+            "Programa gratuito do Santander Open Academy com trilha de dados voltada à empregabilidade " +
+            "em tecnologia.",
+            "Dados", "Básico", "40h", true,
+            "https://www.santanderopenacademy.com"
+        ),
+        new Trilha(
+            "Bootcamp DIO — Java Developer", "DIO",
+            "Bootcamp gratuito da DIO (Digital Innovation One) com trilha prática de desenvolvimento Java, " +
+            "incluindo desafios de código e mentoria da comunidade.",
+            "Java", "Intermediário", "60h", true,
+            "https://www.dio.me"
+        ),
+        new Trilha(
+            "Bootcamp DIO — Front-end Developer", "DIO",
+            "Bootcamp gratuito da DIO com trilha prática de desenvolvimento front-end, incluindo desafios " +
+            "de código e mentoria da comunidade.",
+            "Web", "Intermediário", "60h", true,
+            "https://www.dio.me"
+        ),
+        new Trilha(
+            "Bootcamp DIO — Cloud (AWS/Azure)", "DIO",
+            "Bootcamp gratuito da DIO com trilha prática de computação em nuvem, cobrindo fundamentos de " +
+            "AWS e Azure.",
+            "Infraestrutura", "Intermediário", "60h", true,
+            "https://www.dio.me"
+        ),
+        new Trilha(
+            "Bootcamp DIO — Data Science", "DIO",
+            "Bootcamp gratuito da DIO com trilha prática de ciência de dados, incluindo desafios de código " +
+            "e mentoria da comunidade.",
+            "Dados", "Intermediário", "60h", true,
+            "https://www.dio.me"
+        ),
+        new Trilha(
+            "Google Cloud Skills Boost — Cloud Engineer Learning Path", "Google Cloud",
+            "Trilha oficial do Google Cloud Skills Boost para formação de engenheiros de nuvem, com " +
+            "laboratórios práticos na infraestrutura real do Google Cloud.",
+            "Infraestrutura", "Intermediário", "Autoinstrucional", true,
+            "https://www.cloudskillsboost.google"
+        ),
+        new Trilha(
+            "Google Cloud Skills Boost — Data Analytics Learning Path", "Google Cloud",
+            "Trilha oficial do Google Cloud Skills Boost para análise de dados na nuvem, com laboratórios " +
+            "práticos na infraestrutura real do Google Cloud.",
+            "Dados", "Intermediário", "Autoinstrucional", true,
+            "https://www.cloudskillsboost.google"
+        ),
+        new Trilha(
+            "Google Cloud Skills Boost — Programa GEAR (Iniciantes)", "Google Cloud",
+            "Programa GEAR do Google Cloud, com trilha introdutória gratuita para quem está começando em " +
+            "computação em nuvem.",
+            "Infraestrutura", "Básico", "Autoinstrucional", true,
+            "https://www.cloudskillsboost.google"
+        ),
+        new Trilha(
+            "Escola Virtual — Lógica de Programação", "Fundação Bradesco",
+            "Curso gratuito da Escola Virtual da Fundação Bradesco com introdução à lógica de programação.",
+            "Java", "Básico", "30h", true,
+            "https://www.ev.org.br"
+        ),
+        new Trilha(
+            "Escola Virtual — Introdução ao Desenvolvimento Web", "Fundação Bradesco",
+            "Curso gratuito da Escola Virtual da Fundação Bradesco com introdução ao desenvolvimento web.",
+            "Web", "Básico", "30h", true,
+            "https://www.ev.org.br"
+        ),
+        new Trilha(
+            "Escola Virtual — Introdução à Ciência de Dados", "Fundação Bradesco",
+            "Curso gratuito da Escola Virtual da Fundação Bradesco com introdução à ciência de dados.",
+            "Dados", "Básico", "30h", true,
+            "https://www.ev.org.br"
+        )
+    );
 
     public CursoSeedService(CursoRepository cursoRepository) {
         this.cursoRepository = cursoRepository;
@@ -89,194 +161,19 @@ public class CursoSeedService implements CommandLineRunner {
             return;
         }
 
-        try {
-            log.info("CursoSeedService: Iniciando geração de cursos...");
-            Map<String, Integer> clusterUsuarios = lerDadosVisent();
+        log.info("CursoSeedService: Iniciando geração de cursos...");
 
-            List<Curso> cursos = new ArrayList<>();
-
-            // 1. Cursos gratuitos de instituições beneficentes (PRIORIDADE MÁXIMA)
-            for (String[] template : CURSO_TEMPLATES) {
-                boolean gratuito = Boolean.parseBoolean(template[5]);
-                if (!gratuito) continue;
-
-                String inst = INSTITUICOES_GRATUITAS[
-                    ThreadLocalRandom.current().nextInt(INSTITUICOES_GRATUITAS.length)];
-                String regiao = escolherRegiao(clusterUsuarios);
-
-                String beneficente = inst.contains("ONG") || inst.contains("Comunitária") ||
-                                     inst.contains("Social") || inst.contains("Casa de Apoio") ||
-                                     inst.contains("Fundação") || inst.contains("Associação")
-                                     ? "Instituição Beneficente" : null;
-
-                String vagasNum = String.valueOf(ThreadLocalRandom.current().nextInt(15, 120));
-                String desc = gerarDescricao(template[0], inst, template[2], template[3], template[4], true);
-
-                cursos.add(new Curso(
-                    template[0], inst, regiao, desc, template[1],
-                    template[2], template[3], template[4],
-                    true, true, vagasNum, "#", beneficente
-                ));
-            }
-
-            // 2. Cursos pagos complementares
-            for (String[] template : CURSO_TEMPLATES) {
-                boolean gratuito = Boolean.parseBoolean(template[5]);
-                if (gratuito) continue;
-
-                String inst = INSTITUICOES_PAGAS[
-                    ThreadLocalRandom.current().nextInt(INSTITUICOES_PAGAS.length)];
-                String regiao = escolherRegiao(clusterUsuarios);
-
-                String vagasNum = String.valueOf(ThreadLocalRandom.current().nextInt(20, 200));
-                String desc = gerarDescricao(template[0], inst, template[2], template[3], template[4], false);
-
-                cursos.add(new Curso(
-                    template[0], inst, regiao, desc, template[1],
-                    template[2], template[3], template[4],
-                    false, true, vagasNum, "#", null
-                ));
-            }
-
-            // 3. Cursos adicionais por região (baseados na concentração VISent)
-            for (Map.Entry<String, Integer> entry : clusterUsuarios.entrySet()) {
-                String cluster = entry.getKey();
-                int usuarios = entry.getValue();
-
-                if (usuarios > 1000) {
-                    String inst = INSTITUICOES_GRATUITAS[
-                        ThreadLocalRandom.current().nextInt(INSTITUICOES_GRATUITAS.length)];
-                    String titulo = "Capacitação Tech — " + cluster.replace("_", " ");
-                    String desc = "Programa intensivo de capacitação em tecnologia para moradores da região de " +
-                                  cluster.replace("_", " ") + ". Aulas presenciais com equipamentos fornecidos.";
-                    String vagasNum = String.valueOf(ThreadLocalRandom.current().nextInt(20, 60));
-
-                    cursos.add(new Curso(
-                        titulo, inst, cluster, desc,
-                        AREAS[ThreadLocalRandom.current().nextInt(AREAS.length)],
-                        "Básico", "120h", "Presencial",
-                        true, true, vagasNum, "#", "Programa Social"
-                    ));
-                }
-            }
-
-            cursoRepository.saveAll(cursos);
-            log.info("CursoSeedService: {} cursos gerados com sucesso!", cursos.size());
-
-        } catch (Exception e) {
-            log.error("CursoSeedService: Erro ao gerar cursos: ", e);
-            gerarCursosFallback();
-        }
-    }
-
-    private void gerarCursosFallback() {
         List<Curso> cursos = new ArrayList<>();
-        String[] regioes = {"CBD_BEIRAMAR", "TRINDADE", "UFSC", "CAMPECHE", "INGLESES",
-                            "SAO_JOSE_CENTRO", "ESTREITO_CAPOEIRAS", "LAGOA_CONCEICAO"};
-
-        for (String[] template : CURSO_TEMPLATES) {
-            boolean gratuito = Boolean.parseBoolean(template[5]);
-            String inst = gratuito
-                ? INSTITUICOES_GRATUITAS[ThreadLocalRandom.current().nextInt(INSTITUICOES_GRATUITAS.length)]
-                : INSTITUICOES_PAGAS[ThreadLocalRandom.current().nextInt(INSTITUICOES_PAGAS.length)];
-            String regiao = regioes[ThreadLocalRandom.current().nextInt(regioes.length)];
-            String vagasNum = String.valueOf(ThreadLocalRandom.current().nextInt(15, 100));
-            String desc = gerarDescricao(template[0], inst, template[2], template[3], template[4], gratuito);
-
-            String beneficente = null;
-            if (gratuito && (inst.contains("ONG") || inst.contains("Social") || inst.contains("Fundação"))) {
-                beneficente = "Instituição Beneficente";
-            }
-
+        for (Trilha t : TRILHAS) {
+            String vagas = String.valueOf(ThreadLocalRandom.current().nextInt(20, 150));
             cursos.add(new Curso(
-                template[0], inst, regiao, desc, template[1],
-                template[2], template[3], template[4],
-                gratuito, true, vagasNum, "#", beneficente
+                t.titulo(), t.instituicao(), REGIAO_NACIONAL, t.descricao(),
+                t.area(), t.nivel(), t.duracao(), "Online",
+                t.gratuito(), true, vagas, t.link(), null
             ));
         }
 
         cursoRepository.saveAll(cursos);
-        log.info("CursoSeedService: {} cursos fallback gerados.", cursos.size());
-    }
-
-    private Map<String, Integer> lerDadosVisent() {
-        Map<String, Integer> clusters = new LinkedHashMap<>();
-        try {
-            ClassPathResource resource = new ClassPathResource("data/assinantes.csv");
-            if (!resource.exists()) return gerarClustersDefault();
-
-            try (InputStream is = resource.getInputStream();
-                 BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-
-                String header = reader.readLine();
-                if (header == null) return gerarClustersDefault();
-
-                String sep = header.contains(";") ? ";" : ",";
-                String[] h = header.split(sep);
-                int idxCluster = findCol(h, "home_cluster", "cluster");
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (line.trim().isEmpty()) continue;
-                    String[] v = line.split(sep);
-                    String cluster = getVal(v, idxCluster);
-                    if (cluster != null && !cluster.isEmpty()) {
-                        clusters.merge(cluster, 1, Integer::sum);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.error("CursoSeedService: Erro ao ler VISent: ", e);
-            return gerarClustersDefault();
-        }
-        return clusters.isEmpty() ? gerarClustersDefault() : clusters;
-    }
-
-    private Map<String, Integer> gerarClustersDefault() {
-        Map<String, Integer> clusters = new LinkedHashMap<>();
-        String[] nomes = {"CBD_BEIRAMAR", "TRINDADE", "UFSC", "CAMPECHE", "INGLESES",
-                          "SAO_JOSE_CENTRO", "ESTREITO_CAPOEIRAS", "LAGOA_CONCEICAO"};
-        for (String n : nomes) clusters.put(n, ThreadLocalRandom.current().nextInt(500, 3000));
-        return clusters;
-    }
-
-    private String escolherRegiao(Map<String, Integer> clusters) {
-        List<Map.Entry<String, Integer>> sorted = new ArrayList<>(clusters.entrySet());
-        sorted.sort((a, b) -> b.getValue() - a.getValue());
-        int top = Math.min(5, sorted.size());
-        return sorted.get(ThreadLocalRandom.current().nextInt(top)).getKey();
-    }
-
-    private String gerarDescricao(String titulo, String inst, String nivel, String duracao,
-                                   String modalidade, boolean gratuito) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Curso de ").append(titulo).append(" oferecido por ").append(inst).append(". ");
-        sb.append("Nível ").append(nivel).append(" com duração de ").append(duracao).append(". ");
-        sb.append("Modalidade ").append(modalidade).append(". ");
-        if (gratuito) {
-            sb.append("Curso 100% gratuito com certificado de conclusão. ");
-            sb.append("Vagas limitadas — inscreva-se agora!");
-        } else {
-            sb.append("Investimento acessível com opção de bolsa. ");
-            sb.append("Certificado reconhecido pelo MEC.");
-        }
-        return sb.toString();
-    }
-
-    private int findCol(String[] headers, String... candidates) {
-        for (int i = 0; i < headers.length; i++) {
-            String h = headers[i].trim().toLowerCase();
-            for (String c : candidates) {
-                if (h.contains(c.toLowerCase())) return i;
-            }
-        }
-        return -1;
-    }
-
-    private String getVal(String[] values, int idx) {
-        if (idx >= 0 && idx < values.length) {
-            return values[idx].trim().replaceAll("^\"|\"$", "");
-        }
-        return null;
+        log.info("CursoSeedService: {} cursos gerados com sucesso!", cursos.size());
     }
 }

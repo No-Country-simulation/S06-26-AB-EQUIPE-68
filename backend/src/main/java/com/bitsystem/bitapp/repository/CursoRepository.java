@@ -14,7 +14,7 @@ public interface CursoRepository extends JpaRepository<Curso, Long> {
            "(:q IS NULL OR LOWER(c.titulo) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
            "LOWER(c.instituicao) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
            "LOWER(c.area) LIKE LOWER(CONCAT('%', :q, '%'))) AND " +
-           "(:regiao IS NULL OR c.regiao = :regiao) AND " +
+           "(:regiao IS NULL OR c.regiao = :regiao OR c.regiao = 'Nacional (EAD)') AND " +
            "(:area IS NULL OR c.area = :area) AND " +
            "(:modalidade IS NULL OR c.modalidade = :modalidade) AND " +
            "(:gratuito IS NULL OR c.gratuito = :gratuito) AND " +
