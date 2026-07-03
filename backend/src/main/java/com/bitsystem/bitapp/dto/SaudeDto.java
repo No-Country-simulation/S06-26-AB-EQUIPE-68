@@ -1,5 +1,9 @@
 package com.bitsystem.bitapp.dto;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
 /**
  * ============================================================================
  * CLASSES DTO: SaudeDto
@@ -27,14 +31,17 @@ public class SaudeDto {
         /** ID do usuário no banco (identificador da sessão) */
         Long usuarioId,
         
-        /** Estado de humor (ex: "😢 Triste", "😰 Ansioso", "😊 Feliz") */
+        /** Estado de humor (emoji/rótulo). Alimenta só o TOM do acolhimento —
+         *  nunca deriva ao CVV. */
         String humor,
-        
-        /** Nota numérica de bem-estar (1-5)
-         *  1 = Muito ruim (risco)
-         *  5 = Excelente */
+
+        /** Autoavaliação da semana (0-10). Único campo que decide a derivação
+         *  ao CVV: 0-1 = reforçada, 2-3 = preventiva, 4-10 = nenhuma. */
+        @NotNull(message = "A nota semanal é obrigatória")
+        @Min(value = 0, message = "A nota semanal deve ser no mínimo 0")
+        @Max(value = 10, message = "A nota semanal deve ser no máximo 10")
         Integer notaSemanal,
-        
+
         /** Contexto livre sobre o estado (pressões, desafios, etc) */
         String contexto
     ) {}
@@ -55,11 +62,17 @@ public class SaudeDto {
         /** Flag: necessita derivação para Centro de Valorização da Vida? */
         Boolean derivarCvv,
         
-        /** Nota de bem-estar reportada no check-in */
+        /** Nota de bem-estar reportada no check-in (0-10) */
         Integer notaAtual,
-        
-        /** Alerta crítico (texto descritivo) */
-        String alerta
+
+        /** Token descritivo de status (uso interno/log, não é texto de UI):
+         *  DERIVACAO_REFORCADA | DERIVACAO_PREVENTIVA | ESTAVEL */
+        String alerta,
+
+        /** Nível da derivação ao CVV, para o frontend escolher o painel:
+         *  "REFORCADO" (nota 0-1) | "PREVENTIVO" (nota 2-3) | null (nota 4-10).
+         *  Decidido SÓ pela nota; IA/agente/texto nunca influenciam. */
+        String nivelDerivacao
     ) {}
 
     /**
