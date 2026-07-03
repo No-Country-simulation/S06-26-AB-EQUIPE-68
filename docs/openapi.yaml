@@ -427,6 +427,87 @@ paths:
                     properties:
                       data: { $ref: '#/components/schemas/Vaga' }
 
+  /api/vagas/{id}/match:
+    get:
+      tags: [Vagas]
+      summary: Calcula o match entre um usuário e uma vaga (percentual determinístico + IA no "como resolver")
+      description: >
+        matchPercentual, skillsAtendidas e skillsFaltantes vêm de um cálculo
+        determinístico em Java (interseção de skills). comoResolver é gerado
+        pelo Gemini (fallback determinístico se a IA não estiver configurada
+        ou falhar). Usado no modal de detalhe da vaga, nunca na listagem.
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: usuarioId
+          in: query
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: Resultado do match
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/VagaMatchDetalhe' }
+              examples:
+                parcial:
+                  summary: "Usuário com Java/Spring Boot/SQL x vaga Java/Microservices/Kafka"
+                  value:
+                    success: true
+                    data:
+                      matchPercentual: 33
+                      skillsAtendidas: ["Java"]
+                      skillsFaltantes: ["Microservices", "Kafka"]
+                      comoResolver: "Para avançar nesta vaga, foque em: Microservices, Kafka. Cursos no BiT: Formação Java e Spring Boot."
+                semDados:
+                  summary: "Vaga sem tecnologias cadastradas"
+                  value:
+                    success: true
+                    data:
+                      matchPercentual: null
+                      skillsAtendidas: []
+                      skillsFaltantes: []
+                      comoResolver: null
+        '422':
+          $ref: '#/components/responses/BusinessError'
+
+  /api/vagas/match-lote:
+    get:
+      tags: [Vagas]
+      summary: Match em lote (só o percentual, sem IA) de todas as vagas ativas para um usuário
+      description: >
+        Usado nos badges da listagem — uma única chamada em vez de N por card.
+        Não gera comoResolver (isso fica só no endpoint de detalhe).
+      security: []
+      parameters:
+        - name: usuarioId
+          in: query
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: Lista de matches por vaga
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/VagaMatchLoteItem' }
+        '422':
+          $ref: '#/components/responses/BusinessError'
+
   /api/vagas/enviar-curriculo:
     post:
       tags: [Vagas]
@@ -1025,6 +1106,37 @@ components:
         email: { type: string, format: email }
         dataEnvio: { type: string, format: date-time }
         status: { type: string }
+
+    VagaMatchDetalhe:
+      type: object
+      description: >
+        matchPercentual e as listas são 100% determinísticos (interseção Java
+        de skills do usuário x tecnologias da vaga); comoResolver é o único
+        campo gerado por IA (Gemini, com fallback determinístico).
+      properties:
+        matchPercentual:
+          type: integer
+          minimum: 0
+          maximum: 100
+          nullable: true
+          description: "null quando a vaga não tem tecnologias cadastradas (ausência de dado != incompatibilidade)"
+        skillsAtendidas: { type: array, items: { type: string } }
+        skillsFaltantes: { type: array, items: { type: string } }
+        comoResolver:
+          type: string
+          nullable: true
+          description: "null quando matchPercentual é null; recomendação curta citando cursos do catálogo quando há faltantes"
+
+    VagaMatchLoteItem:
+      type: object
+      properties:
+        vagaId: { type: integer, format: int64 }
+        matchPercentual:
+          type: integer
+          minimum: 0
+          maximum: 100
+          nullable: true
+          description: "null quando a vaga não tem tecnologias cadastradas"
 
     # ───────── Rede ─────────
     CourseRecommendation:
