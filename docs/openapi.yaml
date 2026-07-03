@@ -9,12 +9,16 @@ info:
 
     **Regra de crise (CVV):** a decisão de derivar um usuário para o CVV
     (Centro de Valorização da Vida) é **determinística no Backend**
-    (`SaudeMentalService.deveDerivarParaCvv`), baseada apenas em
-    `notaSemanal` e no histórico de check-ins — **nunca é delegada ao agente
-    de IA** (Gemini ou Mental Health Agent via n8n). A IA só gera a mensagem
-    de acolhimento (texto); ela nunca decide, aciona ou cancela o CVV.
-    Gatilhos: `notaSemanal == 1` (crise aguda, imediato) OU 3 ou mais
-    check-ins com nota ≤ 2 dentro dos últimos 5 check-ins (tendência).
+    (`SaudeMentalService.nivelDerivacao`), baseada **exclusivamente na
+    `notaSemanal` (0-10)** do check-in atual — o humor e o texto **nunca**
+    derivam nada, e a derivação **nunca é delegada ao agente de IA** (Gemini
+    ou Mental Health Agent via n8n). A IA só gera a mensagem de acolhimento
+    (texto); ela nunca decide, aciona ou cancela o CVV. Regra graduada:
+    `notaSemanal` 0-1 → derivação **REFORÇADA** (modal de consentimento antes
+    de gravar + painel de cuidado com CVV em destaque); 2-3 → derivação
+    **PREVENTIVA** (grava direto + escuta suave apresentada como recurso);
+    4-10 → **sem derivação** (acolhimento normal). O nível é devolvido em
+    `nivelDerivacao` e `derivarCvv = (nivelDerivacao != null)`.
 
     **Convenções:**
     - Datas em ISO 8601 (`timestamp` de resposta e `createdAt`/`dataEnvio`/
@@ -841,9 +845,12 @@ components:
         humor: { $ref: '#/components/schemas/Humor' }
         notaSemanal:
           type: integer
-          minimum: 1
-          maximum: 5
-          description: "1 = crise aguda (deriva CVV imediatamente), 5 = excelente"
+          minimum: 0
+          maximum: 10
+          description: >-
+            Autoavaliação da semana (0-10). Único campo que decide a derivação
+            ao CVV: 0-1 = reforçada, 2-3 = preventiva, 4-10 = nenhuma. O humor
+            nunca deriva. Obrigatório; fora de 0-10 → 400 (código VALIDACAO).
         contexto: { type: string }
 
     SaudeResponse:
@@ -853,11 +860,24 @@ components:
         acaoSugerida: { type: string }
         derivarCvv:
           type: boolean
-          description: Decisão 100% determinística — nunca definida pela IA.
-        notaAtual: { type: integer }
+          description: >-
+            Decisão 100% determinística — nunca definida pela IA.
+            Equivale a `nivelDerivacao != null` (true para nota 0-3).
+        notaAtual:
+          type: integer
+          description: Nota reportada no check-in (0-10).
+        nivelDerivacao:
+          type: string
+          nullable: true
+          enum: [REFORCADO, PREVENTIVO]
+          description: >-
+            Nível da derivação, para o frontend escolher o painel:
+            REFORCADO (nota 0-1) | PREVENTIVO (nota 2-3) | ausente/null (nota 4-10).
         alerta:
           type: string
-          description: "'ESTAVEL' ou 'ALERTA_CRITICO: ...' (texto descritivo, não é enum fechado)"
+          description: >-
+            Token descritivo de status (uso interno/log, não é texto de UI):
+            'DERIVACAO_REFORCADA' | 'DERIVACAO_PREVENTIVA' | 'ESTAVEL'.
 
     SaudeHistoricoItem:
       type: object
