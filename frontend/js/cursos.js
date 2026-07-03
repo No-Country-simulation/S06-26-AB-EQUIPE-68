@@ -1,4 +1,5 @@
 import { listarCursos, buscarCurso, listarRegioesCursos, inscreverCurso } from './api.js';
+import { t } from './i18n.js';
 
 const grid = document.getElementById('cursosGrid');
 const statusEl = document.getElementById('cursosStatus');
@@ -69,14 +70,14 @@ function renderizarCursos(cursos) {
     if (!cursos || cursos.length === 0) {
         grid.innerHTML = `
             <div class="col-span-full text-center py-16 text-slate-500">
-                <p class="text-lg mb-2">Nenhum curso encontrado</p>
-                <p class="text-sm">Tente ajustar os filtros de busca.</p>
+                <p class="text-lg mb-2">${t('cursos.nenhumEncontrado')}</p>
+                <p class="text-sm">${t('cursos.ajusteFiltros')}</p>
             </div>`;
         statusEl.textContent = '';
         return;
     }
 
-    statusEl.textContent = `${cursos.length} curso(s) encontrado(s)`;
+    statusEl.textContent = t('cursos.encontrados', { n: cursos.length });
 
     grid.innerHTML = cursos.map(c => `
         <div class="rounded-2xl bg-slate-900/60 border border-slate-800 p-6 hover:border-emerald-500/40 transition-all duration-200 cursor-pointer flex flex-col justify-between group ${c.beneficente ? 'ring-1 ring-amber-500/20' : ''}"
@@ -92,18 +93,18 @@ function renderizarCursos(cursos) {
             </div>
             <div class="space-y-3">
                 <div class="flex flex-wrap gap-2">
-                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${badgeGratuito(c.gratuito)}">${c.gratuito ? 'Gratuito' : 'Pago'}</span>
+                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${badgeGratuito(c.gratuito)}">${c.gratuito ? t('cursos.gratuito') : t('cursos.pago')}</span>
                     <span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${badgeModalidade(c.modalidade)}">${c.modalidade}</span>
                     <span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${badgeNivel(c.nivel)}">${c.nivel}</span>
                 </div>
                 <div class="flex items-center gap-3 text-xs text-slate-400">
                     <span>📍 ${formatarRegiao(c.regiao)}</span>
                     <span>⏱️ ${c.duracao}</span>
-                    ${c.certificado ? '<span>📜 Certificado</span>' : ''}
+                    ${c.certificado ? `<span>📜 ${t('cursos.certificado')}</span>` : ''}
                 </div>
                 <div class="flex items-center justify-between text-xs">
                     <span class="text-slate-500">${c.vagas} vagas</span>
-                    <span class="text-emerald-400 font-semibold group-hover:underline">Ver detalhes →</span>
+                    <span class="text-emerald-400 font-semibold group-hover:underline">${t('cursos.verDetalhes')}</span>
                 </div>
             </div>
         </div>
@@ -125,40 +126,40 @@ async function abrirModal(id) {
                     ${c.beneficente ? `<p class="text-xs text-amber-400 font-semibold mt-1">❤️ ${c.beneficente}</p>` : ''}
                 </div>
                 <div class="flex flex-wrap gap-2">
-                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${badgeGratuito(c.gratuito)}">${c.gratuito ? 'Gratuito' : 'Pago'}</span>
+                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${badgeGratuito(c.gratuito)}">${c.gratuito ? t('cursos.gratuito') : t('cursos.pago')}</span>
                     <span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${badgeModalidade(c.modalidade)}">${c.modalidade}</span>
                     <span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${badgeNivel(c.nivel)}">${c.nivel}</span>
-                    ${c.certificado ? '<span class="text-xs font-semibold px-2.5 py-1 rounded-full border bg-slate-500/15 text-slate-400 border-slate-500/30">📜 Certificado</span>' : ''}
+                    ${c.certificado ? `<span class="text-xs font-semibold px-2.5 py-1 rounded-full border bg-slate-500/15 text-slate-400 border-slate-500/30">📜 ${t('cursos.certificado')}</span>` : ''}
                 </div>
                 <div class="grid grid-cols-2 gap-3 text-sm">
                     <div class="rounded-xl bg-slate-950 border border-slate-800 p-3">
-                        <span class="text-xs text-slate-500 block">Região</span>
+                        <span class="text-xs text-slate-500 block">${t('cursos.regiao')}</span>
                         <span class="text-white font-medium">📍 ${formatarRegiao(c.regiao)}</span>
                     </div>
                     <div class="rounded-xl bg-slate-950 border border-slate-800 p-3">
-                        <span class="text-xs text-slate-500 block">Duração</span>
+                        <span class="text-xs text-slate-500 block">${t('cursos.duracao')}</span>
                         <span class="text-white font-medium">⏱️ ${c.duracao}</span>
                     </div>
                     <div class="rounded-xl bg-slate-950 border border-slate-800 p-3">
-                        <span class="text-xs text-slate-500 block">Vagas</span>
-                        <span class="text-white font-medium">${c.vagas} disponíveis</span>
+                        <span class="text-xs text-slate-500 block">${t('cursos.vagasLabel')}</span>
+                        <span class="text-white font-medium">${t('cursos.vagasDisponiveis', { n: c.vagas })}</span>
                     </div>
                     <div class="rounded-xl bg-slate-950 border border-slate-800 p-3">
-                        <span class="text-xs text-slate-500 block">Área</span>
+                        <span class="text-xs text-slate-500 block">${t('cursos.area')}</span>
                         <span class="text-white font-medium">${c.area}</span>
                     </div>
                 </div>
                 <div class="rounded-xl bg-slate-950 border border-slate-800 p-4">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Sobre o Curso</h4>
-                    <p class="text-sm text-slate-300 leading-relaxed">${c.descricao || 'Sem descrição detalhada.'}</p>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${t('cursos.sobreCurso')}</h4>
+                    <p class="text-sm text-slate-300 leading-relaxed">${c.descricao || t('cursos.semDescricao')}</p>
                 </div>
                 <div class="text-xs text-slate-500 text-right">
-                    Publicado em ${new Date(c.createdAt).toLocaleDateString('pt-BR')}
+                    ${t('cursos.publicadoEm', { data: new Date(c.createdAt).toLocaleDateString('pt-BR') })}
                 </div>
                 <div id="inscreverCursoArea">
                     <button onclick="inscreverNoCurso(${c.id})"
                         class="w-full rounded-2xl bg-emerald-500 px-6 py-3 text-sm font-bold text-slate-950 shadow-xl transition hover:bg-emerald-400 transform active:scale-[0.98] focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900 outline-none">
-                        Inscrever-se
+                        ${t('cursos.inscreverSe')}
                     </button>
                     <p id="inscreverCursoMsg" class="mt-2 text-xs text-center hidden"></p>
                 </div>
@@ -185,14 +186,14 @@ window.inscreverNoCurso = async function(cursoId) {
     const msgEl = document.getElementById('inscreverCursoMsg');
     const area = document.getElementById('inscreverCursoArea');
     const btn = area?.querySelector('button');
-    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Inscrevendo...'; }
+    if (btn) { btn.disabled = true; btn.innerHTML = `<span class="loader"></span> ${t('cursos.inscrevendo')}`; }
     try {
         await inscreverCurso(cursoId, usuario.id);
-        if (msgEl) { msgEl.textContent = 'Inscrição realizada com sucesso!'; msgEl.className = 'mt-2 text-xs text-center text-emerald-400'; }
-        if (btn) { btn.textContent = 'Inscrito ✓'; btn.classList.remove('bg-emerald-500'); btn.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border', 'border-emerald-500/30'); }
+        if (msgEl) { msgEl.textContent = t('cursos.inscricaoSucesso'); msgEl.className = 'mt-2 text-xs text-center text-emerald-400'; }
+        if (btn) { btn.textContent = t('cursos.inscrito'); btn.classList.remove('bg-emerald-500'); btn.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border', 'border-emerald-500/30'); }
     } catch (err) {
-        if (msgEl) { msgEl.textContent = err.message || 'Erro ao inscrever-se.'; msgEl.className = 'mt-2 text-xs text-center text-rose-400'; }
-        if (btn) { btn.disabled = false; btn.textContent = 'Inscrever-se'; }
+        if (msgEl) { msgEl.textContent = err.message || t('cursos.erroInscrever'); msgEl.className = 'mt-2 text-xs text-center text-rose-400'; }
+        if (btn) { btn.disabled = false; btn.textContent = t('cursos.inscreverSe'); }
     }
 };
 
@@ -218,7 +219,7 @@ async function aplicarFiltros() {
     } catch (err) {
         grid.innerHTML = `
             <div class="col-span-full text-center py-16 text-rose-400">
-                <p class="text-lg mb-2">Erro ao carregar cursos</p>
+                <p class="text-lg mb-2">${t('cursos.erroCarregar')}</p>
                 <p class="text-sm text-slate-500">${err.message}</p>
             </div>`;
     }
@@ -269,8 +270,8 @@ async function init() {
         console.error('Erro ao inicializar cursos:', err);
         grid.innerHTML = `
             <div class="col-span-full text-center py-16 text-slate-500">
-                <p class="text-lg mb-2">Cursos indisponíveis no momento</p>
-                <p class="text-sm">Verifique se o backend está rodando.</p>
+                <p class="text-lg mb-2">${t('cursos.indisponivel')}</p>
+                <p class="text-sm">${t('cursos.verifiqueBackend')}</p>
             </div>`;
     }
 }

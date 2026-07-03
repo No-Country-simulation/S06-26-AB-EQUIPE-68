@@ -1,39 +1,5 @@
 import { listarVagas, buscarVaga, listarRegioesVagas, enviarCurriculo, matchLoteVagas, matchVaga } from './api.js';
-
-// Textos bilíngues (PT/ES) — mesmo padrão do lote 2 (saude-mental.js): PT é o
-// idioma exibido por padrão, a troca de idioma chega no próximo lote.
-const IDIOMA = 'pt';
-const TEXTOS = {
-    pt: {
-        matchLabel: 'Match',
-        semDadosBadge: 'Sem dados de match',
-        facaLoginBadge: 'Faça login para ver seu match',
-        matchTitulo: 'Compatibilidade com a vaga',
-        carregandoMatch: 'Calculando seu match...',
-        facaLoginDetalhe: 'Faça login para ver seu match com esta vaga.',
-        semDadosDetalhe: 'Esta vaga não tem tecnologias cadastradas — sem dados de match.',
-        voceAtende: 'Você atende {pct}% dos requisitos desta vaga.',
-        atendidasTitulo: 'Você já tem:',
-        faltantesTitulo: 'Ainda falta:',
-        comoResolverLabel: 'Como resolver:',
-        erroMatch: 'Não foi possível calcular seu match agora.',
-    },
-    es: {
-        matchLabel: 'Match',
-        semDadosBadge: 'Sin datos de match',
-        facaLoginBadge: 'Inicia sesión para ver tu match',
-        matchTitulo: 'Compatibilidad con la vacante',
-        carregandoMatch: 'Calculando tu match...',
-        facaLoginDetalhe: 'Inicia sesión para ver tu match con esta vacante.',
-        semDadosDetalhe: 'Esta vacante no tiene tecnologías registradas — sin datos de match.',
-        voceAtende: 'Cumples con el {pct}% de los requisitos de esta vacante.',
-        atendidasTitulo: 'Ya tienes:',
-        faltantesTitulo: 'Todavía falta:',
-        comoResolverLabel: 'Cómo resolver:',
-        erroMatch: 'No fue posible calcular tu match ahora.',
-    },
-};
-const T = TEXTOS[IDIOMA] || TEXTOS.pt;
+import { t, getIdioma } from './i18n.js';
 
 const grid = document.getElementById('vagasGrid');
 const statusEl = document.getElementById('vagasStatus');
@@ -67,14 +33,14 @@ function matchCor(pct) {
 
 function badgeMatch(vagaId) {
     if (!usuarioAtual()) {
-        return `<span class="text-xs font-semibold px-2.5 py-1 rounded-full border bg-slate-500/15 text-slate-400 border-slate-500/30">${T.facaLoginBadge}</span>`;
+        return `<span class="text-xs font-semibold px-2.5 py-1 rounded-full border bg-slate-500/15 text-slate-400 border-slate-500/30">${t('vagas.facaLoginBadge')}</span>`;
     }
     if (!matchMap.has(vagaId)) return '';
     const pct = matchMap.get(vagaId);
     if (pct === null) {
-        return `<span class="text-xs font-semibold px-2.5 py-1 rounded-full border bg-slate-500/15 text-slate-400 border-slate-500/30">${T.semDadosBadge}</span>`;
+        return `<span class="text-xs font-semibold px-2.5 py-1 rounded-full border bg-slate-500/15 text-slate-400 border-slate-500/30">${t('vagas.semDadosBadge')}</span>`;
     }
-    return `<span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${matchCor(pct)}">${T.matchLabel}: ${pct}%</span>`;
+    return `<span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${matchCor(pct)}">${t('vagas.matchLabel')}: ${pct}%</span>`;
 }
 
 function badgeCor(nivel) {
@@ -99,14 +65,14 @@ function renderizarVagas(vagas) {
     if (!vagas || vagas.length === 0) {
         grid.innerHTML = `
             <div class="col-span-full text-center py-16 text-slate-500">
-                <p class="text-lg mb-2">Nenhuma vaga encontrada</p>
-                <p class="text-sm">Tente ajustar os filtros de busca.</p>
+                <p class="text-lg mb-2">${t('vagas.nenhumaEncontrada')}</p>
+                <p class="text-sm">${t('vagas.ajusteFiltros')}</p>
             </div>`;
         statusEl.textContent = '';
         return;
     }
 
-    statusEl.textContent = `${vagas.length} vaga(s) encontrada(s)`;
+    statusEl.textContent = t('vagas.encontradas', { n: vagas.length });
 
     grid.innerHTML = vagas.map(v => `
         <div class="rounded-2xl bg-slate-900/60 border border-slate-800 p-6 hover:border-cyan-500/40 transition-all duration-200 cursor-pointer flex flex-col justify-between group"
@@ -130,8 +96,8 @@ function renderizarVagas(vagas) {
                     <span>💰 ${v.salario || '—'}</span>
                 </div>
                 <div class="flex flex-wrap gap-1.5 mt-2">
-                    ${(v.tecnologias || '').split(',').map(t =>
-                        `<span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">${t.trim()}</span>`
+                    ${(v.tecnologias || '').split(',').map(tech =>
+                        `<span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">${tech.trim()}</span>`
                     ).join('')}
                 </div>
             </div>
@@ -159,37 +125,37 @@ async function abrirModal(id) {
                 </div>
                 <div class="grid grid-cols-2 gap-3 text-sm">
                     <div class="rounded-xl bg-slate-950 border border-slate-800 p-3">
-                        <span class="text-xs text-slate-500 block">Região</span>
+                        <span class="text-xs text-slate-500 block">${t('vagas.regiaoLabel')}</span>
                         <span class="text-white font-medium">📍 ${formatarRegiao(v.regiao)}</span>
                     </div>
                     <div class="rounded-xl bg-slate-950 border border-slate-800 p-3">
-                        <span class="text-xs text-slate-500 block">Salário</span>
-                        <span class="text-white font-medium">💰 ${v.salario || 'A combinar'}</span>
+                        <span class="text-xs text-slate-500 block">${t('vagas.salarioLabel')}</span>
+                        <span class="text-white font-medium">💰 ${v.salario || t('vagas.aCombinar')}</span>
                     </div>
                 </div>
                 <div class="rounded-xl bg-slate-950 border border-slate-800 p-4">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Descrição</h4>
-                    <p class="text-sm text-slate-300 leading-relaxed">${v.descricao || 'Sem descrição detalhada.'}</p>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${t('vagas.descricao')}</h4>
+                    <p class="text-sm text-slate-300 leading-relaxed">${v.descricao || t('vagas.semDescricao')}</p>
                 </div>
                 <div class="rounded-xl bg-slate-950 border border-slate-800 p-4">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Tecnologias</h4>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${t('vagas.tecnologias')}</h4>
                     <div class="flex flex-wrap gap-2">
-                        ${(v.tecnologias || '').split(',').map(t =>
-                            `<span class="text-xs px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">${t.trim()}</span>`
+                        ${(v.tecnologias || '').split(',').map(tech =>
+                            `<span class="text-xs px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">${tech.trim()}</span>`
                         ).join('')}
                     </div>
                 </div>
                 <div class="rounded-xl bg-slate-950 border border-slate-800 p-4">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${T.matchTitulo}</h4>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${t('vagas.matchTitulo')}</h4>
                     <div id="matchSection">${renderMatchInicial()}</div>
                 </div>
                 <div class="text-xs text-slate-500 text-right">
-                    Publicada em ${new Date(v.createdAt).toLocaleDateString('pt-BR')}
+                    ${t('vagas.publicadaEm', { data: new Date(v.createdAt).toLocaleDateString('pt-BR') })}
                 </div>
                 <div id="enviarCurriculoArea">
                     <button onclick="enviarCurriculoParaVaga(${v.id})"
                         class="w-full rounded-2xl bg-cyan-500 px-6 py-3 text-sm font-bold text-slate-950 shadow-xl transition hover:bg-cyan-400 transform active:scale-[0.98] focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-slate-900 outline-none">
-                        Enviar Currículo
+                        ${t('vagas.enviarCurriculo')}
                     </button>
                     <p id="enviarCurriculoMsg" class="mt-2 text-xs text-center hidden"></p>
                 </div>
@@ -204,14 +170,14 @@ async function abrirModal(id) {
 function renderMatchInicial() {
     const usuario = usuarioAtual();
     if (!usuario) {
-        return `<p class="text-sm text-slate-400">${T.facaLoginDetalhe}</p>`;
+        return `<p class="text-sm text-slate-400">${t('vagas.facaLoginDetalhe')}</p>`;
     }
-    return `<p class="text-sm text-slate-400"><span class="loader align-middle mr-2"></span>${T.carregandoMatch}</p>`;
+    return `<p class="text-sm text-slate-400"><span class="loader align-middle mr-2"></span>${t('vagas.carregandoMatch')}</p>`;
 }
 
 function renderMatchDetalhe(data) {
     if (data.matchPercentual === null || data.matchPercentual === undefined) {
-        return `<p class="text-sm text-slate-400">${T.semDadosDetalhe}</p>`;
+        return `<p class="text-sm text-slate-400">${t('vagas.semDadosDetalhe')}</p>`;
     }
     const atendidasHtml = (data.skillsAtendidas || []).map(s =>
         `<span class="text-xs text-emerald-400 block">✓ ${s}</span>`).join('');
@@ -219,18 +185,18 @@ function renderMatchDetalhe(data) {
         `<span class="text-xs text-slate-400 block">○ ${s}</span>`).join('');
     return `
         <p class="text-2xl font-bold text-cyan-400 mb-1">${data.matchPercentual}%</p>
-        <p class="text-sm text-slate-300 mb-3">${T.voceAtende.replace('{pct}', data.matchPercentual)}</p>
+        <p class="text-sm text-slate-300 mb-3">${t('vagas.voceAtende', { pct: data.matchPercentual })}</p>
         <div class="grid grid-cols-2 gap-3 mb-3">
             <div>
-                <span class="text-[10px] font-bold text-slate-500 uppercase block mb-1">${T.atendidasTitulo}</span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase block mb-1">${t('vagas.atendidasTitulo')}</span>
                 ${atendidasHtml || '<span class="text-xs text-slate-500">—</span>'}
             </div>
             <div>
-                <span class="text-[10px] font-bold text-slate-500 uppercase block mb-1">${T.faltantesTitulo}</span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase block mb-1">${t('vagas.faltantesTitulo')}</span>
                 ${faltantesHtml || '<span class="text-xs text-slate-500">—</span>'}
             </div>
         </div>
-        ${data.comoResolver ? `<p class="text-xs text-slate-400 mt-2"><strong class="text-slate-300">${T.comoResolverLabel}</strong> ${data.comoResolver}</p>` : ''}
+        ${data.comoResolver ? `<p class="text-xs text-slate-400 mt-2"><strong class="text-slate-300">${t('vagas.comoResolverLabel')}</strong> ${data.comoResolver}</p>` : ''}
     `;
 }
 
@@ -239,11 +205,11 @@ async function carregarMatchDetalhado(vagaId) {
     if (!usuario) return;
     const el = document.getElementById('matchSection');
     try {
-        const data = await matchVaga(vagaId, usuario.id);
+        const data = await matchVaga(vagaId, usuario.id, getIdioma());
         if (el) el.innerHTML = renderMatchDetalhe(data);
     } catch (err) {
         console.error('Erro ao calcular match:', err);
-        if (el) el.innerHTML = `<p class="text-sm text-rose-400">${T.erroMatch}</p>`;
+        if (el) el.innerHTML = `<p class="text-sm text-rose-400">${t('vagas.erroMatch')}</p>`;
     }
 }
 
@@ -263,14 +229,14 @@ window.enviarCurriculoParaVaga = async function(vagaId) {
     const msgEl = document.getElementById('enviarCurriculoMsg');
     const area = document.getElementById('enviarCurriculoArea');
     const btn = area?.querySelector('button');
-    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Enviando...'; }
+    if (btn) { btn.disabled = true; btn.innerHTML = `<span class="loader"></span> ${t('vagas.enviando')}`; }
     try {
         await enviarCurriculo(vagaId, usuario.id);
-        if (msgEl) { msgEl.textContent = 'Currículo enviado com sucesso!'; msgEl.className = 'mt-2 text-xs text-center text-emerald-400'; }
-        if (btn) { btn.textContent = 'Enviado ✓'; btn.classList.remove('bg-cyan-500'); btn.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border', 'border-emerald-500/30'); }
+        if (msgEl) { msgEl.textContent = t('vagas.curriculoSucesso'); msgEl.className = 'mt-2 text-xs text-center text-emerald-400'; }
+        if (btn) { btn.textContent = t('vagas.enviado'); btn.classList.remove('bg-cyan-500'); btn.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border', 'border-emerald-500/30'); }
     } catch (err) {
-        if (msgEl) { msgEl.textContent = err.message || 'Erro ao enviar currículo.'; msgEl.className = 'mt-2 text-xs text-center text-rose-400'; }
-        if (btn) { btn.disabled = false; btn.textContent = 'Enviar Currículo'; }
+        if (msgEl) { msgEl.textContent = err.message || t('vagas.erroCurriculo'); msgEl.className = 'mt-2 text-xs text-center text-rose-400'; }
+        if (btn) { btn.disabled = false; btn.textContent = t('vagas.enviarCurriculo'); }
     }
 };
 
@@ -289,7 +255,7 @@ async function aplicarFiltros() {
     } catch (err) {
         grid.innerHTML = `
             <div class="col-span-full text-center py-16 text-rose-400">
-                <p class="text-lg mb-2">Erro ao carregar vagas</p>
+                <p class="text-lg mb-2">${t('vagas.erroCarregar')}</p>
                 <p class="text-sm text-slate-500">${err.message}</p>
             </div>`;
     }
@@ -328,8 +294,8 @@ async function init() {
         console.error('Erro ao inicializar vagas:', err);
         grid.innerHTML = `
             <div class="col-span-full text-center py-16 text-slate-500">
-                <p class="text-lg mb-2">Vagas indisponíveis no momento</p>
-                <p class="text-sm">Verifique se o backend está rodando.</p>
+                <p class="text-lg mb-2">${t('vagas.indisponivel')}</p>
+                <p class="text-sm">${t('vagas.verifiqueBackend')}</p>
             </div>`;
     }
 }

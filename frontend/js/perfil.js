@@ -1,4 +1,5 @@
 import { updateProfile } from './api.js';
+import { t } from './i18n.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -29,7 +30,7 @@ document.getElementById('formPerfil')?.addEventListener('submit', async (event) 
     if (!nome) {
         nomeEl?.classList.add('border-rose-500');
         nomeEl?.classList.remove('border-slate-800');
-        showMsg('O nome é obrigatório.', 'error');
+        showMsg(t('perfil.erroNome'), 'error');
         return;
     }
     nomeEl?.classList.remove('border-rose-500');
@@ -37,7 +38,7 @@ document.getElementById('formPerfil')?.addEventListener('submit', async (event) 
 
     const btn = document.getElementById('btnSalvar');
     btn.disabled = true;
-    btn.innerHTML = '<span class="loader"></span> Salvando...';
+    btn.innerHTML = `<span class="loader"></span> ${t('perfil.salvando')}`;
 
     try {
         const data = await updateProfile({
@@ -62,13 +63,13 @@ document.getElementById('formPerfil')?.addEventListener('submit', async (event) 
             }));
         }
 
-        showMsg('Perfil atualizado com sucesso!', 'success');
+        showMsg(t('perfil.sucesso'), 'success');
         btn.disabled = false;
-        btn.textContent = 'Salvar Alterações';
+        btn.textContent = t('perfil.salvarAlteracoes');
     } catch (err) {
-        showMsg(err.message || 'Erro ao salvar perfil.', 'error');
+        showMsg(err.message || t('perfil.erroSalvar'), 'error');
         btn.disabled = false;
-        btn.textContent = 'Salvar Alterações';
+        btn.textContent = t('perfil.salvarAlteracoes');
     }
 });
 

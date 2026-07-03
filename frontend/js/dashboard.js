@@ -1,4 +1,5 @@
 import { assessment, logout, listarVagas, listarCursos, networkStatus } from './api.js';
+import { t, getIdioma } from './i18n.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -14,7 +15,7 @@ if (!usuario) {
 
 if (usuario) {
     const nomeEl = document.getElementById('dashUsuarioNome');
-    if (nomeEl) nomeEl.textContent = `Olá, ${usuario.nome}`;
+    if (nomeEl) nomeEl.textContent = t('dashboard.ola', { nome: usuario.nome });
 }
 
 function closeMobileMenu() {
@@ -55,6 +56,7 @@ async function carregarAssessment() {
             hardSkills: competencias,
             softSkills: [],
             tecnologias: usuario.areaTecnologia ? [usuario.areaTecnologia] : [],
+            idioma: getIdioma(),
         }, usuario.id);
 
         const match = typeof data.compatibilidade === 'number' ? data.compatibilidade : 0;
@@ -74,23 +76,23 @@ async function carregarAssessment() {
             trilha.innerHTML = (data.planoDesenvolvimento || []).map(item =>
                 `<article class="rounded-2xl bg-slate-950/80 p-5 border border-slate-800 hover:border-slate-700 transition">
                     <h3 class="text-base font-bold text-white">${item}</h3>
-                    <span class="inline-block mt-2 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 px-2.5 py-1 text-xs font-bold">Recomendado</span>
+                    <span class="inline-block mt-2 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 px-2.5 py-1 text-xs font-bold">${t('dashboard.recomendado')}</span>
                 </article>`
             ).join('');
         }
 
         const vagaTitulo = document.getElementById('dashVagaTitulo');
         const vagaDesc = document.getElementById('dashVagaDesc');
-        if (vagaTitulo) vagaTitulo.textContent = data.nivel ? `Nível estimado: ${data.nivel}` : 'Perfil analisado';
+        if (vagaTitulo) vagaTitulo.textContent = data.nivel ? t('dashboard.nivelEstimado', { nivel: data.nivel }) : t('dashboard.perfilAnalisado');
         if (vagaDesc) {
             const fortes = data.pontosFortes || [];
             vagaDesc.textContent = fortes.length > 0
-                ? `Pontos fortes: ${fortes.join('; ')}.`
-                : `Compatibilidade de ${match}% com o mercado. Foque no seu plano de desenvolvimento.`;
+                ? t('dashboard.pontosFortes', { lista: fortes.join('; ') })
+                : t('dashboard.compatibilidadeMercado', { pct: match });
         }
     } catch (err) {
         const vagaTitulo = document.getElementById('dashVagaTitulo');
-        if (vagaTitulo) vagaTitulo.textContent = 'Análise indisponível';
+        if (vagaTitulo) vagaTitulo.textContent = t('dashboard.analiseIndisponivel');
     }
 }
 
@@ -104,11 +106,11 @@ async function loadSignal() {
     try {
         if (usuario?.id) {
             const d = await networkStatus(usuario.id);
-            text.textContent = d.status === 'Estavel' ? `Rede Estável — ${d.tecnologiaPredominante || '4G'}` : 'Rede Instável';
+            text.textContent = d.status === 'Estavel' ? t('common.redeEstavel', { tec: d.tecnologiaPredominante || '4G' }) : t('common.redeInstavel');
             return;
         }
-        text.textContent = 'Rede Estável — 4G';
-    } catch { text.textContent = 'Rede Estável — 4G'; }
+        text.textContent = t('common.redeEstavel', { tec: '4G' });
+    } catch { text.textContent = t('common.redeEstavel', { tec: '4G' }); }
 }
 document.addEventListener('DOMContentLoaded', loadSignal);
 
@@ -183,7 +185,7 @@ async function carregarRecomendacoes() {
     const nomeRegiao = REGION_LABELS[regiao] || regiao;
     const areas = AREA_MAP[usuario.areaTecnologia] || ['Java', 'Web', 'Dados'];
 
-    subtitulo.textContent = `Baseado na sua região — ${nomeRegiao}`;
+    subtitulo.textContent = t('dashboard.baseadoNaRegiao', { regiao: nomeRegiao });
 
     let vagasEncontradas = [];
     let cursosEncontrados = [];

@@ -1,4 +1,5 @@
 import { login, logout } from './api.js';
+import { t } from './i18n.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -69,7 +70,7 @@ document.getElementById('formLogin')?.addEventListener('submit', async (event) =
 
     const btn = document.getElementById('btnLogin');
     btn.disabled = true;
-    btn.innerHTML = '<span class="loader"></span> Entrando...';
+    btn.innerHTML = `<span class="loader"></span> ${t('index.entrando')}`;
 
     try {
         const data = await login({ email, password });
@@ -87,9 +88,9 @@ document.getElementById('formLogin')?.addEventListener('submit', async (event) =
         localStorage.setItem('bitapp_refresh', data.refreshToken);
         window.location.href = 'dashboard.html';
     } catch (err) {
-        showError(err.message || 'E-mail ou senha incorretos.');
+        showError(err.message || t('index.erroLogin'));
         btn.disabled = false;
-        btn.textContent = 'Entrar';
+        btn.textContent = t('index.entrar');
     }
 });
 

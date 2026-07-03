@@ -22,7 +22,7 @@
 </head>
 
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
-    <a href="#conteudo-principal"
+    <a href="#conteudo-principal" data-i18n="common.pularConteudo"
         class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-cyan-500 focus:text-slate-950 focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold">Pular
         para o conteúdo</a>
 
@@ -37,65 +37,66 @@
                         class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Saúde
                         Mental</span>
                 </div>
-                <button id="menuToggle" type="button"
+                <button id="menuToggle" type="button" data-i18n-aria-label="nav.abrirMenu"
                     class="md:hidden p-2 rounded-lg border border-slate-700 text-slate-300" aria-label="Abrir menu"
                     aria-expanded="false">☰</button>
                 <div id="navLinks" class="hidden md:flex items-center space-x-2">
                     <div id="navLoggedOut">
-                        <a href="vagas.html"
+                        <a href="vagas.html" data-i18n="nav.vagas"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
-                        <a href="cursos.html"
+                        <a href="cursos.html" data-i18n="nav.cursos"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
-                        <a href="lazer.html"
+                        <a href="lazer.html" data-i18n="nav.lazer"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
-                        <a href="saude-mental.html"
+                        <a href="saude-mental.html" data-i18n="nav.saudeMental"
                             class="text-sm font-medium text-cyan-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Saúde Mental</a>
                     </div>
                     <div id="navLoggedIn" class="hidden">
-                        <a href="dashboard.html"
+                        <a href="dashboard.html" data-i18n="nav.dashboard"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Dashboard</a>
-                        <a href="vagas.html"
+                        <a href="vagas.html" data-i18n="nav.vagas"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
-                        <a href="cursos.html"
+                        <a href="cursos.html" data-i18n="nav.cursos"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
-                        <a href="lazer.html"
+                        <a href="lazer.html" data-i18n="nav.lazer"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
-                        <a href="saude-mental.html"
+                        <a href="saude-mental.html" data-i18n="nav.saudeMental"
                             class="text-sm font-medium text-cyan-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Saúde Mental</a>
-                        <a href="perfil.html"
+                        <a href="perfil.html" data-i18n="nav.meuPerfil"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Meu Perfil</a>
-                        <button onclick="handleLogout()"
+                        <button onclick="handleLogout()" data-i18n="nav.sair"
                             class="text-sm font-medium text-rose-400 hover:text-rose-300 transition py-2 px-3">Sair</button>
                     </div>
+                    <span data-idioma-toggle class="flex items-center gap-1.5 text-xs ml-2"></span>
                 </div>
             </div>
             <div id="mobileNav" class="hidden md:hidden pb-4 space-y-2">
                 <div id="mobileNavLoggedOut">
-                    <a href="vagas.html"
+                    <a href="vagas.html" data-i18n="nav.vagas"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
-                    <a href="cursos.html"
+                    <a href="cursos.html" data-i18n="nav.cursos"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
-                    <a href="lazer.html"
+                    <a href="lazer.html" data-i18n="nav.lazer"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
-                    <a href="saude-mental.html"
+                    <a href="saude-mental.html" data-i18n="nav.saudeMental"
                         class="block text-sm font-medium text-emerald-400 py-2 px-3 rounded-lg border border-slate-800">Saúde
                         Mental</a>
                 </div>
                 <div id="mobileNavLoggedIn" class="hidden">
-                    <a href="dashboard.html"
+                    <a href="dashboard.html" data-i18n="nav.dashboard"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Dashboard</a>
-                    <a href="vagas.html"
+                    <a href="vagas.html" data-i18n="nav.vagas"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
-                    <a href="cursos.html"
+                    <a href="cursos.html" data-i18n="nav.cursos"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
-                    <a href="lazer.html"
+                    <a href="lazer.html" data-i18n="nav.lazer"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
-                    <a href="saude-mental.html"
+                    <a href="saude-mental.html" data-i18n="nav.saudeMental"
                         class="block text-sm font-medium text-emerald-400 py-2 px-3 rounded-lg border border-slate-800">Saúde
                         Mental</a>
-                    <a href="perfil.html"
+                    <a href="perfil.html" data-i18n="nav.meuPerfil"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Meu Perfil</a>
-                    <button onclick="handleLogout()"
+                    <button onclick="handleLogout()" data-i18n="nav.sair"
                         class="block w-full text-left text-sm font-medium text-rose-400 py-2 px-3 rounded-lg border border-slate-800">Sair</button>
                 </div>
             </div>
@@ -115,31 +116,31 @@
     <main id="conteudo-principal" class="flex-grow max-w-2xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         <div class="text-center space-y-2 mb-8 animate-fade-in">
-            <h1 class="text-3xl font-extrabold text-white">🌱 Check-in de Saúde Mental</h1>
-            <p class="text-slate-400 text-sm">Compartilhe seu estado para receber acolhimento.</p>
+            <h1 data-i18n="saude.titulo" class="text-3xl font-extrabold text-white">🌱 Check-in de Saúde Mental</h1>
+            <p data-i18n="saude.subtitulo" class="text-slate-400 text-sm">Compartilhe seu estado para receber acolhimento.</p>
         </div>
 
         <div class="rounded-3xl bg-slate-900 border border-slate-800 p-8 shadow-2xl space-y-6 animate-fade-in">
             <div class="grid grid-cols-5 gap-2 sm:gap-4">
                 <button type="button" onclick="selectMood(this, 'feliz')" aria-pressed="false"
                     class="mood-btn text-3xl py-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl transition group focus:ring-2 focus:ring-cyan-500 outline-none">
-                    😊 <span class="block text-[10px] text-slate-500 font-medium mt-1">Leve</span>
+                    😊 <span class="block text-[10px] text-slate-500 font-medium mt-1" data-i18n="saude.humorLeve">Leve</span>
                 </button>
                 <button type="button" onclick="selectMood(this, 'cansado')" aria-pressed="false"
                     class="mood-btn text-3xl py-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl transition group focus:ring-2 focus:ring-cyan-500 outline-none">
-                    😴 <span class="block text-[10px] text-slate-500 font-medium mt-1">Cansado</span>
+                    😴 <span class="block text-[10px] text-slate-500 font-medium mt-1" data-i18n="saude.humorCansado">Cansado</span>
                 </button>
                 <button type="button" onclick="selectMood(this, 'ansioso')" aria-pressed="false"
                     class="mood-btn text-3xl py-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl transition group focus:ring-2 focus:ring-cyan-500 outline-none">
-                    😰 <span class="block text-[10px] text-slate-500 font-medium mt-1">Ansioso</span>
+                    😰 <span class="block text-[10px] text-slate-500 font-medium mt-1" data-i18n="saude.humorAnsioso">Ansioso</span>
                 </button>
                 <button type="button" onclick="selectMood(this, 'triste')" aria-pressed="false"
                     class="mood-btn text-3xl py-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl transition group focus:ring-2 focus:ring-cyan-500 outline-none">
-                    😢 <span class="block text-[10px] text-slate-500 font-medium mt-1">Triste</span>
+                    😢 <span class="block text-[10px] text-slate-500 font-medium mt-1" data-i18n="saude.humorTriste">Triste</span>
                 </button>
                 <button type="button" onclick="selectMood(this, 'sobrecarregado')" aria-pressed="false"
                     class="mood-btn text-3xl py-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-2xl transition group focus:ring-2 focus:ring-cyan-500 outline-none">
-                    🤯 <span class="block text-[10px] text-slate-500 font-medium mt-1">Sobrecarregado</span>
+                    🤯 <span class="block text-[10px] text-slate-500 font-medium mt-1" data-i18n="saude.humorSobrecarregado">Sobrecarregado</span>
                 </button>
             </div>
 
@@ -165,7 +166,7 @@
                     <textarea rows="4" id="healthContext" placeholder="Compartilhe como se sente..."
                         class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-4 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition"></textarea>
                 </div>
-                <button type="submit"
+                <button type="submit" data-i18n="saude.enviarRegistro"
                     class="w-full rounded-2xl bg-cyan-500 px-6 py-4 text-sm font-bold text-slate-950 shadow-xl transition hover:bg-cyan-400 transform active:scale-[0.98]">
                     Enviar Registro
                 </button>
@@ -202,7 +203,7 @@
         <section id="dicasLazer" class="mt-10 space-y-6 animate-fade-in">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">🎯 Dicas de Lazer na sua região</h2>
+                    <h2 data-i18n="saude.dicasLazerTitulo" class="text-xl font-bold text-white flex items-center gap-2">🎯 Dicas de Lazer na sua região</h2>
                     <p id="dicasSubtitulo" class="text-sm text-slate-400 mt-1"></p>
                 </div>
             </div>
@@ -210,9 +211,9 @@
         </section>
 
         <section id="historicoSection" class="mt-10 space-y-4 animate-fade-in">
-            <h2 class="text-xl font-bold text-white flex items-center gap-2">📋 Histórico de Check-ins</h2>
+            <h2 data-i18n="saude.historicoTitulo" class="text-xl font-bold text-white flex items-center gap-2">📋 Histórico de Check-ins</h2>
             <div id="historicoGrid" class="space-y-3"></div>
-            <p id="historicoEmpty" class="hidden text-sm text-slate-500 text-center py-4">Nenhum registro anterior encontrado.</p>
+            <p id="historicoEmpty" data-i18n="saude.historicoVazio" class="hidden text-sm text-slate-500 text-center py-4">Nenhum registro anterior encontrado.</p>
         </section>
 
     </main>
@@ -222,8 +223,8 @@
             class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div><span class="font-bold text-slate-400">BiT App</span> © 2026</div>
             <div class="flex space-x-6">
-                <a href="termos.html" class="hover:text-white transition">Termos de Uso</a>
-                <a href="tel:188" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188 (CVV)</a>
+                <a href="termos.html" data-i18n="common.termosDeUso" class="hover:text-white transition">Termos de Uso</a>
+                <a href="tel:188" data-i18n="common.suporteCvv" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188 (CVV)</a>
             </div>
         </div>
     </footer>
@@ -236,8 +237,10 @@
             }
         })();
     </script>
+    <script type="module" src="js/i18n.js"></script>
     <script type="module">
         import { networkStatus } from './js/api.js';
+        import { t } from './js/i18n.js';
         document.getElementById('menuToggle')?.addEventListener('click', () => {
             const mobileNav = document.getElementById('mobileNav');
             const toggle = document.getElementById('menuToggle');
@@ -271,11 +274,11 @@
                 const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
                 if (usuario?.id) {
                     const d = await networkStatus(usuario.id);
-                    text.textContent = d.status === 'Estavel' ? `Rede Estável — ${d.tecnologiaPredominante || '4G'}` : 'Rede Instável';
+                    text.textContent = d.status === 'Estavel' ? t('common.redeEstavel', { tec: d.tecnologiaPredominante || '4G' }) : t('common.redeInstavel');
                     return;
                 }
-                text.textContent = 'Rede Estável — 4G';
-            } catch { text.textContent = 'Rede Estável — 4G'; }
+                text.textContent = t('common.redeEstavel', { tec: '4G' });
+            } catch { text.textContent = t('common.redeEstavel', { tec: '4G' }); }
         })();
     </script>
     <script type="module" src="js/saude-mental.js"></script>

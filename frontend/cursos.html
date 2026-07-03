@@ -27,7 +27,7 @@
 </head>
 
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
-    <a href="#conteudo-principal"
+    <a href="#conteudo-principal" data-i18n="common.pularConteudo"
         class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-cyan-500 focus:text-slate-950 focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold">Pular
         para o conteúdo</a>
 
@@ -42,65 +42,66 @@
                         class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Cursos</span>
                 </div>
 
-                <button id="menuToggle" type="button"
+                <button id="menuToggle" type="button" data-i18n-aria-label="nav.abrirMenu"
                     class="md:hidden p-2 rounded-lg border border-slate-700 text-slate-300" aria-label="Abrir menu"
                     aria-expanded="false">☰</button>
 
                 <div id="navLinks" class="hidden md:flex items-center space-x-2">
                     <div id="navLoggedOut">
-                        <a href="vagas.html"
+                        <a href="vagas.html" data-i18n="nav.vagas"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
-                        <a href="cursos.html"
+                        <a href="cursos.html" data-i18n="nav.cursos"
                             class="text-sm font-medium text-cyan-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Cursos</a>
-                        <a href="lazer.html"
+                        <a href="lazer.html" data-i18n="nav.lazer"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
-                        <a href="saude-mental.html"
+                        <a href="saude-mental.html" data-i18n="nav.saudeMental"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde Mental</a>
                     </div>
                     <div id="navLoggedIn" class="hidden">
-                        <a href="dashboard.html"
+                        <a href="dashboard.html" data-i18n="nav.dashboard"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Dashboard</a>
-                        <a href="vagas.html"
+                        <a href="vagas.html" data-i18n="nav.vagas"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
-                        <a href="cursos.html"
+                        <a href="cursos.html" data-i18n="nav.cursos"
                             class="text-sm font-medium text-cyan-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Cursos</a>
-                        <a href="lazer.html"
+                        <a href="lazer.html" data-i18n="nav.lazer"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
-                        <a href="saude-mental.html"
+                        <a href="saude-mental.html" data-i18n="nav.saudeMental"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde Mental</a>
-                        <a href="perfil.html"
+                        <a href="perfil.html" data-i18n="nav.meuPerfil"
                             class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Meu Perfil</a>
-                        <button onclick="handleLogout()"
+                        <button onclick="handleLogout()" data-i18n="nav.sair"
                             class="text-sm font-medium text-rose-400 hover:text-rose-300 transition py-2 px-3">Sair</button>
                     </div>
+                    <span data-idioma-toggle class="flex items-center gap-1.5 text-xs ml-2"></span>
                 </div>
             </div>
 
             <div id="mobileNav" class="hidden md:hidden pb-4 space-y-2">
                 <div id="mobileNavLoggedOut">
-                    <a href="vagas.html"
+                    <a href="vagas.html" data-i18n="nav.vagas"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
-                    <a href="cursos.html"
+                    <a href="cursos.html" data-i18n="nav.cursos"
                         class="block text-sm font-medium text-cyan-400 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
-                    <a href="lazer.html"
+                    <a href="lazer.html" data-i18n="nav.lazer"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
-                    <a href="saude-mental.html"
+                    <a href="saude-mental.html" data-i18n="nav.saudeMental"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde Mental</a>
                 </div>
                 <div id="mobileNavLoggedIn" class="hidden">
-                    <a href="dashboard.html"
+                    <a href="dashboard.html" data-i18n="nav.dashboard"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Dashboard</a>
-                    <a href="vagas.html"
+                    <a href="vagas.html" data-i18n="nav.vagas"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
-                    <a href="cursos.html"
+                    <a href="cursos.html" data-i18n="nav.cursos"
                         class="block text-sm font-medium text-cyan-400 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
-                    <a href="lazer.html"
+                    <a href="lazer.html" data-i18n="nav.lazer"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
-                    <a href="saude-mental.html"
+                    <a href="saude-mental.html" data-i18n="nav.saudeMental"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde Mental</a>
-                    <a href="perfil.html"
+                    <a href="perfil.html" data-i18n="nav.meuPerfil"
                         class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Meu Perfil</a>
-                    <button onclick="handleLogout()"
+                    <button onclick="handleLogout()" data-i18n="nav.sair"
                         class="block w-full text-left text-sm font-medium text-rose-400 py-2 px-3 rounded-lg border border-slate-800">Sair</button>
                 </div>
             </div>
@@ -120,16 +121,16 @@
     <main id="conteudo-principal" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         <header class="border-b border-slate-800 pb-6 mb-6">
-            <p class="text-xs font-bold text-emerald-400 uppercase tracking-widest">Formação Profissional</p>
+            <p data-i18n="cursos.categoria" class="text-xs font-bold text-emerald-400 uppercase tracking-widest">Formação Profissional</p>
             <div class="mt-2 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                 <div>
-                    <h1 class="text-3xl font-extrabold text-white">Cursos Profissionalizantes</h1>
-                    <p class="mt-2 text-sm text-slate-400">Capacitação em tecnologia com foco em cursos gratuitos e
+                    <h1 data-i18n="cursos.titulo" class="text-3xl font-extrabold text-white">Cursos Profissionalizantes</h1>
+                    <p data-i18n="cursos.subtitulo" class="mt-2 text-sm text-slate-400">Capacitação em tecnologia com foco em cursos gratuitos e
                         instituições beneficentes.</p>
                 </div>
                 <div id="cursosStats" class="text-sm text-slate-400">
-                    <span id="cursosTotal" class="text-emerald-400 font-bold">—</span> cursos em
-                    <span id="cursosRegioes" class="text-emerald-400 font-bold">—</span> regiões
+                    <span id="cursosTotal" class="text-emerald-400 font-bold">—</span> <span data-i18n="cursos.statsTexto">cursos em</span>
+                    <span id="cursosRegioes" class="text-emerald-400 font-bold">—</span> <span data-i18n="cursos.regioes">regiões</span>
                 </div>
             </div>
         </header>
@@ -159,15 +160,15 @@
         </section>
 
         <div class="flex flex-wrap gap-3 mb-6">
-            <button id="btnTodos" onclick="filtroGratuito(null)"
+            <button id="btnTodos" onclick="filtroGratuito(null)" data-i18n="cursos.todos"
                 class="px-4 py-2 text-sm font-semibold rounded-full border transition bg-emerald-500/20 text-emerald-400 border-emerald-500/40">
                 Todos
             </button>
-            <button id="btnGratuitos" onclick="filtroGratuito(true)"
+            <button id="btnGratuitos" onclick="filtroGratuito(true)" data-i18n="cursos.gratuitos"
                 class="px-4 py-2 text-sm font-semibold rounded-full border transition bg-slate-800 text-slate-300 border-slate-700 hover:border-emerald-500/40">
                 🆓 Gratuitos
             </button>
-            <button id="btnBeneficentes" onclick="filtroBeneficente()"
+            <button id="btnBeneficentes" onclick="filtroBeneficente()" data-i18n="cursos.beneficentes"
                 class="px-4 py-2 text-sm font-semibold rounded-full border transition bg-slate-800 text-slate-300 border-slate-700 hover:border-amber-500/40">
                 ❤️ Beneficentes
             </button>
@@ -177,21 +178,21 @@
             aria-label="Filtros de busca">
             <div class="lg:col-span-2">
                 <label for="buscaGeral" class="sr-only">Buscar cursos</label>
-                <input type="text" id="buscaGeral" placeholder="Buscar por curso, instituição ou área..."
+                <input type="text" id="buscaGeral" placeholder="Buscar por curso, instituição ou área..." data-i18n-placeholder="cursos.buscarPlaceholder"
                     class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition" />
             </div>
             <div>
                 <label for="filtroRegiao" class="sr-only">Filtrar por região</label>
                 <select id="filtroRegiao"
                     class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
-                    <option value="">Todas as regiões</option>
+                    <option value="" data-i18n="cursos.todasRegioes">Todas as regiões</option>
                 </select>
             </div>
             <div>
                 <label for="filtroArea" class="sr-only">Filtrar por área</label>
                 <select id="filtroArea"
                     class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
-                    <option value="">Todas as áreas</option>
+                    <option value="" data-i18n="cursos.todasAreas">Todas as áreas</option>
                     <option value="Programação">Programação</option>
                     <option value="Web">Web</option>
                     <option value="Java">Java</option>
@@ -208,7 +209,7 @@
             <div>
                 <select id="filtroModalidade"
                     class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
-                    <option value="">Todas as modalidades</option>
+                    <option value="" data-i18n="cursos.todasModalidades">Todas as modalidades</option>
                     <option value="Online">Online</option>
                     <option value="Presencial">Presencial</option>
                     <option value="Híbrido">Híbrido</option>
@@ -218,7 +219,7 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="cursosGrid">
             <div class="col-span-full text-center py-16 text-slate-500">
-                <span class="loader align-middle mr-2"></span> Carregando cursos...
+                <span class="loader align-middle mr-2"></span> <span data-i18n="cursos.carregando">Carregando cursos...</span>
             </div>
         </div>
 
@@ -239,8 +240,8 @@
             class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <span class="font-bold text-slate-400">BiT App</span>
             <div class="flex space-x-6">
-                <a href="termos.html" class="hover:text-white transition">Termos de Uso</a>
-                <a href="tel:188" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188 (CVV)</a>
+                <a href="termos.html" data-i18n="common.termosDeUso" class="hover:text-white transition">Termos de Uso</a>
+                <a href="tel:188" data-i18n="common.suporteCvv" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188 (CVV)</a>
             </div>
         </div>
     </footer>
@@ -253,8 +254,10 @@
             }
         })();
     </script>
+    <script type="module" src="js/i18n.js"></script>
     <script type="module">
         import { networkStatus } from './js/api.js';
+        import { t } from './js/i18n.js';
         document.getElementById('menuToggle')?.addEventListener('click', () => {
             const mobileNav = document.getElementById('mobileNav');
             const toggle = document.getElementById('menuToggle');
@@ -288,11 +291,11 @@
                 const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
                 if (usuario?.id) {
                     const d = await networkStatus(usuario.id);
-                    text.textContent = d.status === 'Estavel' ? `Rede Estável — ${d.tecnologiaPredominante || '4G'}` : 'Rede Instável';
+                    text.textContent = d.status === 'Estavel' ? t('common.redeEstavel', { tec: d.tecnologiaPredominante || '4G' }) : t('common.redeInstavel');
                     return;
                 }
-                text.textContent = 'Rede Estável — 4G';
-            } catch { text.textContent = 'Rede Estável — 4G'; }
+                text.textContent = t('common.redeEstavel', { tec: '4G' });
+            } catch { text.textContent = t('common.redeEstavel', { tec: '4G' }); }
         })();
     </script>
     <script type="module" src="js/cursos.js"></script>

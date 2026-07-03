@@ -22,7 +22,7 @@
 </head>
 
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
-    <a href="#conteudo-principal"
+    <a href="#conteudo-principal" data-i18n="common.pularConteudo"
         class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-cyan-500 focus:text-slate-950 focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold">Pular
         para o conteúdo</a>
 
@@ -36,44 +36,45 @@
                     <span
                         class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Dashboard</span>
                 </div>
-                <button id="menuToggle" type="button"
+                <button id="menuToggle" type="button" data-i18n-aria-label="nav.abrirMenu"
                     class="md:hidden p-2 rounded-lg border border-slate-700 text-slate-300" aria-label="Abrir menu"
                     aria-expanded="false">☰</button>
                 <div id="navLinks" class="hidden md:flex items-center space-x-2">
-                    <a href="dashboard.html"
+                    <a href="dashboard.html" data-i18n="nav.dashboard"
                         class="text-sm font-medium text-cyan-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Dashboard</a>
-                    <a href="saude-mental.html"
+                    <a href="saude-mental.html" data-i18n="nav.saudeMental"
                         class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde
                         Mental</a>
-                    <a href="vagas.html"
+                    <a href="vagas.html" data-i18n="nav.vagas"
                         class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
-                    <a href="cursos.html"
+                    <a href="cursos.html" data-i18n="nav.cursos"
                         class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
-                    <a href="lazer.html"
+                    <a href="lazer.html" data-i18n="nav.lazer"
                         class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Lazer</a>
-                    <a href="perfil.html"
+                    <a href="perfil.html" data-i18n="nav.meuPerfil"
                         class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Meu Perfil</a>
 
-                    <button onclick="handleLogout()"
+                    <button onclick="handleLogout()" data-i18n="nav.sair"
                         class="text-sm font-medium text-rose-400 hover:text-rose-300 transition py-2 px-3">Sair</button>
+                    <span data-idioma-toggle class="flex items-center gap-1.5 text-xs ml-2"></span>
                 </div>
             </div>
             <div id="mobileNav" class="hidden md:hidden pb-4 space-y-2">
-                <a href="dashboard.html"
+                <a href="dashboard.html" data-i18n="nav.dashboard"
                     class="block w-full text-left text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Dashboard</a>
-                <a href="saude-mental.html"
+                <a href="saude-mental.html" data-i18n="nav.saudeMental"
                     class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde
                     Mental</a>
-                <a href="vagas.html"
+                <a href="vagas.html" data-i18n="nav.vagas"
                     class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
-                <a href="cursos.html"
+                <a href="cursos.html" data-i18n="nav.cursos"
                     class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
-                <a href="lazer.html"
+                <a href="lazer.html" data-i18n="nav.lazer"
                     class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
-                <a href="perfil.html"
+                <a href="perfil.html" data-i18n="nav.meuPerfil"
                     class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Meu Perfil</a>
 
-                <button onclick="handleLogout()"
+                <button onclick="handleLogout()" data-i18n="nav.sair"
                     class="block w-full text-left text-sm font-medium text-rose-400 py-2 px-3 rounded-lg border border-slate-800">Sair</button>
             </div>
         </div>
@@ -128,7 +129,7 @@
                 <section
                     class="rounded-3xl border border-slate-800 bg-slate-900/40 p-8 shadow-xl backdrop-blur-md flex flex-col justify-between">
                     <div>
-                        <h2 class="text-xl font-bold text-cyan-400 flex items-center gap-2">🎯 Match de Oportunidades
+                        <h2 data-i18n="dashboard.matchOportunidades" class="text-xl font-bold text-cyan-400 flex items-center gap-2">🎯 Match de Oportunidades
                         </h2>
                         <p class="mt-4 text-6xl font-black bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent"
                             id="dashMatchPercent">
@@ -140,18 +141,18 @@
                         </div>
                     </div>
                     <div class="mt-6 pt-6 border-t border-slate-800/60">
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lacunas:</h4>
+                        <h4 data-i18n="dashboard.lacunas" class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lacunas:</h4>
                         <ul class="mt-3 space-y-2 text-sm text-slate-300" id="dashGapItens">
-                            <li class="rounded-xl bg-slate-950 px-4 py-3 border border-slate-800/60 text-slate-500">
+                            <li class="rounded-xl bg-slate-950 px-4 py-3 border border-slate-800/60 text-slate-500" data-i18n="dashboard.aguardando">
                                 Aguardando...</li>
                         </ul>
                     </div>
                 </section>
 
                 <section class="rounded-3xl border border-slate-800 bg-slate-900/40 p-8 shadow-xl backdrop-blur-md">
-                    <h2 class="text-xl font-bold text-cyan-400 flex items-center gap-2">📚 Trilha de Formação</h2>
+                    <h2 data-i18n="dashboard.trilhaFormacao" class="text-xl font-bold text-cyan-400 flex items-center gap-2">📚 Trilha de Formação</h2>
                     <div class="mt-6 space-y-4" id="dashTrilha">
-                        <p class="text-sm text-slate-500">Aguardando recomendações...</p>
+                        <p class="text-sm text-slate-500" data-i18n="dashboard.aguardandoRecomendacoes">Aguardando recomendações...</p>
                     </div>
                 </section>
             </div>
@@ -160,19 +161,19 @@
         <section id="recomendacoesRegionais" class="hidden mt-10 space-y-6 animate-fade-in">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">- Oportunidades na sua região
+                    <h2 data-i18n="dashboard.oportunidadesRegiao" class="text-xl font-bold text-white flex items-center gap-2">- Oportunidades na sua região
                     </h2>
                     <p id="recomendacoesSubtitulo" class="text-sm text-slate-400 mt-1"></p>
                 </div>
             </div>
 
             <div id="recomendacoesVagas" class="hidden">
-                <h3 class="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-3">- Vagas</h3>
+                <h3 data-i18n="dashboard.vagasTitulo" class="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-3">- Vagas</h3>
                 <div id="listaVagasRecomendadas" class="grid gap-4 sm:grid-cols-2"></div>
             </div>
 
             <div id="recomendacoesCursos" class="hidden">
-                <h3 class="text-sm font-bold text-indigo-400 uppercase tracking-wider mb-3">📚 Cursos</h3>
+                <h3 data-i18n="dashboard.cursosTitulo" class="text-sm font-bold text-indigo-400 uppercase tracking-wider mb-3">📚 Cursos</h3>
                 <div id="listaCursosRecomendados" class="grid gap-4 sm:grid-cols-2"></div>
             </div>
         </section>
@@ -184,12 +185,13 @@
             class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div><span class="font-bold text-slate-400">BiT App</span> © 2026</div>
             <div class="flex space-x-6">
-                <a href="termos.html" class="hover:text-white transition">Termos de Uso</a>
-                <a href="tel:188" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188 (CVV)</a>
+                <a href="termos.html" data-i18n="common.termosDeUso" class="hover:text-white transition">Termos de Uso</a>
+                <a href="tel:188" data-i18n="common.suporteCvv" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188 (CVV)</a>
             </div>
         </div>
     </footer>
 
+    <script type="module" src="js/i18n.js"></script>
     <script type="module" src="js/dashboard.js"></script>
 </body>
 

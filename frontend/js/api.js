@@ -118,8 +118,8 @@ export async function matchLoteVagas(usuarioId) {
     return apiFetch(`/api/vagas/match-lote?usuarioId=${usuarioId}`);
 }
 
-export async function matchVaga(vagaId, usuarioId) {
-    return apiFetch(`/api/vagas/${vagaId}/match?usuarioId=${usuarioId}`);
+export async function matchVaga(vagaId, usuarioId, idioma = 'pt') {
+    return apiFetch(`/api/vagas/${vagaId}/match?usuarioId=${usuarioId}&idioma=${idioma}`);
 }
 
 export async function listarCursos(params = {}) {

@@ -25,7 +25,7 @@
 </head>
 
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
-    <a href="#conteudo-principal" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-cyan-500 focus:text-slate-950 focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold">Pular para o conteúdo</a>
+    <a href="#conteudo-principal" data-i18n="common.pularConteudo" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-cyan-500 focus:text-slate-950 focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold">Pular para o conteúdo</a>
 
     <nav class="sticky top-0 z-50 bg-slate-900/80 border-b border-slate-800 backdrop-blur-lg" aria-label="Menu principal">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,32 +35,33 @@
                     <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Lazer</span>
                 </div>
 
-                <button id="menuToggle" type="button"
+                <button id="menuToggle" type="button" data-i18n-aria-label="nav.abrirMenu"
                     class="md:hidden p-2 rounded-lg border border-slate-700 text-slate-300" aria-label="Abrir menu"
                     aria-expanded="false">☰</button>
 
                 <div id="navLinks" class="hidden md:flex items-center space-x-2">
-                    <a href="index.html" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Login</a>
-                    <a href="cadastro.html" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cadastro</a>
-                    <a href="vagas.html" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
-                    <a href="cursos.html" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
-                    <a href="lazer.html" class="text-sm font-medium text-amber-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Lazer</a>
+                    <a href="index.html" data-i18n="nav.login" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Login</a>
+                    <a href="cadastro.html" data-i18n="nav.cadastro" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cadastro</a>
+                    <a href="vagas.html" data-i18n="nav.vagas" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
+                    <a href="cursos.html" data-i18n="nav.cursos" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
+                    <a href="lazer.html" data-i18n="nav.lazer" class="text-sm font-medium text-amber-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Lazer</a>
                     <div id="authSection" class="hidden">
-                        <a href="dashboard.html" class="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition py-2 px-3">Meu Painel</a>
-                        <button onclick="handleLogout()" class="text-sm font-medium text-rose-400 hover:text-rose-300 transition py-2 px-3">Sair</button>
+                        <a href="dashboard.html" data-i18n="nav.meuPainel" class="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition py-2 px-3">Meu Painel</a>
+                        <button onclick="handleLogout()" data-i18n="nav.sair" class="text-sm font-medium text-rose-400 hover:text-rose-300 transition py-2 px-3">Sair</button>
                     </div>
+                    <span data-idioma-toggle class="flex items-center gap-1.5 text-xs ml-2"></span>
                 </div>
             </div>
 
             <div id="mobileNav" class="hidden md:hidden pb-4 space-y-2">
-                <a href="index.html" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Login</a>
-                <a href="cadastro.html" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cadastro</a>
-                <a href="dashboard.html" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Painel</a>
-                <a href="vagas.html" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
-                <a href="cursos.html" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
-                <a href="lazer.html" class="block text-sm font-medium text-amber-400 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
-                <a href="dashboard.html" class="block text-sm font-medium text-cyan-400 py-2 px-3 rounded-lg border border-slate-800">Meu Painel</a>
-                <button onclick="handleLogout()" class="block w-full text-left text-sm font-medium text-rose-400 py-2 px-3 rounded-lg border border-slate-800">Sair</button>
+                <a href="index.html" data-i18n="nav.login" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Login</a>
+                <a href="cadastro.html" data-i18n="nav.cadastro" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cadastro</a>
+                <a href="dashboard.html" data-i18n="nav.dashboard" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Painel</a>
+                <a href="vagas.html" data-i18n="nav.vagas" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
+                <a href="cursos.html" data-i18n="nav.cursos" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
+                <a href="lazer.html" data-i18n="nav.lazer" class="block text-sm font-medium text-amber-400 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
+                <a href="dashboard.html" data-i18n="nav.meuPainel" class="block text-sm font-medium text-cyan-400 py-2 px-3 rounded-lg border border-slate-800">Meu Painel</a>
+                <button onclick="handleLogout()" data-i18n="nav.sair" class="block w-full text-left text-sm font-medium text-rose-400 py-2 px-3 rounded-lg border border-slate-800">Sair</button>
             </div>
         </div>
     </nav>
@@ -73,15 +74,15 @@
     <main id="conteudo-principal" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         <header class="border-b border-slate-800 pb-6 mb-6">
-            <p class="text-xs font-bold text-amber-400 uppercase tracking-widest">Lazer & Cultura</p>
+            <p data-i18n="lazer.categoria" class="text-xs font-bold text-amber-400 uppercase tracking-widest">Lazer & Cultura</p>
             <div class="mt-2 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                 <div>
-                    <h1 class="text-3xl font-extrabold text-white">Pontos de Interesse</h1>
-                    <p class="mt-2 text-sm text-slate-400">Parques, teatros, atrações gratuitas e pontos culturais mapeados pela rede VISent.</p>
+                    <h1 data-i18n="lazer.titulo" class="text-3xl font-extrabold text-white">Pontos de Interesse</h1>
+                    <p data-i18n="lazer.subtitulo" class="mt-2 text-sm text-slate-400">Parques, teatros, atrações gratuitas e pontos culturais mapeados pela rede VISent.</p>
                 </div>
                 <div id="lazerStats" class="text-sm text-slate-400">
-                    <span id="lazerTotal" class="text-amber-400 font-bold">—</span> pontos em
-                    <span id="lazerRegioes" class="text-amber-400 font-bold">—</span> regiões
+                    <span id="lazerTotal" class="text-amber-400 font-bold">—</span> <span data-i18n="lazer.statsTexto">pontos em</span>
+                    <span id="lazerRegioes" class="text-amber-400 font-bold">—</span> <span data-i18n="lazer.regioes">regiões</span>
                 </div>
             </div>
         </header>
@@ -89,21 +90,21 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-6" role="search" aria-label="Filtros de busca">
             <div class="lg:col-span-2">
                 <label for="buscaGeral" class="sr-only">Buscar pontos de interesse</label>
-                <input type="text" id="buscaGeral" placeholder="Buscar por nome, tipo ou região..."
+                <input type="text" id="buscaGeral" placeholder="Buscar por nome, tipo ou região..." data-i18n-placeholder="lazer.buscarPlaceholder"
                     class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition" />
             </div>
             <div>
                 <label for="filtroRegiao" class="sr-only">Filtrar por região</label>
                 <select id="filtroRegiao"
                     class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition">
-                    <option value="">Todas as regiões</option>
+                    <option value="" data-i18n="lazer.todasRegioes">Todas as regiões</option>
                 </select>
             </div>
             <div>
                 <label for="filtroTipo" class="sr-only">Filtrar por tipo</label>
                 <select id="filtroTipo"
                     class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition">
-                    <option value="">Todos os tipos</option>
+                    <option value="" data-i18n="lazer.todosTipos">Todos os tipos</option>
                     <option value="Parque">Parques</option>
                     <option value="Teatro">Teatros</option>
                     <option value="Museu">Museus</option>
@@ -117,15 +118,15 @@
                 <label for="filtroGratuito" class="sr-only">Filtrar por gratuidade</label>
                 <select id="filtroGratuito"
                     class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition">
-                    <option value="">Todos</option>
-                    <option value="true">Apenas gratuitos</option>
+                    <option value="" data-i18n="lazer.todos">Todos</option>
+                    <option value="true" data-i18n="lazer.apenasGratuitos">Apenas gratuitos</option>
                 </select>
             </div>
         </div>
 
         <section aria-label="Mapa de pontos de interesse" class="mb-8">
             <div class="flex justify-end mb-3">
-                <button onclick="localizarUsuario()" class="text-xs font-semibold px-4 py-2 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20 transition">📍 Minha localização</button>
+                <button onclick="localizarUsuario()" data-i18n="lazer.minhaLocalizacao" class="text-xs font-semibold px-4 py-2 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20 transition">📍 Minha localização</button>
             </div>
             <div class="rounded-3xl overflow-hidden border border-slate-800 shadow-2xl" style="height: 400px;">
                 <div id="mapa" style="height: 100%; width: 100%;"></div>
@@ -133,7 +134,7 @@
             <div id="mapFallback" class="hidden rounded-3xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-900 flex items-center justify-center" style="height: 400px;">
                 <div class="text-center space-y-3 p-8">
                     <svg class="w-16 h-16 mx-auto text-amber-400/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-                    <p class="text-sm text-slate-400">Mapa interativo</p>
+                    <p class="text-sm text-slate-400" data-i18n="common.mapaInterativo">Mapa interativo</p>
                     <div id="antennaMarkers" class="flex flex-wrap justify-center gap-2 mt-4"></div>
                 </div>
             </div>
@@ -141,16 +142,16 @@
 
         <section aria-label="Legenda do mapa" class="mb-8">
             <div class="flex flex-wrap gap-4 text-xs text-slate-400">
-                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-yellow-400 inline-block" aria-hidden="true"></span> Antena VISent (5G/4G)</div>
-                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-400 inline-block" aria-hidden="true"></span> Parques & Praias</div>
-                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-purple-400 inline-block" aria-hidden="true"></span> Teatros & Museus</div>
-                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-cyan-400 inline-block" aria-hidden="true"></span> Feiras & Bibliotecas</div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-yellow-400 inline-block" aria-hidden="true"></span> <span data-i18n="lazer.legendaAntena">Antena VISent (5G/4G)</span></div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-400 inline-block" aria-hidden="true"></span> <span data-i18n="lazer.legendaParques">Parques & Praias</span></div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-purple-400 inline-block" aria-hidden="true"></span> <span data-i18n="lazer.legendaTeatros">Teatros & Museus</span></div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-cyan-400 inline-block" aria-hidden="true"></span> <span data-i18n="lazer.legendaFeiras">Feiras & Bibliotecas</span></div>
             </div>
         </section>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="lazerGrid" role="list" aria-label="Lista de pontos de interesse">
             <div class="col-span-full text-center py-16 text-slate-500" role="status">
-                <span class="loader align-middle mr-2" aria-hidden="true"></span> Carregando pontos de interesse...
+                <span class="loader align-middle mr-2" aria-hidden="true"></span> <span data-i18n="lazer.carregando">Carregando pontos de interesse...</span>
             </div>
         </div>
 
@@ -168,14 +169,16 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <span class="font-bold text-slate-400">BiT App</span>
             <div class="flex space-x-6">
-                <a href="termos.html" class="hover:text-white transition">Termos de Uso</a>
-                <a href="tel:188" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188 (CVV)</a>
+                <a href="termos.html" data-i18n="common.termosDeUso" class="hover:text-white transition">Termos de Uso</a>
+                <a href="tel:188" data-i18n="common.suporteCvv" class="text-rose-400 hover:text-rose-300 font-semibold transition">Suporte 188 (CVV)</a>
             </div>
         </div>
     </footer>
 
+    <script type="module" src="js/i18n.js"></script>
     <script type="module">
         import { networkStatus } from './js/api.js';
+        import { t } from './js/i18n.js';
         document.getElementById('menuToggle')?.addEventListener('click', () => {
             const mobileNav = document.getElementById('mobileNav');
             const toggle = document.getElementById('menuToggle');
@@ -206,17 +209,17 @@
                 if (usuario?.id) {
                     const d = await networkStatus(usuario.id);
                     if (d.status === 'Estavel') {
-                        text.textContent = `Rede Estável — ${d.tecnologiaPredominante || '4G'}`;
+                        text.textContent = t('common.redeEstavel', { tec: d.tecnologiaPredominante || '4G' });
                         badge.className = 'hidden sm:flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20';
                     } else {
-                        text.textContent = 'Rede Instável';
+                        text.textContent = t('common.redeInstavel');
                         badge.className = 'hidden sm:flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20';
                     }
                     return;
                 }
-                text.textContent = 'Rede Estável — 4G';
+                text.textContent = t('common.redeEstavel', { tec: '4G' });
             } catch {
-                text.textContent = 'Rede Estável — 4G';
+                text.textContent = t('common.redeEstavel', { tec: '4G' });
             }
         })();
     </script>

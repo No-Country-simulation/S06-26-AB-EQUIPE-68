@@ -1,3 +1,5 @@
+import { t } from './i18n.js';
+
 const REGION_LABELS = {
     CBD_BEIRAMAR: 'Centro/Beiramar',
     TRINDADE: 'Trindade',
@@ -83,7 +85,7 @@ function renderGrid() {
 
     if (filteredPoints.length === 0) {
         grid.innerHTML = '';
-        status.textContent = 'Nenhum ponto encontrado com os filtros selecionados.';
+        status.textContent = t('lazer.nenhumEncontrado');
         return;
     }
 
@@ -108,17 +110,17 @@ function renderGrid() {
                 </div>
                 <p class="mt-2 text-xs text-slate-400 line-clamp-2 leading-relaxed">${p.descricao}</p>
                 <div class="flex flex-wrap gap-1.5 mt-3">
-                    ${p.gratuito ? '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">Gratuito</span>' : '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-400 border border-slate-600/30">Pago</span>'}
-                    ${p.acessivel ? '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Acessível</span>' : ''}
+                    ${p.gratuito ? `<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">${t('lazer.gratuito')}</span>` : `<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-400 border border-slate-600/30">${t('lazer.pago')}</span>`}
+                    ${p.acessivel ? `<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">${t('lazer.acessivel')}</span>` : ''}
                     <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-400 border border-slate-600/30">${REGION_LABELS[p.regiao] || p.regiao}</span>
                 </div>
                 <p class="mt-2 text-[11px] text-slate-500">${p.horario}</p>
             </div>
             <div class="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between">
-                <div class="flex flex-wrap gap-1">${(p.tags || []).map(t => `<span class="text-[9px] text-slate-500">#${t}</span>`).join(' ')}</div>
-                <button onclick="tracarRota(${p.id})" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition mr-3" aria-label="Tracar rota ate ${p.nome}">🛣️ Rota</button>
-                <button onclick="focarNoMapa(${p.id})" class="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition mr-3" aria-label="Ver ${p.nome} no mapa">📍 No mapa</button>
-                <button onclick="abrirModal(${p.id})" class="text-xs font-semibold text-amber-400 hover:text-amber-300 transition focus:outline-none focus:ring-2 focus:ring-amber-500 rounded" aria-label="Ver detalhes de ${p.nome}">Detalhes →</button>
+                <div class="flex flex-wrap gap-1">${(p.tags || []).map(tag => `<span class="text-[9px] text-slate-500">#${tag}</span>`).join(' ')}</div>
+                <button onclick="tracarRota(${p.id})" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition mr-3" aria-label="Tracar rota ate ${p.nome}">${t('lazer.rota')}</button>
+                <button onclick="focarNoMapa(${p.id})" class="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition mr-3" aria-label="Ver ${p.nome} no mapa">${t('lazer.noMapa')}</button>
+                <button onclick="abrirModal(${p.id})" class="text-xs font-semibold text-amber-400 hover:text-amber-300 transition focus:outline-none focus:ring-2 focus:ring-amber-500 rounded" aria-label="Ver detalhes de ${p.nome}">${t('lazer.detalhes')}</button>
             </div>
         `;
         grid.appendChild(card);
@@ -149,24 +151,24 @@ window.abrirModal = function(id) {
             <p class="text-sm text-slate-300 leading-relaxed">${p.descricao}</p>
             <div class="grid grid-cols-2 gap-3">
                 <div class="rounded-xl bg-slate-950 p-3 border border-slate-800/60">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Horário</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">${t('lazer.horario')}</p>
                     <p class="text-sm text-white mt-1">${p.horario}</p>
                 </div>
                 <div class="rounded-xl bg-slate-950 p-3 border border-slate-800/60">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Acessibilidade</p>
-                    <p class="text-sm text-white mt-1">${p.acessivel ? '✓ Acessível' : 'Parcial'}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">${t('lazer.acessibilidade')}</p>
+                    <p class="text-sm text-white mt-1">${p.acessivel ? '✓ ' + t('lazer.acessivel') : t('lazer.acessivelParcial')}</p>
                 </div>
                 <div class="rounded-xl bg-slate-950 p-3 border border-slate-800/60">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Entrada</p>
-                    <p class="text-sm text-white mt-1">${p.gratuito ? 'Gratuito' : 'Pago'}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">${t('lazer.entrada')}</p>
+                    <p class="text-sm text-white mt-1">${p.gratuito ? t('lazer.gratuito') : t('lazer.pago')}</p>
                 </div>
                 <div class="rounded-xl bg-slate-950 p-3 border border-slate-800/60">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Região</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">${t('lazer.regiao')}</p>
                     <p class="text-sm text-white mt-1">${REGION_LABELS[p.regiao] || p.regiao}</p>
                 </div>
             </div>
             <div class="flex flex-wrap gap-1.5">
-                ${(p.tags || []).map(t => `<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">#${t}</span>`).join('')}
+                ${(p.tags || []).map(tag => `<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">#${tag}</span>`).join('')}
             </div>
         </div>
     `;
@@ -262,7 +264,7 @@ let marcadorUsuario = null;
 
 window.localizarUsuario = function() {
     if (!navigator.geolocation) {
-        alert('Seu navegador não suporta geolocalização.');
+        alert(t('lazer.erroGeoNaoSuportada'));
         return;
     }
 
@@ -288,7 +290,7 @@ window.localizarUsuario = function() {
             coordsUsuario = [lat, lng];
             marcadorUsuario = L.marker([lat, lng], { icon: iconeUsuario })
                 .addTo(mapa)
-                .bindPopup('<strong>Você está aqui</strong>')
+                .bindPopup(`<strong>${t('lazer.voceEstaAqui')}</strong>`)
                 .openPopup();
 
             mapa.setView([lat, lng], 14);
@@ -296,9 +298,9 @@ window.localizarUsuario = function() {
         // Erro: negou permissão ou falhou
         function(err) {
             if (err.code === err.PERMISSION_DENIED) {
-                alert('Permissão de localização negada. Você pode ativá-la nas configurações do navegador.');
+                alert(t('lazer.erroGeoNegada'));
             } else {
-                alert('Não foi possível obter sua localização.');
+                alert(t('lazer.erroGeoFalhou'));
             }
         }
     );
@@ -315,13 +317,13 @@ let linhaRota = null;       // a linha desenhada no mapa
 // Chamada pelo botao "Rota" no card — ja recebe o id do destino
 window.tracarRota = async function(idDestino) {
     if (!coordsUsuario) {
-        alert('Primeiro clique em "Minha localização" para definir o ponto de partida.');
+        alert(t('lazer.erroSemLocalizacao'));
         return;
     }
 
     const ponto = pontosData.find(p => p.id === idDestino);
     if (!ponto || ponto.lat == null || ponto.lng == null) {
-        alert('Este ponto não tem coordenada disponível.');
+        alert(t('lazer.erroSemCoordenada'));
         return;
     }
     const coordDestino = { lat: ponto.lat, lng: ponto.lng };
@@ -353,7 +355,7 @@ window.tracarRota = async function(idDestino) {
         const dist = (dados.features[0].properties.summary.distance / 1000).toFixed(1);
         const min = Math.round(dados.features[0].properties.summary.duration / 60);
         document.getElementById('mapa').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        alert('Rota tracada: ' + dist + ' km - aprox. ' + min + ' min de carro ate ' + ponto.nome);
+        alert(t('lazer.rotaTracada', { dist, min, nome: ponto.nome }));
 
     } catch (err) {
         abrirNoGoogleMaps(coordsUsuario, coordDestino);

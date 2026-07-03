@@ -69,7 +69,7 @@
 </head>
 
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
-    <a href="#conteudo-principal"
+    <a href="#conteudo-principal" data-i18n="common.pularConteudo"
         class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-cyan-500 focus:text-slate-950 focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold">Pular
         para o conteúdo</a>
 
@@ -80,7 +80,9 @@
                 <span
                     class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 uppercase tracking-widest">App</span>
             </div>
-            <div id="signalBadge"
+            <div class="flex items-center gap-3">
+                <span data-idioma-toggle class="flex items-center gap-1.5 text-xs"></span>
+                <div id="signalBadge"
                 class="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 signal-pulse"
                 role="status" aria-label="Status da rede">
                 <span class="relative flex h-2 w-2">
@@ -88,6 +90,7 @@
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-yellow-400"></span>
                 </span>
                 <span id="signalText">Rede Estável — 4G</span>
+                </div>
             </div>
         </div>
     </header>
@@ -112,12 +115,12 @@
                     <span
                         class="text-lg font-bold px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">App</span>
                 </div>
-                <h1 class="text-2xl font-extrabold text-white mb-1">Bem-vindo de volta</h1>
-                <p class="text-sm text-slate-400">Acesse sua conta para continuar sua jornada.</p>
+                <h1 data-i18n="index.bemVindo" class="text-2xl font-extrabold text-white mb-1">Bem-vindo de volta</h1>
+                <p data-i18n="index.subtitulo" class="text-sm text-slate-400">Acesse sua conta para continuar sua jornada.</p>
                 <div id="authMessage"
                     class="hidden mt-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-center animate-fade-in"
                     role="alert">
-                    <p class="text-sm font-semibold text-amber-400">Você precisa fazer login ou criar uma conta para acessar
+                    <p data-i18n="index.authRequired" class="text-sm font-semibold text-amber-400">Você precisa fazer login ou criar uma conta para acessar
                         este conteúdo.</p>
                 </div>
             </div>
@@ -125,7 +128,7 @@
             <div class="rounded-3xl bg-slate-900 border border-slate-800 p-8 shadow-2xl anim-slide-up anim-delay-2">
                 <form id="formLogin" class="space-y-5" novalidate aria-label="Formulário de login">
                     <div>
-                        <label for="loginEmail"
+                        <label for="loginEmail" data-i18n="index.emailLabel"
                             class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
                             E-mail
                         </label>
@@ -133,11 +136,11 @@
                             aria-describedby="loginEmailHint"
                             class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition input-glow"
                             placeholder="seu@email.com" />
-                        <p id="loginEmailHint" class="mt-1 text-xs text-slate-500 hidden">Por favor, insira um e-mail
+                        <p id="loginEmailHint" data-i18n="index.senhaHintEmail" class="mt-1 text-xs text-slate-500 hidden">Por favor, insira um e-mail
                             válido.</p>
                     </div>
                     <div>
-                        <label for="loginPassword"
+                        <label for="loginPassword" data-i18n="index.senhaLabel"
                             class="block mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
                             Senha
                         </label>
@@ -157,13 +160,13 @@
                                 </svg>
                             </button>
                         </div>
-                        <p id="loginPasswordHint" class="mt-1 text-xs text-slate-500 hidden">A senha deve ter no mínimo
+                        <p id="loginPasswordHint" data-i18n="index.senhaHintSenha" class="mt-1 text-xs text-slate-500 hidden">A senha deve ter no mínimo
                             6 caracteres.</p>
                     </div>
 
                     <p id="formLoginError" class="text-sm text-rose-400 text-center hidden" role="alert"></p>
 
-                    <button id="btnLogin" type="submit"
+                    <button id="btnLogin" type="submit" data-i18n="index.entrar"
                         class="btn-shine w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 px-6 py-4 text-sm font-bold text-white shadow-xl transition-all duration-200 hover:from-indigo-500 hover:to-indigo-400 hover:shadow-indigo-500/25 hover:shadow-lg transform active:scale-[0.98] focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900 outline-none"
                         aria-label="Entrar na conta">
                         Entrar
@@ -171,8 +174,8 @@
                 </form>
 
                 <div class="mt-6 pt-6 border-t border-slate-800 text-center">
-                    <p class="text-sm text-slate-400 mb-3">Primeira vez no BiT App?</p>
-                    <a href="cadastro.html"
+                    <p data-i18n="index.primeiraVez" class="text-sm text-slate-400 mb-3">Primeira vez no BiT App?</p>
+                    <a href="cadastro.html" data-i18n="index.criarConta"
                         class="btn-shine inline-block w-full rounded-2xl border border-cyan-500/30 bg-cyan-500/8 px-6 py-4 text-sm font-bold text-cyan-400 transition-all duration-200 hover:bg-cyan-500/15 hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 hover:text-cyan-300 focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-slate-900 outline-none">
                         Primeiro Acesso — Criar Conta
                     </a>
@@ -180,17 +183,17 @@
             </div>
 
             <div class="rounded-2xl bg-slate-900/40 p-5 border border-slate-800 backdrop-blur-md anim-slide-up anim-delay-3">
-                <h2 class="text-sm font-bold text-cyan-400 mb-2">Acessibilidade</h2>
+                <h2 data-i18n="index.acessibilidadeTitulo" class="text-sm font-bold text-cyan-400 mb-2">Acessibilidade</h2>
                 <ul class="text-xs text-slate-400 space-y-1.5 leading-relaxed">
-                    <li>• Use <kbd
+                    <li>• <span data-i18n-html="index.acessibilidadeTab">Use <kbd
                             class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">Tab</kbd>
-                        para navegar entre os campos do formulário.</li>
-                    <li>• Pressione <kbd
+                        para navegar entre os campos do formulário.</span></li>
+                    <li>• <span data-i18n-html="index.acessibilidadeEnter">Pressione <kbd
                             class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">Enter</kbd>
-                        para enviar o formulário.</li>
-                    <li>• Todos os campos possuem rótulos acessíveis para leitores de tela.</li>
-                    <li>• Em caso de dificuldade, ligue para <a href="tel:188"
-                            class="text-rose-400 font-semibold hover:text-rose-300 transition">188 (CVV)</a>.</li>
+                        para enviar o formulário.</span></li>
+                    <li>• <span data-i18n="index.acessibilidadeRotulos">Todos os campos possuem rótulos acessíveis para leitores de tela.</span></li>
+                    <li>• <span data-i18n-html="index.acessibilidadeCvv">Em caso de dificuldade, ligue para <a href="tel:188"
+                            class="text-rose-400 font-semibold hover:text-rose-300 transition">188 (CVV)</a>.</span></li>
                 </ul>
             </div>
         </div>
@@ -205,15 +208,16 @@
             <div class="flex items-center gap-2">
                 <span class="text-sm font-black tracking-wider bit-logo-gradient">BiT</span>
                 <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">App</span>
-                <span>© 2026 Ecossistema de Inclusão Tecnológica.</span>
+                <span data-i18n="common.copyright">© 2026 Ecossistema de Inclusão Tecnológica.</span>
             </div>
             <div class="flex space-x-6">
-                <a href="termos.html" class="hover:text-slate-300 transition">Termos de Uso</a>
-                <a href="tel:188" class="text-red-400 font-semibold hover:text-red-300 transition">Suporte 188 (CVV)</a>
+                <a href="termos.html" data-i18n="common.termosDeUso" class="hover:text-slate-300 transition">Termos de Uso</a>
+                <a href="tel:188" data-i18n="common.suporteCvv" class="text-red-400 font-semibold hover:text-red-300 transition">Suporte 188 (CVV)</a>
             </div>
         </div>
     </footer>
 
+    <script type="module" src="js/i18n.js"></script>
     <script type="module" src="js/home.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -246,6 +250,7 @@
     </script>
     <script type="module">
         import { networkStatus } from './js/api.js';
+        import { t } from './js/i18n.js';
         (async function loadSignal() {
             const badge = document.getElementById('signalBadge');
             const text = document.getElementById('signalText');
@@ -255,16 +260,16 @@
                 const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
                 if (usuario?.id) {
                     const d = await networkStatus(usuario.id);
-                    text.textContent = 'Rede Estável — ' + (d.tecnologiaPredominante || '4G');
+                    text.textContent = t('common.redeEstavel', { tec: d.tecnologiaPredominante || '4G' });
                     if (d.status !== 'Estavel') {
                         badge.classList.remove('bg-yellow-500/10', 'text-yellow-400', 'border-yellow-500/20');
                         badge.classList.add('bg-red-500/10', 'text-red-400', 'border-red-500/20');
                     }
                     return;
                 }
-                text.textContent = 'Rede Estável — 4G';
+                text.textContent = t('common.redeEstavel', { tec: '4G' });
             } catch (e) {
-                text.textContent = 'Rede Estável — 4G';
+                text.textContent = t('common.redeEstavel', { tec: '4G' });
             }
         })();
     </script>

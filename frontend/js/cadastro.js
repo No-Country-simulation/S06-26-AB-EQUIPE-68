@@ -1,4 +1,5 @@
 import { register } from './api.js';
+import { t } from './i18n.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -58,13 +59,13 @@ document.getElementById('formCadastro')?.addEventListener('submit', async (event
     }
 
     if (!valid) {
-        showError('Preencha todos os campos obrigatórios corretamente.');
+        showError(t('cadastro.erroCamposObrigatorios'));
         return;
     }
 
     const btn = document.getElementById('btnCadastro');
     btn.disabled = true;
-    btn.innerHTML = '<span class="loader"></span> Criando...';
+    btn.innerHTML = `<span class="loader"></span> ${t('cadastro.criando')}`;
 
     try {
         const data = await register({
@@ -91,9 +92,9 @@ document.getElementById('formCadastro')?.addEventListener('submit', async (event
         localStorage.setItem('bitapp_refresh', data.refreshToken);
         window.location.href = 'dashboard.html';
     } catch (err) {
-        showError(err.message || 'Erro ao criar conta. Tente novamente.');
+        showError(err.message || t('cadastro.erroGenerico'));
         btn.disabled = false;
-        btn.textContent = 'Criar Conta';
+        btn.textContent = t('cadastro.criarConta');
     }
 });
 

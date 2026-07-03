@@ -1,4 +1,5 @@
 import { saudeCheckin, historicoSaude } from './api.js';
+import { t, getIdioma } from './i18n.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -99,53 +100,6 @@ const DICAS_GERAIS = [
     { icon: '💬', titulo: 'Converse com alguém querido', desc: 'Socialização libera oxitocina. Uma ligação de 10 min muda o dia.' },
 ];
 
-// ────────────────────────────────────────────────────────────────────────────
-// Textos bilíngues (PT/ES) — bilíngue de nascença, preparando o i18n do lote 2.5.
-// PT é o idioma exibido por padrão; a troca de idioma chega no próximo lote.
-// ────────────────────────────────────────────────────────────────────────────
-const IDIOMA = 'pt';
-const TEXTOS = {
-    pt: {
-        notaLabel: 'De 0 a 10, que nota você dá para a sua semana?',
-        notaAncoraMin: '0 — semana muito difícil',
-        notaAncoraMax: '10 — semana excelente',
-        contextoLabel: 'Contexto (opcional)',
-        modalTitulo: 'Um instante',
-        modalMsg: 'Percebemos que a semana foi muito difícil. Você gostaria de receber apoio agora?',
-        modalSim: 'Sim, quero apoio',
-        modalNao: 'Cliquei sem querer',
-        reforcadoTitulo: 'Estamos com você',
-        reforcadoCvv: 'O CVV está disponível agora, 24h — ligue 188.',
-        preventivoTitulo: 'Um recurso pra você',
-        preventivoCvv: 'Conversar ajuda — o 188 escuta 24h, sem julgamento, sobre qualquer assunto.',
-        normalTitulo: '✨ Resposta do Agente BiT',
-        acaoLabel: 'Ação:',
-        alertaSemNota: 'Escolha uma nota de 0 a 10 para a sua semana.',
-        alertaSemHumor: 'Selecione um emoji.',
-        erroSalvar: 'Erro ao salvar check-in.',
-    },
-    es: {
-        notaLabel: 'De 0 a 10, ¿qué nota le das a tu semana?',
-        notaAncoraMin: '0 — semana muy difícil',
-        notaAncoraMax: '10 — semana excelente',
-        contextoLabel: 'Contexto (opcional)',
-        modalTitulo: 'Un momento',
-        modalMsg: 'Notamos que la semana fue muy difícil. ¿Te gustaría recibir apoyo ahora?',
-        modalSim: 'Sí, quiero apoyo',
-        modalNao: 'Fue sin querer',
-        reforcadoTitulo: 'Estamos contigo',
-        reforcadoCvv: 'El CVV está disponible ahora, 24h — llama al 188.',
-        preventivoTitulo: 'Un recurso para ti',
-        preventivoCvv: 'Hablar ayuda — el 188 escucha 24h, sin juzgar, sobre cualquier tema.',
-        normalTitulo: '✨ Respuesta del Agente BiT',
-        acaoLabel: 'Acción:',
-        alertaSemNota: 'Elige una nota de 0 a 10 para tu semana.',
-        alertaSemHumor: 'Selecciona un emoji.',
-        erroSalvar: 'Error al guardar el registro.',
-    },
-};
-const T = TEXTOS[IDIOMA] || TEXTOS.pt;
-
 // Estado do check-in — humor e nota são INDEPENDENTES (contrato do Dia 1).
 // O humor alimenta só o tom do acolhimento; a nota é a única entrada que deriva.
 let selectedMoodState = null;
@@ -199,14 +153,14 @@ function selectNota(btn, nota) {
 // Aplica os textos do idioma atual nos rótulos/âncoras/modal estáticos.
 function aplicarTextos() {
     const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-    set('notaLabel', T.notaLabel);
-    set('notaAncoraMin', T.notaAncoraMin);
-    set('notaAncoraMax', T.notaAncoraMax);
-    set('contextoLabel', T.contextoLabel);
-    set('confirmTitle', T.modalTitulo);
-    set('confirmMsg', T.modalMsg);
-    set('confirmSim', T.modalSim);
-    set('confirmNao', T.modalNao);
+    set('notaLabel', t('saude.notaLabel'));
+    set('notaAncoraMin', t('saude.notaAncoraMin'));
+    set('notaAncoraMax', t('saude.notaAncoraMax'));
+    set('contextoLabel', t('saude.contextoLabel'));
+    set('confirmTitle', t('saude.modalTitulo'));
+    set('confirmMsg', t('saude.modalMsg'));
+    set('confirmSim', t('saude.modalSim'));
+    set('confirmNao', t('saude.modalNao'));
 }
 
 const formSaude = document.getElementById('formSaude');
@@ -215,17 +169,18 @@ const formSaude = document.getElementById('formSaude');
 // É a ÚNICA porta de gravação: um clique acidental cancelado nem toca no banco.
 async function enviarCheckin() {
     const submitBtn = formSaude?.querySelector('button[type="submit"]');
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="loader"></span> Salvando...'; }
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = `<span class="loader"></span> ${t('saude.salvando')}`; }
     try {
         const data = await saudeCheckin({
             usuarioId: usuario.id,
             humor: selectedMoodState,
             notaSemanal: selectedNota,
             contexto: document.getElementById('healthContext')?.value || '',
+            idioma: getIdioma(),
         });
         renderAiResponse(data);
-    } catch { alert(T.erroSalvar); }
-    finally { if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Enviar Registro'; } }
+    } catch { alert(t('saude.erroSalvar')); }
+    finally { if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = t('saude.enviarRegistro'); } }
 }
 
 // Passo de confirmação empática (Plano A): para nota <= 2, confirma antes de gravar.
@@ -246,8 +201,8 @@ confirmModal?.addEventListener('click', (e) => { if (e.target === confirmModal) 
 
 formSaude?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (!selectedMoodState) { alert(T.alertaSemHumor); return; }
-    if (selectedNota === null) { alert(T.alertaSemNota); return; }
+    if (!selectedMoodState) { alert(t('saude.alertaSemHumor')); return; }
+    if (selectedNota === null) { alert(t('saude.alertaSemNota')); return; }
     // Nota 0-1 (derivação REFORÇADA): consentimento ANTES de gravar.
     // "Cliquei sem querer" não grava nada. Nota 2-10 grava direto.
     if (selectedNota <= 1) {
@@ -271,24 +226,24 @@ function renderAiResponse(data) {
         // Nota 0-1: cuidado, CVV em destaque, tom acolhedor (sem alarme).
         container.className = 'p-6 rounded-3xl border border-amber-800/60 bg-amber-950/20 mt-6 animate-fade-in';
         title.className = 'text-sm font-bold uppercase tracking-wider mb-2 text-amber-300 flex items-center gap-2';
-        title.innerHTML = `🫂 ${T.reforcadoTitulo}`;
+        title.innerHTML = `🫂 ${t('saude.reforcadoTitulo')}`;
         action.innerHTML = `<div class="p-4 bg-slate-950 border border-amber-700/40 rounded-2xl space-y-1">
-            <p class="text-sm font-bold text-white">${T.reforcadoCvv}</p>
+            <p class="text-sm font-bold text-white">${t('saude.reforcadoCvv')}</p>
             <p class="text-xs text-slate-400">${data.acaoSugerida || ''}</p></div>`;
     } else if (data.nivelDerivacao === 'PREVENTIVO') {
         // Nota 2-3: escuta suave, apresentada como recurso — não como alerta.
         container.className = 'p-6 rounded-3xl border border-cyan-800/50 bg-cyan-950/20 mt-6 animate-fade-in';
         title.className = 'text-sm font-bold uppercase tracking-wider mb-2 text-cyan-300 flex items-center gap-2';
-        title.innerHTML = `💬 ${T.preventivoTitulo}`;
+        title.innerHTML = `💬 ${t('saude.preventivoTitulo')}`;
         action.innerHTML = `<div class="p-4 bg-slate-950 border border-cyan-800/40 rounded-2xl space-y-1">
-            <p class="text-sm text-slate-200">${T.preventivoCvv}</p>
+            <p class="text-sm text-slate-200">${t('saude.preventivoCvv')}</p>
             <p class="text-xs text-slate-400">${data.acaoSugerida || ''}</p></div>`;
     } else {
         // Nota 4-10: acolhimento normal.
         container.className = 'p-6 rounded-3xl border border-slate-800 bg-slate-900/60 mt-6 animate-fade-in';
         title.className = 'text-sm font-bold uppercase tracking-wider mb-2 text-cyan-400';
-        title.innerText = T.normalTitulo;
-        action.innerHTML = `<p class="text-xs text-slate-400 font-semibold mb-1">${T.acaoLabel}</p>
+        title.innerText = t('saude.normalTitulo');
+        action.innerHTML = `<p class="text-xs text-slate-400 font-semibold mb-1">${t('saude.acaoLabel')}</p>
             <p class="text-sm text-slate-200">${data.acaoSugerida || ''}</p>`;
     }
 }
@@ -303,7 +258,7 @@ function carregarDicasLazer() {
     const nomeRegiao = REGION_LABELS[regiao] || regiao;
     const dicas = DICAS_LAZER[regiao] || DICAS_GERAIS;
 
-    if (subtitulo) subtitulo.textContent = `Baseado na sua região — ${nomeRegiao}`;
+    if (subtitulo) subtitulo.textContent = t('saude.baseadoNaRegiao', { regiao: nomeRegiao });
 
     grid.innerHTML = dicas.map(dica => `
         <div class="rounded-2xl bg-slate-900/60 border border-slate-800 p-5 hover:border-emerald-500/40 transition-all duration-200 flex flex-col gap-3">
@@ -344,14 +299,14 @@ async function carregarHistorico() {
                 <span class="text-2xl">${MOOD_EMOJIS[r.humor] || '❓'}</span>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-semibold text-white capitalize">${r.humor || '—'}</p>
-                    <p class="text-xs text-slate-400 truncate">${r.contexto || 'Sem contexto'}</p>
+                    <p class="text-xs text-slate-400 truncate">${r.contexto || t('saude.semContexto')}</p>
                 </div>
                 <span class="text-[10px] text-slate-500 shrink-0">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('pt-BR') : '—'}</span>
             </div>
         `).join('');
     } catch {
         empty.classList.remove('hidden');
-        empty.textContent = 'Erro ao carregar histórico.';
+        empty.textContent = t('saude.historicoErro');
     }
 }
 
