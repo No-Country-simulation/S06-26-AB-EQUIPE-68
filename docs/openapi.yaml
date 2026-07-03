@@ -68,7 +68,11 @@ tags:
   - name: Autenticação
     description: Registro, login e perfil do usuário
   - name: Usuários
-    description: Listagem administrativa de usuários
+    description: Listagem administrativa de usuários e localização geográfica
+  - name: Lazer
+    description: Pontos de interesse (Lazer & Cultura) com selo de zona de movimento (Vísent-c)
+  - name: Sugestões
+    description: Sugestões de lazer/bem-estar personalizadas (humor + região + conectividade)
 
 security:
   - bearerAuth: []
@@ -597,11 +601,10 @@ paths:
         dentro do raio informado a partir da localização do usuário
         (`User.localizacao`). Prioriza 5G > 4G > 3G.
 
-        **Gap conhecido:** nenhum endpoint hoje grava `User.localizacao` —
-        o frontend já captura geolocalização via `navigator.geolocation`
-        (aba Lazer) mas não a envia ao backend. Na prática, a resposta
-        atual é sempre `"Localização do Usuário Não Definida"` até essa
-        lacuna ser fechada em um lote futuro.
+        `User.localizacao` é gravada via `PUT /api/usuarios/{id}/localizacao`
+        (dashboard.js captura `navigator.geolocation` silenciosamente após o
+        login e envia para lá). Enquanto o usuário não tiver localização
+        salva, a resposta é `"Localização do Usuário Não Definida"`.
       security: []
       parameters:
         - name: usuarioId
@@ -824,6 +827,117 @@ paths:
                       data:
                         type: array
                         items: { $ref: '#/components/schemas/UsuarioResponse' }
+
+  /api/usuarios/{id}/localizacao:
+    put:
+      tags: [Usuários]
+      summary: Atualiza a localização geográfica do usuário autenticado
+      description: |
+        Grava `User.localizacao` (WGS 84), consumida por `GET
+        /api/network-status/{usuarioId}` e pelo contexto de zona do
+        `SugestaoService`. O usuário é sempre resolvido pelo token (nunca
+        pelo `{id}` do path); o path só serve para confirmar que o chamador
+        está atualizando a própria localização — `{id}` diferente do usuário
+        autenticado retorna `ACESSO_NEGADO` (422). Sem fallback em memória:
+        exige banco de dados disponível.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocalizacaoRequest'
+      responses:
+        '200':
+          description: Localização gravada
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/LocalizacaoResponse' }
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: "`{id}` do path não corresponde ao usuário autenticado (`ACESSO_NEGADO`)"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+
+  # ───────────────────────────── Lazer ─────────────────────────────
+  /api/lazer/pontos:
+    get:
+      tags: [Lazer]
+      summary: Lista os pontos de Lazer & Cultura com selo de zona de movimento
+      description: |
+        Pontos migrados de frontend/js/lazer.js (fonte única agora é o
+        backend). Cada ponto traz `zonaMovimento`, calculada a partir da
+        antena Vísent mais próxima: a densidade populacional dessa antena é
+        classificada pelos percentis 33/66 de todas as antenas carregadas
+        (`data/antenas_flp.csv`) em `tranquila` (≤p33) / `moderada` (≤p66) /
+        `movimentada` (>p66). Resultado cacheado em memória (pontos e
+        antenas são estáticos).
+      security: []
+      responses:
+        '200':
+          description: Lista de pontos de Lazer
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/PontoLazer' }
+
+  # ───────────────────────────── Sugestões ─────────────────────────────
+  /api/sugestoes/{usuarioId}:
+    get:
+      tags: [Sugestões]
+      summary: Sugestões de lazer/bem-estar personalizadas por humor + região + conectividade
+      description: |
+        Coleta o humor mais recente do histórico de saúde mental (ou
+        "neutro" se não houver registro), a região do usuário e as dicas
+        candidatas dessa região (seed único, antes hardcoded no frontend).
+        Tenta IA (Gemini) restrita a escolher 3 itens da lista candidata,
+        nunca citando notas, no idioma pedido, e incluindo a zona
+        predominante da região (via `GET /api/lazer/pontos`) como contexto
+        extra quando disponível. Se a IA não estiver configurada ou falhar,
+        cai em um fallback determinístico obrigatório: mapa fixo
+        humor→categoria, priorizando dicas que não dependem de internet
+        quando a conectividade do usuário está fraca.
+      security: []
+      parameters:
+        - name: usuarioId
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: idioma
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/Idioma' }
+      responses:
+        '200':
+          description: 3 sugestões (via IA ou fallback determinístico — sempre no mesmo formato)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/SugestaoResponse' }
 
 components:
   securitySchemes:
@@ -1283,3 +1397,57 @@ components:
         nivelProfissional: { $ref: '#/components/schemas/NivelProfissional' }
         areaTecnologia: { $ref: '#/components/schemas/AreaTecnologia' }
         competenciasAtuais: { type: string }
+
+    LocalizacaoRequest:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude: { type: number, format: double, minimum: -90, maximum: 90, example: -27.5954 }
+        longitude: { type: number, format: double, minimum: -180, maximum: 180, example: -48.5480 }
+
+    LocalizacaoResponse:
+      type: object
+      properties:
+        latitude: { type: number, format: double }
+        longitude: { type: number, format: double }
+
+    # ───────── Lazer ─────────
+    ZonaMovimento:
+      type: string
+      description: >
+        Selo de concentração de movimento perto do ponto (Vísent-c),
+        calculado pelos percentis 33/66 da densidade populacional das
+        antenas Vísent carregadas.
+      enum: [tranquila, moderada, movimentada]
+
+    PontoLazer:
+      type: object
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        tipo: { type: string, example: "Parque" }
+        regiao: { $ref: '#/components/schemas/Cidade' }
+        lat: { type: number, format: double }
+        lng: { type: number, format: double }
+        descricao: { type: string }
+        gratuito: { type: boolean }
+        acessivel: { type: boolean }
+        horario: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+        zonaMovimento: { $ref: '#/components/schemas/ZonaMovimento' }
+
+    # ───────── Sugestões ─────────
+    SugestaoItem:
+      type: object
+      properties:
+        titulo: { type: string, description: "Título exato de uma dica candidata da região" }
+        motivo: { type: string, description: "Por que essa sugestão combina com o momento do usuário" }
+
+    SugestaoResponse:
+      type: object
+      properties:
+        sugestoes:
+          type: array
+          items: { $ref: '#/components/schemas/SugestaoItem' }
