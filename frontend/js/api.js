@@ -170,3 +170,7 @@ export async function salvarLocalizacao(usuarioId, latitude, longitude) {
 export async function listarPontosLazer() {
     return apiFetch('/api/lazer/pontos');
 }
+
+export async function buscarSugestoes(usuarioId, idioma = 'pt') {
+    return apiFetch(`/api/sugestoes/${usuarioId}?idioma=${idioma}`);
+}

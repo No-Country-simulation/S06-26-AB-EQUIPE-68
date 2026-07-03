@@ -5,6 +5,7 @@ import com.bitsystem.bitapp.service.AuthService;
 import com.bitsystem.bitapp.service.GeolocationService;
 import com.bitsystem.bitapp.service.OrientacaoService;
 import com.bitsystem.bitapp.service.SaudeMentalService;
+import com.bitsystem.bitapp.service.SugestaoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -18,16 +19,19 @@ public class ApiController {
     private final SaudeMentalService saudeMentalService;
     private final GeolocationService geolocationService;
     private final AuthService authService;
+    private final SugestaoService sugestaoService;
 
     public ApiController(
             OrientacaoService orientacaoService,
             SaudeMentalService saudeMentalService,
             GeolocationService geolocationService,
-            AuthService authService) {
+            AuthService authService,
+            SugestaoService sugestaoService) {
         this.orientacaoService = orientacaoService;
         this.saudeMentalService = saudeMentalService;
         this.geolocationService = geolocationService;
         this.authService = authService;
+        this.sugestaoService = sugestaoService;
     }
 
     @PostMapping("/orientar")
@@ -75,5 +79,12 @@ public class ApiController {
         UsuarioDto.LocalizacaoResponse response = authService.atualizarLocalizacao(
                 authentication.getName(), id, request.latitude(), request.longitude());
         return ResponseEntity.ok(StandardApiResponse.ok(response));
+    }
+
+    @GetMapping("/sugestoes/{usuarioId}")
+    public ResponseEntity<StandardApiResponse<SugestaoDto.Response>> sugestoes(
+            @PathVariable Long usuarioId,
+            @RequestParam(defaultValue = "pt") String idioma) {
+        return ResponseEntity.ok(StandardApiResponse.ok(sugestaoService.gerarSugestoes(usuarioId, idioma)));
     }
 }
