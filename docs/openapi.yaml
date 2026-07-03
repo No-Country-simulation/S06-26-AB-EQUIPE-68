@@ -23,7 +23,13 @@ info:
     **Convenções:**
     - Datas em ISO 8601 (`timestamp` de resposta e `createdAt`/`dataEnvio`/
       `dataInscricao` de entidades).
-    - Idiomas suportados: `pt` | `es` (campo `idioma` de `/api/orientar`).
+    - Idiomas suportados: `pt` (padrão) | `es`, via campo aditivo `idioma` em
+      `POST /api/saude`, `POST /api/assessment` e `GET /api/vagas/{id}/match`
+      (lote i18n). Escopo declarado: textos GERADOS pelo backend (acolhimento
+      curado, fallbacks determinísticos, comoResolver) são bilíngues; conteúdo
+      de DADOS do catálogo (nomes/descrições de cursos e vagas do seed, pontos
+      de Lazer), logs e mensagens de erro de validação (`ValidationError`,
+      `BusinessError`) permanecem em PT nesta entrega — known gap registrado.
     - Coordenadas geográficas em WGS 84 (latitude/longitude decimais).
     - Toda resposta segue o envelope `StandardApiResponse`: `success`,
       `data` (quando `success=true`), `error` + `codigo` (quando
@@ -446,6 +452,13 @@ paths:
           in: query
           required: true
           schema: { type: integer, format: int64 }
+        - name: idioma
+          in: query
+          required: false
+          schema: { type: string, enum: [pt, es], default: pt }
+          description: >-
+            Idioma da UI — campo aditivo (lote i18n). Define o idioma do
+            comoResolver (prompt Gemini e fallback determinístico).
       responses:
         '200':
           description: Resultado do match
@@ -933,6 +946,14 @@ components:
             ao CVV: 0-1 = reforçada, 2-3 = preventiva, 4-10 = nenhuma. O humor
             nunca deriva. Obrigatório; fora de 0-10 → 400 (código VALIDACAO).
         contexto: { type: string }
+        idioma:
+          type: string
+          enum: [pt, es]
+          default: pt
+          description: >-
+            Idioma da UI, escolhido no toggle PT|ES do frontend — campo aditivo
+            (lote i18n). Define o idioma da mensagem/ação de acolhimento
+            (respostas curadas e prompt Gemini). Ausente ou inválido → "pt".
 
     SaudeResponse:
       type: object
@@ -983,6 +1004,14 @@ components:
         softSkills: { type: array, items: { type: string } }
         tecnologias: { type: array, items: { type: string } }
         tipo: { type: string, nullable: true }
+        idioma:
+          type: string
+          enum: [pt, es]
+          default: pt
+          description: >-
+            Idioma da UI — campo aditivo (lote i18n). Define o idioma dos
+            textos do fallback determinístico (pontos fortes, gaps, plano de
+            desenvolvimento). Ausente ou inválido → "pt".
 
     AssessmentResponse:
       type: object
