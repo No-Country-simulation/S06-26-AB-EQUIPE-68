@@ -55,7 +55,7 @@ public class GeminiClient {
             throw new IllegalStateException("GEMINI_API_KEY nao configurada. Defina a variavel de ambiente ou o fallback no application.properties.");
         }
 
-        String url = String.format("%s/%s:generateContent?key=%s", endpoint, model, apiKey);
+        String url = String.format("%s/%s:generateContent", endpoint, model);
 
         Map<String, Object> body = Map.of(
             "contents", List.of(
@@ -70,6 +70,7 @@ public class GeminiClient {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("x-goog-api-key", apiKey);
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
