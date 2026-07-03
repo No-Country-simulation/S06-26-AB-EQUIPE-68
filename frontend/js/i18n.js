@@ -173,6 +173,15 @@ const DICT = {
             p3: 'Também constariam aqui informações sobre limitação de responsabilidade — por exemplo, deixando claro que o BiT App é uma ferramenta de apoio e orientação, e não substitui atendimento profissional em situações de saúde mental, sendo o CVV (188) e demais canais especializados sempre a referência para situações de crise.',
             p4: 'Como este é um projeto de hackathon, recomendamos que qualquer uso além de fins de demonstração passe antes por revisão jurídica adequada.',
         },
+        bit: {
+            saudacaoManha: 'Bom dia, {nome}! 👋 Como você está hoje?',
+            saudacaoTarde: 'Boa tarde, {nome}! 👋 Como você está hoje?',
+            saudacaoNoite: 'Boa noite, {nome}! 👋 Como você está hoje?',
+            jaCheckou: 'Bom te ver de novo, {nome}!',
+            perguntaContar: 'Quer me contar mais?',
+            agoraNao: 'agora não',
+            dispensar: 'Dispensar',
+        },
     },
     es: {
         nav: {
@@ -332,6 +341,15 @@ const DICT = {
             p2: 'En una versión real, esta página describiría las condiciones de uso de la plataforma, incluyendo registro, recopilación y tratamiento de datos personales (conforme a la LGPD), responsabilidades del usuario y del equipo responsable del BiT App, y las reglas de uso de las funcionalidades de empleos, cursos, ocio y soporte a la salud mental.',
             p3: 'También constaría aquí información sobre limitación de responsabilidad — por ejemplo, dejando claro que el BiT App es una herramienta de apoyo y orientación, y no sustituye la atención profesional en situaciones de salud mental, siendo el CVV (188) y demás canales especializados siempre la referencia para situaciones de crisis.',
             p4: 'Como este es un proyecto de hackathon, recomendamos que cualquier uso más allá de fines de demostración pase antes por una revisión jurídica adecuada.',
+        },
+        bit: {
+            saudacaoManha: '¡Buenos días, {nome}! 👋 ¿Cómo estás hoy?',
+            saudacaoTarde: '¡Buenas tardes, {nome}! 👋 ¿Cómo estás hoy?',
+            saudacaoNoite: '¡Buenas noches, {nome}! 👋 ¿Cómo estás hoy?',
+            jaCheckou: '¡Qué bueno verte de nuevo, {nome}!',
+            perguntaContar: '¿Quieres contarme más?',
+            agoraNao: 'ahora no',
+            dispensar: 'Descartar',
         },
     },
 };
