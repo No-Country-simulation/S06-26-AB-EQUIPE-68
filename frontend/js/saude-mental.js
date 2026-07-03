@@ -99,10 +99,60 @@ const DICAS_GERAIS = [
     { icon: '💬', titulo: 'Converse com alguém querido', desc: 'Socialização libera oxitocina. Uma ligação de 10 min muda o dia.' },
 ];
 
-let selectedMoodState = null;
-let selectedNoteState = 5;
+// ────────────────────────────────────────────────────────────────────────────
+// Textos bilíngues (PT/ES) — bilíngue de nascença, preparando o i18n do lote 2.5.
+// PT é o idioma exibido por padrão; a troca de idioma chega no próximo lote.
+// ────────────────────────────────────────────────────────────────────────────
+const IDIOMA = 'pt';
+const TEXTOS = {
+    pt: {
+        notaLabel: 'De 0 a 10, que nota você dá para a sua semana?',
+        notaAncoraMin: '0 — semana muito difícil',
+        notaAncoraMax: '10 — semana excelente',
+        contextoLabel: 'Contexto (opcional)',
+        modalTitulo: 'Um instante',
+        modalMsg: 'Percebemos que a semana foi muito difícil. Você gostaria de receber apoio agora?',
+        modalSim: 'Sim, quero apoio',
+        modalNao: 'Cliquei sem querer',
+        reforcadoTitulo: 'Estamos com você',
+        reforcadoCvv: 'O CVV está disponível agora, 24h — ligue 188.',
+        preventivoTitulo: 'Um recurso pra você',
+        preventivoCvv: 'Conversar ajuda — o 188 escuta 24h, sem julgamento, sobre qualquer assunto.',
+        normalTitulo: '✨ Resposta do Agente BiT',
+        acaoLabel: 'Ação:',
+        alertaSemNota: 'Escolha uma nota de 0 a 10 para a sua semana.',
+        alertaSemHumor: 'Selecione um emoji.',
+        erroSalvar: 'Erro ao salvar check-in.',
+    },
+    es: {
+        notaLabel: 'De 0 a 10, ¿qué nota le das a tu semana?',
+        notaAncoraMin: '0 — semana muy difícil',
+        notaAncoraMax: '10 — semana excelente',
+        contextoLabel: 'Contexto (opcional)',
+        modalTitulo: 'Un momento',
+        modalMsg: 'Notamos que la semana fue muy difícil. ¿Te gustaría recibir apoyo ahora?',
+        modalSim: 'Sí, quiero apoyo',
+        modalNao: 'Fue sin querer',
+        reforcadoTitulo: 'Estamos contigo',
+        reforcadoCvv: 'El CVV está disponible ahora, 24h — llama al 188.',
+        preventivoTitulo: 'Un recurso para ti',
+        preventivoCvv: 'Hablar ayuda — el 188 escucha 24h, sin juzgar, sobre cualquier tema.',
+        normalTitulo: '✨ Respuesta del Agente BiT',
+        acaoLabel: 'Acción:',
+        alertaSemNota: 'Elige una nota de 0 a 10 para tu semana.',
+        alertaSemHumor: 'Selecciona un emoji.',
+        erroSalvar: 'Error al guardar el registro.',
+    },
+};
+const T = TEXTOS[IDIOMA] || TEXTOS.pt;
 
-function selectMood(btn, mood, note) {
+// Estado do check-in — humor e nota são INDEPENDENTES (contrato do Dia 1).
+// O humor alimenta só o tom do acolhimento; a nota é a única entrada que deriva.
+let selectedMoodState = null;
+let selectedNota = null; // nenhuma nota pré-selecionada: o envio exige escolha.
+
+// O emoji seleciona SÓ o humor/tom — nunca mais é convertido em nota.
+function selectMood(btn, mood) {
     document.querySelectorAll('.mood-btn').forEach(el => {
         el.classList.remove('border-cyan-500', 'bg-slate-800');
         el.classList.add('border-slate-800', 'bg-slate-950');
@@ -112,9 +162,52 @@ function selectMood(btn, mood, note) {
     btn.classList.add('border-cyan-500', 'bg-slate-800');
     btn.setAttribute('aria-pressed', 'true');
     selectedMoodState = mood;
-    selectedNoteState = note;
 }
 window.selectMood = selectMood;
+
+// Onze botões 0-10 (nenhum pré-selecionado), navegáveis por Tab. Mesmo realce
+// visual dos botões de emoji. A nota é a autoavaliação da semana, só ela deriva.
+function renderNotaBotoes() {
+    const grid = document.getElementById('notaBotoes');
+    if (!grid) return;
+    grid.innerHTML = '';
+    for (let n = 0; n <= 10; n++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.dataset.nota = String(n);
+        btn.textContent = String(n);
+        btn.setAttribute('aria-pressed', 'false');
+        btn.setAttribute('aria-label', `Nota ${n}`);
+        btn.className = 'nota-btn w-10 h-10 text-sm font-bold bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl transition text-slate-200 focus:ring-2 focus:ring-cyan-500 outline-none';
+        btn.addEventListener('click', () => selectNota(btn, n));
+        grid.appendChild(btn);
+    }
+}
+
+function selectNota(btn, nota) {
+    document.querySelectorAll('.nota-btn').forEach(el => {
+        el.classList.remove('border-cyan-500', 'bg-slate-800', 'text-white');
+        el.classList.add('border-slate-800', 'bg-slate-950', 'text-slate-200');
+        el.setAttribute('aria-pressed', 'false');
+    });
+    btn.classList.remove('border-slate-800', 'bg-slate-950', 'text-slate-200');
+    btn.classList.add('border-cyan-500', 'bg-slate-800', 'text-white');
+    btn.setAttribute('aria-pressed', 'true');
+    selectedNota = nota;
+}
+
+// Aplica os textos do idioma atual nos rótulos/âncoras/modal estáticos.
+function aplicarTextos() {
+    const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+    set('notaLabel', T.notaLabel);
+    set('notaAncoraMin', T.notaAncoraMin);
+    set('notaAncoraMax', T.notaAncoraMax);
+    set('contextoLabel', T.contextoLabel);
+    set('confirmTitle', T.modalTitulo);
+    set('confirmMsg', T.modalMsg);
+    set('confirmSim', T.modalSim);
+    set('confirmNao', T.modalNao);
+}
 
 const formSaude = document.getElementById('formSaude');
 
@@ -127,11 +220,11 @@ async function enviarCheckin() {
         const data = await saudeCheckin({
             usuarioId: usuario.id,
             humor: selectedMoodState,
-            notaSemanal: selectedNoteState,
+            notaSemanal: selectedNota,
             contexto: document.getElementById('healthContext')?.value || '',
         });
         renderAiResponse(data);
-    } catch { alert('Erro ao salvar check-in.'); }
+    } catch { alert(T.erroSalvar); }
     finally { if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Enviar Registro'; } }
 }
 
@@ -153,35 +246,50 @@ confirmModal?.addEventListener('click', (e) => { if (e.target === confirmModal) 
 
 formSaude?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (!selectedMoodState) { alert('Selecione um emoji.'); return; }
-    if (selectedNoteState <= 2) {
+    if (!selectedMoodState) { alert(T.alertaSemHumor); return; }
+    if (selectedNota === null) { alert(T.alertaSemNota); return; }
+    // Nota 0-1 (derivação REFORÇADA): consentimento ANTES de gravar.
+    // "Cliquei sem querer" não grava nada. Nota 2-10 grava direto.
+    if (selectedNota <= 1) {
         abrirConfirmacao();
         return;
     }
     await enviarCheckin();
 });
 
+// Renderiza o acolhimento. O painel é escolhido por data.nivelDerivacao — decidido
+// SÓ pela nota no backend. Linguagem de cuidado: nada de "SUPORTE CRÍTICO"/⚠️.
 function renderAiResponse(data) {
     const container = document.getElementById('aiResponseContainer');
     const title = document.getElementById('aiResponseTitle');
     const msg = document.getElementById('aiResponseMsg');
     const action = document.getElementById('aiResponseAction');
     container.classList.remove('hidden');
-    if (data.derivarCvv) {
-        container.className = 'p-6 rounded-3xl border border-rose-900 bg-rose-950/30 mt-6 animate-fade-in';
-        title.className = 'text-sm font-bold uppercase tracking-wider mb-2 text-rose-400 flex items-center gap-2';
-        title.innerHTML = '⚠️ Suporte Crítico Ativado';
-        msg.innerText = data.mensagem;
-        action.innerHTML = `<div class="p-4 bg-slate-950 border border-rose-800/50 rounded-2xl space-y-2">
-            <p class="text-sm font-bold text-white">CVV — Disque 188</p>
-            <p class="text-xs text-slate-400">${data.acaoSugerida}</p></div>`;
+    msg.innerText = data.mensagem || '';
+
+    if (data.nivelDerivacao === 'REFORCADO') {
+        // Nota 0-1: cuidado, CVV em destaque, tom acolhedor (sem alarme).
+        container.className = 'p-6 rounded-3xl border border-amber-800/60 bg-amber-950/20 mt-6 animate-fade-in';
+        title.className = 'text-sm font-bold uppercase tracking-wider mb-2 text-amber-300 flex items-center gap-2';
+        title.innerHTML = `🫂 ${T.reforcadoTitulo}`;
+        action.innerHTML = `<div class="p-4 bg-slate-950 border border-amber-700/40 rounded-2xl space-y-1">
+            <p class="text-sm font-bold text-white">${T.reforcadoCvv}</p>
+            <p class="text-xs text-slate-400">${data.acaoSugerida || ''}</p></div>`;
+    } else if (data.nivelDerivacao === 'PREVENTIVO') {
+        // Nota 2-3: escuta suave, apresentada como recurso — não como alerta.
+        container.className = 'p-6 rounded-3xl border border-cyan-800/50 bg-cyan-950/20 mt-6 animate-fade-in';
+        title.className = 'text-sm font-bold uppercase tracking-wider mb-2 text-cyan-300 flex items-center gap-2';
+        title.innerHTML = `💬 ${T.preventivoTitulo}`;
+        action.innerHTML = `<div class="p-4 bg-slate-950 border border-cyan-800/40 rounded-2xl space-y-1">
+            <p class="text-sm text-slate-200">${T.preventivoCvv}</p>
+            <p class="text-xs text-slate-400">${data.acaoSugerida || ''}</p></div>`;
     } else {
+        // Nota 4-10: acolhimento normal.
         container.className = 'p-6 rounded-3xl border border-slate-800 bg-slate-900/60 mt-6 animate-fade-in';
         title.className = 'text-sm font-bold uppercase tracking-wider mb-2 text-cyan-400';
-        title.innerText = '✨ Resposta do Agente BiT';
-        msg.innerText = data.mensagem;
-        action.innerHTML = `<p class="text-xs text-slate-400 font-semibold mb-1">Ação:</p>
-            <p class="text-sm text-slate-200">${data.acaoSugerida}</p>`;
+        title.innerText = T.normalTitulo;
+        action.innerHTML = `<p class="text-xs text-slate-400 font-semibold mb-1">${T.acaoLabel}</p>
+            <p class="text-sm text-slate-200">${data.acaoSugerida || ''}</p>`;
     }
 }
 
@@ -209,6 +317,7 @@ function carregarDicasLazer() {
 }
 
 document.addEventListener('DOMContentLoaded', carregarDicasLazer);
+document.addEventListener('DOMContentLoaded', () => { renderNotaBotoes(); aplicarTextos(); });
 
 const MOOD_EMOJIS = {
     feliz: '😊',
