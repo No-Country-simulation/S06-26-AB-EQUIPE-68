@@ -218,15 +218,17 @@ public class SaudeMentalService {
               "acaoSugerida": "acao pratica e imediata que o usuario pode tomar agora"
             }
 
-            Check-in do usuario:
-            - Humor: %s
-            - Nota semanal (1-5): %d
+            Check-in do usuario (humor e nota sao independentes):
+            - Humor (so o tom, nao decide nada): %s
+            - Nota semanal (0-10, autoavaliacao da semana): %d
             - Contexto: %s
 
             Regras:
             - Seja sempre empatico e acolhedor, validando os sentimentos da pessoa
             - Se a nota for baixa, ofereca o CVV (188) como recurso disponivel, de forma acolhedora e nunca como bloqueio
             - Se a nota for alta, seja encorajador e motivador
+            - NUNCA cite ou repita a nota numerica na mensagem
+            - Responda no mesmo idioma em que o usuario escrever o contexto
             - Retorne APENAS o JSON, sem texto adicional
             """,
             request.humor(),
