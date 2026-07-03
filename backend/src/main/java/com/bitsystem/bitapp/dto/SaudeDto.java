@@ -43,8 +43,15 @@ public class SaudeDto {
         Integer notaSemanal,
 
         /** Contexto livre sobre o estado (pressões, desafios, etc) */
-        String contexto
-    ) {}
+        String contexto,
+
+        /** Idioma da UI ("pt"|"es"), default "pt" — campo aditivo (lote i18n). */
+        String idioma
+    ) {
+        public String idiomaOuPadrao() {
+            return "es".equalsIgnoreCase(idioma) ? "es" : "pt";
+        }
+    }
 
     /**
      * RESPOSTA: Acolhimento e sugestões de ação emitidas por IA

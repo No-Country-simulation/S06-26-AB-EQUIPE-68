@@ -58,13 +58,13 @@ class SaudeMentalServiceTest {
         // Força o fallback local e evita qualquer chamada de IA real.
         when(mentalHealthClient.process(any())).thenThrow(new RuntimeException("n8n off"));
         when(geminiClient.isConfigured()).thenReturn(false);
-        when(emotionResponseProvider.resolve(anyString(), anyInt()))
+        when(emotionResponseProvider.resolve(anyString(), anyInt(), anyString()))
                 .thenReturn(new SaudeDto.RawResponse("Estamos com você.", "Respire fundo."));
     }
 
     private SaudeDto.Response checkin(String humor, int nota) {
         return service.avaliarEstadoMental(
-                new SaudeDto.Request(1L, humor, nota, "contexto qualquer"));
+                new SaudeDto.Request(1L, humor, nota, "contexto qualquer", "pt"));
     }
 
     // ── REFORCADO: nota 0-1 ──────────────────────────────────────────────────
@@ -109,7 +109,7 @@ class SaudeMentalServiceTest {
     @Test
     void textoDeAcolhimentoMencionandoCriseNaoAlteraDerivacao() {
         // Mesmo que o acolhimento fale em "crise" e "CVV 188", a nota 8 manda.
-        when(emotionResponseProvider.resolve(anyString(), anyInt()))
+        when(emotionResponseProvider.resolve(anyString(), anyInt(), anyString()))
                 .thenReturn(new SaudeDto.RawResponse(
                         "Você está em crise, procure o CVV 188 imediatamente!",
                         "Ligue 188 agora."));
@@ -123,7 +123,7 @@ class SaudeMentalServiceTest {
     @ValueSource(ints = {-1, 11})
     void validacaoRejeitaNotaForaDoIntervalo(int notaInvalida) {
         Set<ConstraintViolation<SaudeDto.Request>> violacoes =
-                validar(new SaudeDto.Request(1L, "feliz", notaInvalida, "ctx"));
+                validar(new SaudeDto.Request(1L, "feliz", notaInvalida, "ctx", "pt"));
         assertThat(violacoes).isNotEmpty();
     }
 
@@ -131,7 +131,7 @@ class SaudeMentalServiceTest {
     @ValueSource(ints = {0, 10})
     void validacaoAceitaNotasNosLimites(int notaValida) {
         Set<ConstraintViolation<SaudeDto.Request>> violacoes =
-                validar(new SaudeDto.Request(1L, "feliz", notaValida, "ctx"));
+                validar(new SaudeDto.Request(1L, "feliz", notaValida, "ctx", "pt"));
         assertThat(violacoes).isEmpty();
     }
 

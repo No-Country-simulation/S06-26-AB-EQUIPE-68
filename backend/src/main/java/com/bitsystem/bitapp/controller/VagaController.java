@@ -50,9 +50,10 @@ public class VagaController {
     @GetMapping("/{id}/match")
     public ResponseEntity<StandardApiResponse<VagaMatchDto.Detalhe>> match(
             @PathVariable Long id,
-            @RequestParam Long usuarioId) {
+            @RequestParam Long usuarioId,
+            @RequestParam(defaultValue = "pt") String idioma) {
         VagaMatchDto.Resultado resultado = vagaMatchService.calcularMatchPorId(id, usuarioId);
-        String comoResolver = comoResolverService.gerar(resultado.matchPercentual(), resultado.skillsFaltantes());
+        String comoResolver = comoResolverService.gerar(resultado.matchPercentual(), resultado.skillsFaltantes(), idioma);
         return ResponseEntity.ok(StandardApiResponse.ok(VagaMatchDto.Detalhe.from(resultado, comoResolver)));
     }
 

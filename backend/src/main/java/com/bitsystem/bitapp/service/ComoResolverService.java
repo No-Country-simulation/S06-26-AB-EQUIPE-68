@@ -53,7 +53,8 @@ public class ComoResolverService {
         Map.entry("terraform", "Infraestrutura")
     );
 
-    private static final String FALLBACK_TOTAL = "Você já atende a todos os requisitos desta vaga. Continue assim!";
+    private static final String FALLBACK_TOTAL_PT = "Você já atende a todos os requisitos desta vaga. Continue assim!";
+    private static final String FALLBACK_TOTAL_ES = "Ya cumples con todos los requisitos de esta vacante. ¡Sigue así!";
 
     private final GeminiClient geminiClient;
     private final CursoRepository cursoRepository;
@@ -63,27 +64,28 @@ public class ComoResolverService {
         this.cursoRepository = cursoRepository;
     }
 
-    /** matchPercentual null (vaga sem tecnologias) -> não há o que resolver. */
-    public String gerar(Integer matchPercentual, List<String> skillsFaltantes) {
+    /** matchPercentual null (vaga sem tecnologias) -> não há o que resolver. idioma: "pt"|"es". */
+    public String gerar(Integer matchPercentual, List<String> skillsFaltantes, String idioma) {
+        boolean es = "es".equalsIgnoreCase(idioma);
         if (matchPercentual == null) {
             return null;
         }
         if (skillsFaltantes.isEmpty()) {
-            return FALLBACK_TOTAL;
+            return es ? FALLBACK_TOTAL_ES : FALLBACK_TOTAL_PT;
         }
 
         List<Curso> cursos = buscarCursosRelacionados(skillsFaltantes);
 
         if (geminiClient.isConfigured()) {
             try {
-                String prompt = buildPrompt(skillsFaltantes, cursos);
+                String prompt = buildPrompt(skillsFaltantes, cursos, es);
                 String resposta = geminiClient.generateContent(prompt);
                 return resposta.trim();
             } catch (Exception ex) {
                 log.warn("[ComoResolverService] Gemini indisponivel, usando fallback local: {}", ex.getMessage());
             }
         }
-        return fallback(skillsFaltantes, cursos);
+        return fallback(skillsFaltantes, cursos, es);
     }
 
     private List<Curso> buscarCursosRelacionados(List<String> skillsFaltantes) {
@@ -105,11 +107,12 @@ public class ComoResolverService {
                 .collect(Collectors.toList());
     }
 
-    private String buildPrompt(List<String> skillsFaltantes, List<Curso> cursos) {
+    private String buildPrompt(List<String> skillsFaltantes, List<Curso> cursos, boolean es) {
         String faltantesTexto = String.join(", ", skillsFaltantes);
         String cursosTexto = cursos.isEmpty()
-                ? "nenhum curso específico encontrado no catálogo"
+                ? "nenhum curso especifico encontrado no catalogo"
                 : cursos.stream().map(Curso::getTitulo).collect(Collectors.joining(", "));
+        String idioma = es ? "espanhol" : "portugues";
 
         return String.format("""
             Voce e um orientador de carreira do BiT. O usuario nao atende as seguintes
@@ -117,15 +120,25 @@ public class ComoResolverService {
             Cursos disponiveis no catalogo do BiT que podem ajudar: %s.
             Escreva uma recomendacao curta (maximo 3 frases) sobre como o usuario pode
             evoluir nessas competencias, citando o(s) curso(s) pelo nome quando houver.
-            Responda no idioma do usuario. Retorne APENAS o texto da recomendacao, sem markdown.
+            Responda em %s (idioma escolhido pelo usuario na interface).
+            Retorne APENAS o texto da recomendacao, sem markdown.
             """,
             faltantesTexto,
-            cursosTexto
+            cursosTexto,
+            idioma
         );
     }
 
-    private String fallback(List<String> skillsFaltantes, List<Curso> cursos) {
+    /** Fallback determinístico — só PT/ES na estrutura (conteúdo do catálogo, ex. nomes de cursos, permanece como veio do banco). */
+    private String fallback(List<String> skillsFaltantes, List<Curso> cursos, boolean es) {
         String faltantesTexto = String.join(", ", skillsFaltantes);
+        if (es) {
+            if (cursos.isEmpty()) {
+                return "Para avanzar en esta vacante, enfócate en: " + faltantesTexto + ".";
+            }
+            String nomes = cursos.stream().map(Curso::getTitulo).collect(Collectors.joining(", "));
+            return "Para avanzar en esta vacante, enfócate en: " + faltantesTexto + ". Cursos en BiT: " + nomes + ".";
+        }
         if (cursos.isEmpty()) {
             return "Para avançar nesta vaga, foque em: " + faltantesTexto + ".";
         }

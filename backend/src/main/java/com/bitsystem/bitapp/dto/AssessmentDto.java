@@ -15,8 +15,14 @@ public class AssessmentDto {
         List<String> hardSkills,
         List<String> softSkills,
         List<String> tecnologias,
-        String tipo
-    ) {}
+        String tipo,
+        /** Idioma da UI ("pt"|"es"), default "pt" — campo aditivo (lote i18n). */
+        String idioma
+    ) {
+        public String idiomaOuPadrao() {
+            return "es".equalsIgnoreCase(idioma) ? "es" : "pt";
+        }
+    }
 
     public record Response(
         Integer compatibilidade,

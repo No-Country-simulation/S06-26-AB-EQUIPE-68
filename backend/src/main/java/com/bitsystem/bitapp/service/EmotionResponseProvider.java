@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class EmotionResponseProvider {
 
-    private static final Map<String, SaudeDto.RawResponse> RESPONSES = Map.of(
+    private static final Map<String, SaudeDto.RawResponse> RESPONSES_PT = Map.of(
         "feliz",
         new SaudeDto.RawResponse(
             "Que bom saber que você está se sentindo leve hoje. Esse estado é um recurso valioso — reconheço o esforço que você tem investido na sua jornada tech.",
@@ -35,18 +35,47 @@ public class EmotionResponseProvider {
         )
     );
 
-    public SaudeDto.RawResponse resolve(String humor, int notaSemanal) {
+    private static final Map<String, SaudeDto.RawResponse> RESPONSES_ES = Map.of(
+        "feliz",
+        new SaudeDto.RawResponse(
+            "Qué bueno saber que te sientes ligero hoy. Este estado es un recurso valioso — reconozco el esfuerzo que has invertido en tu camino tech.",
+            "Aprovecha 10 minutos para anotar lo que funcionó bien esta semana. Esto refuerza tu confianza en los próximos pasos."
+        ),
+        "cansado",
+        new SaudeDto.RawResponse(
+            "Percibo el cansancio, y tiene sentido: aprender tecnología exige energía constante. No estás fallando — tu cuerpo está pidiendo una pausa.",
+            "Cierra el editor por 15 minutos, bebe agua y haz estiramientos suaves. Retoma con una tarea pequeña y concreta."
+        ),
+        "ansioso",
+        new SaudeDto.RawResponse(
+            "Siento la ansiedad en lo que compartiste, y es comprensible ante entrevistas y presión financiera. Tus sentimientos son válidos — no necesitas enfrentar esto solo.",
+            "Respira 4 segundos, sostén 4, suelta 6 — repite 5 veces. Si la angustia persiste, habla con el CVV al 188 (24h, gratuito y confidencial)."
+        ),
+        "triste",
+        new SaudeDto.RawResponse(
+            "Gracias por confiar este momento difícil. La tristeza en la transición de carrera es real, y reconocerlo ya es un acto de valentía — no de debilidad.",
+            "Escribe tres cosas que ya lograste en tech, por pequeñas que parezcan. Si necesitas apoyo ahora, el CVV (188) está disponible 24h."
+        ),
+        "sobrecarregado",
+        new SaudeDto.RawResponse(
+            "Veo que el peso es demasiado grande ahora. El burnout y el agotamiento son señales de que algo necesita cambiar — y pedir ayuda es la decisión más fuerte que puedes tomar.",
+            "Prioriza el descanso inmediato: deja de estudiar hoy. Llama al 188 (CVV) o entra a cvv.org.br — apoyo humano, gratuito y confidencial, 24 horas."
+        )
+    );
+
+    public SaudeDto.RawResponse resolve(String humor, int notaSemanal, String idioma) {
+        Map<String, SaudeDto.RawResponse> respostas = "es".equalsIgnoreCase(idioma) ? RESPONSES_ES : RESPONSES_PT;
         String key = humor != null ? humor.toLowerCase().trim() : "";
-        SaudeDto.RawResponse curated = RESPONSES.get(key);
+        SaudeDto.RawResponse curated = respostas.get(key);
         if (curated != null) {
             return curated;
         }
         if (notaSemanal < 4) {
-            return RESPONSES.get("ansioso");
+            return respostas.get("ansioso");
         }
         if (notaSemanal == 4) {
-            return RESPONSES.get("cansado");
+            return respostas.get("cansado");
         }
-        return RESPONSES.get("feliz");
+        return respostas.get("feliz");
     }
 }

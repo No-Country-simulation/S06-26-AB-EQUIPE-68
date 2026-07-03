@@ -13,7 +13,7 @@ class AssessmentServiceTest {
         var request = new AssessmentDto.Request(
             "João", 25, "Superior", "2 anos",
             List.of("Java"), List.of("Comunicação"),
-            List.of("Spring"), "Backend"
+            List.of("Spring"), "Backend", "pt"
         );
         assertNotNull(request);
         assertEquals("João", request.nome());
@@ -23,7 +23,7 @@ class AssessmentServiceTest {
     @Test
     void shouldRejectEmptyNome() {
         var request = new AssessmentDto.Request(
-            "", 25, "", "", List.of(), List.of(), List.of(), ""
+            "", 25, "", "", List.of(), List.of(), List.of(), "", "pt"
         );
         assertTrue(request.nome().isEmpty());
     }

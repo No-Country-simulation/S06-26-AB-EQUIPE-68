@@ -199,7 +199,7 @@ public class SaudeMentalService {
                 log.warn("[SaudeMentalService] Gemini indisponivel, usando respostas curadas: {}", ex.getMessage());
             }
         }
-        return emotionResponseProvider.resolve(request.humor(), request.notaSemanal());
+        return emotionResponseProvider.resolve(request.humor(), request.notaSemanal(), request.idiomaOuPadrao());
     }
 
     private SaudeDto.RawResponse chamarGemini(SaudeDto.Request request) throws Exception {
@@ -209,6 +209,7 @@ public class SaudeMentalService {
     }
 
     private String buildPrompt(SaudeDto.Request request) {
+        String idioma = "es".equals(request.idiomaOuPadrao()) ? "espanhol" : "portugues";
         return String.format("""
             Voce e um profissional de saude mental especializado em acolhimento de pessoas em transicao de carreira.
             Analise o check-in do usuario e retorne um JSON EXATAMENTE neste formato:
@@ -228,12 +229,13 @@ public class SaudeMentalService {
             - Se a nota for baixa, ofereca o CVV (188) como recurso disponivel, de forma acolhedora e nunca como bloqueio
             - Se a nota for alta, seja encorajador e motivador
             - NUNCA cite ou repita a nota numerica na mensagem
-            - Responda no mesmo idioma em que o usuario escrever o contexto
+            - Responda em %s (idioma escolhido pelo usuario na interface)
             - Retorne APENAS o JSON, sem texto adicional
             """,
             request.humor(),
             request.notaSemanal(),
-            request.contexto() != null && !request.contexto().isBlank() ? request.contexto() : "Nenhum contexto fornecido"
+            request.contexto() != null && !request.contexto().isBlank() ? request.contexto() : "Nenhum contexto fornecido",
+            idioma
         );
     }
 
