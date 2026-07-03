@@ -114,6 +114,14 @@ export async function listarRegioesVagas() {
     return apiFetch('/api/vagas/regioes');
 }
 
+export async function matchLoteVagas(usuarioId) {
+    return apiFetch(`/api/vagas/match-lote?usuarioId=${usuarioId}`);
+}
+
+export async function matchVaga(vagaId, usuarioId) {
+    return apiFetch(`/api/vagas/${vagaId}/match?usuarioId=${usuarioId}`);
+}
+
 export async function listarCursos(params = {}) {
     const qs = new URLSearchParams();
     if (params.q) qs.set('q', params.q);
