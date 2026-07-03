@@ -79,6 +79,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/vagas/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/vagas/*/match").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/cursos/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/lazer/**").permitAll()
+                .requestMatchers("/api/sugestoes/**").permitAll()
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers.frameOptions(fo -> fo.disable()))

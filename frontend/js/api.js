@@ -166,3 +166,7 @@ export async function salvarLocalizacao(usuarioId, latitude, longitude) {
         body: JSON.stringify({ latitude, longitude }),
     });
 }
+
+export async function listarPontosLazer() {
+    return apiFetch('/api/lazer/pontos');
+}

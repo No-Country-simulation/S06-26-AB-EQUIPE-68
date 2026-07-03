@@ -110,6 +110,8 @@ const DICT = {
             erroSemLocalizacao: 'Primeiro clique em "Minha localização" para definir o ponto de partida.',
             erroSemCoordenada: 'Este ponto não tem coordenada disponível.',
             rotaTracada: 'Rota traçada: {dist} km - aprox. {min} min de carro até {nome}',
+            erroCarregar: 'Erro ao carregar pontos de interesse.',
+            zonaTranquila: 'Zona tranquila', zonaModerada: 'Zona moderada', zonaMovimentada: 'Zona movimentada',
         },
         perfil: {
             titulo: '👤 Meu Perfil', subtitulo: 'Edite suas informações e preferências.',
@@ -268,6 +270,8 @@ const DICT = {
             erroSemLocalizacao: 'Primero haz clic en "Mi ubicación" para definir el punto de partida.',
             erroSemCoordenada: 'Este punto no tiene coordenadas disponibles.',
             rotaTracada: 'Ruta trazada: {dist} km - aprox. {min} min en auto hasta {nome}',
+            erroCarregar: 'Error al cargar puntos de interés.',
+            zonaTranquila: 'Zona tranquila', zonaModerada: 'Zona moderada', zonaMovimentada: 'Zona concurrida',
         },
         perfil: {
             titulo: '👤 Mi Perfil', subtitulo: 'Edita tu información y preferencias.',
