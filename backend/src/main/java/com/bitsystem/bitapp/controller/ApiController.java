@@ -7,6 +7,7 @@ import com.bitsystem.bitapp.service.OrientacaoService;
 import com.bitsystem.bitapp.service.SaudeMentalService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -63,6 +64,16 @@ public class ApiController {
                         user.nivelProfissional(), user.areaTecnologia(),
                         user.competenciasAtuais()))
                 .toList();
+        return ResponseEntity.ok(StandardApiResponse.ok(response));
+    }
+
+    @PutMapping("/usuarios/{id}/localizacao")
+    public ResponseEntity<StandardApiResponse<UsuarioDto.LocalizacaoResponse>> atualizarLocalizacao(
+            @PathVariable Long id,
+            Authentication authentication,
+            @RequestBody @Valid UsuarioDto.LocalizacaoRequest request) {
+        UsuarioDto.LocalizacaoResponse response = authService.atualizarLocalizacao(
+                authentication.getName(), id, request.latitude(), request.longitude());
         return ResponseEntity.ok(StandardApiResponse.ok(response));
     }
 }

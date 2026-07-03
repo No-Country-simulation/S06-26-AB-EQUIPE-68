@@ -4,6 +4,7 @@ import com.bitsystem.bitapp.config.JwtUtil;
 import com.bitsystem.bitapp.domain.User;
 import com.bitsystem.bitapp.domain.UserSession;
 import com.bitsystem.bitapp.dto.AuthDto;
+import com.bitsystem.bitapp.dto.UsuarioDto;
 import com.bitsystem.bitapp.exception.BusinessException;
 import com.bitsystem.bitapp.repository.UserRepository;
 import com.bitsystem.bitapp.repository.UserSessionRepository;
@@ -25,14 +26,17 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final FallbackStorage fallbackStorage;
+    private final GeolocationService geolocationService;
 
     public AuthService(UserRepository userRepository, UserSessionRepository sessionRepository,
-            PasswordEncoder passwordEncoder, JwtUtil jwtUtil, FallbackStorage fallbackStorage) {
+            PasswordEncoder passwordEncoder, JwtUtil jwtUtil, FallbackStorage fallbackStorage,
+            GeolocationService geolocationService) {
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.fallbackStorage = fallbackStorage;
+        this.geolocationService = geolocationService;
     }
 
     // ════════════════════════════════════════════════════════════════════════
@@ -173,6 +177,31 @@ public class AuthService {
                 })
                 .orElseThrow(() -> new BusinessException("USER_NOT_FOUND", "Usuário não encontrado"));
         }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  ATUALIZAR LOCALIZAÇÃO
+    // ════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Grava a localização (WGS84) do usuário autenticado. O usuário é sempre
+     * resolvido pelo e-mail do token (nunca pelo {id} do path — mesmo padrão de
+     * updateProfile); o {id} do path só é usado para confirmar que o chamador
+     * está atualizando a própria localização.
+     */
+    @Transactional
+    public UsuarioDto.LocalizacaoResponse atualizarLocalizacao(String email, Long pathId, Double latitude, Double longitude) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("USER_NOT_FOUND", "Usuário não encontrado"));
+
+        if (!user.getId().equals(pathId)) {
+            throw new BusinessException("ACESSO_NEGADO", "Você só pode atualizar a sua própria localização");
+        }
+
+        user.setLocalizacao(geolocationService.createPoint(latitude, longitude));
+        userRepository.save(user);
+
+        return new UsuarioDto.LocalizacaoResponse(latitude, longitude);
     }
 
     // ════════════════════════════════════════════════════════════════════════

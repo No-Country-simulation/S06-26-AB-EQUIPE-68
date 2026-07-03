@@ -159,3 +159,10 @@ export async function inscreverCurso(cursoId, usuarioId) {
 export async function historicoSaude(usuarioId) {
     return apiFetch(`/api/saude/historico?usuarioId=${usuarioId}`);
 }
+
+export async function salvarLocalizacao(usuarioId, latitude, longitude) {
+    return apiFetch(`/api/usuarios/${usuarioId}/localizacao`, {
+        method: 'PUT',
+        body: JSON.stringify({ latitude, longitude }),
+    });
+}

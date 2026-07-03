@@ -1,4 +1,4 @@
-import { assessment, logout, listarVagas, listarCursos, networkStatus } from './api.js';
+import { assessment, logout, listarVagas, listarCursos, networkStatus, salvarLocalizacao } from './api.js';
 import { t, getIdioma } from './i18n.js';
 
 const SESSION_KEY = 'bitapp_usuario';
@@ -113,6 +113,18 @@ async function loadSignal() {
     } catch { text.textContent = t('common.redeEstavel', { tec: '4G' }); }
 }
 document.addEventListener('DOMContentLoaded', loadSignal);
+
+// Captura silenciosa da localização (sem bloquear, sem erro visível ao usuário).
+function capturarLocalizacao() {
+    if (!usuario?.id || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            salvarLocalizacao(usuario.id, pos.coords.latitude, pos.coords.longitude).catch(() => {});
+        },
+        () => {} // permissão negada ou falha: silêncio total
+    );
+}
+document.addEventListener('DOMContentLoaded', capturarLocalizacao);
 
 const REGION_LABELS = {
     CBD_BEIRAMAR: 'Centro/Beiramar',
