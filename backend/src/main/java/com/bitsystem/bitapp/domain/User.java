@@ -39,6 +39,9 @@ public class User {
     @Column(columnDefinition = "GEOMETRY")
     private Point localizacao;
 
+    @Column(name = "idioma_preferido")
+    private String idiomaPreferido = "pt";
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -84,6 +87,8 @@ public class User {
     public void setCompetenciasAtuais(String competenciasAtuais) { this.competenciasAtuais = competenciasAtuais; }
     public Point getLocalizacao() { return localizacao; }
     public void setLocalizacao(Point localizacao) { this.localizacao = localizacao; }
+    public String getIdiomaPreferido() { return idiomaPreferido; }
+    public void setIdiomaPreferido(String idiomaPreferido) { this.idiomaPreferido = idiomaPreferido; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

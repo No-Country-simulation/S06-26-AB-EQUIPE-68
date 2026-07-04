@@ -25,7 +25,7 @@ class UsuarioControllerTest {
         String email = prefixo + "_" + System.currentTimeMillis() + "@teste.com";
         var request = new AuthDto.RegisterRequest(
                 "Usuario Teste", email, "123456", "TRINDADE", null,
-                "Estudante", "Java", "HTML, CSS");
+                "Estudante", "Java", "HTML, CSS", "pt");
         ResponseEntity<StandardApiResponse<AuthDto.Response>> response = restTemplate.exchange(
                 "/api/auth/register", HttpMethod.POST, new HttpEntity<>(request),
                 new ParameterizedTypeReference<StandardApiResponse<AuthDto.Response>>() {});

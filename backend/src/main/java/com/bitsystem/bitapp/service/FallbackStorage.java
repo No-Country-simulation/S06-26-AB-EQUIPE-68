@@ -40,7 +40,7 @@ public class FallbackStorage {
     public record UserRecord(
         Long id, String nome, String email, String passwordHash,
         String cidade, String whatsapp, String nivelProfissional,
-        String areaTecnologia, String competenciasAtuais,
+        String areaTecnologia, String competenciasAtuais, String idiomaPreferido,
         LocalDateTime createdAt, LocalDateTime updatedAt
     ) {}
 
@@ -66,13 +66,13 @@ public class FallbackStorage {
 
     public UserRecord saveUser(String nome, String email, String passwordHash,
             String cidade, String whatsapp, String nivelProfissional,
-            String areaTecnologia, String competenciasAtuais) {
+            String areaTecnologia, String competenciasAtuais, String idiomaPreferido) {
         Long id = userIdSeq.getAndIncrement();
         LocalDateTime now = LocalDateTime.now();
         UserRecord record = new UserRecord(
             id, nome, email, passwordHash,
             cidade, whatsapp, nivelProfissional,
-            areaTecnologia, competenciasAtuais,
+            areaTecnologia, competenciasAtuais, idiomaPreferido,
             now, now
         );
         users.put(id, record);
@@ -99,7 +99,8 @@ public class FallbackStorage {
     }
 
     public UserRecord updateUser(Long id, String nome, String cidade, String whatsapp,
-            String nivelProfissional, String areaTecnologia, String competenciasAtuais) {
+            String nivelProfissional, String areaTecnologia, String competenciasAtuais,
+            String idiomaPreferido) {
         UserRecord existing = users.get(id);
         if (existing == null) return null;
         UserRecord updated = new UserRecord(
@@ -112,6 +113,7 @@ public class FallbackStorage {
             nivelProfissional != null ? nivelProfissional : existing.nivelProfissional(),
             areaTecnologia != null ? areaTecnologia : existing.areaTecnologia(),
             competenciasAtuais != null ? competenciasAtuais : existing.competenciasAtuais(),
+            idiomaPreferido != null && !idiomaPreferido.isBlank() ? idiomaPreferido : existing.idiomaPreferido(),
             existing.createdAt(),
             LocalDateTime.now()
         );

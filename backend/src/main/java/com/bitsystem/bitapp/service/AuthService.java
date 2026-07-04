@@ -56,6 +56,7 @@ public class AuthService {
             User user = new User(request.nome(), request.email(), encodedPassword);
             applyProfile(user, request.cidade(), request.whatsapp(), request.nivelProfissional(),
                     request.areaTecnologia(), request.competenciasAtuais());
+            user.setIdiomaPreferido(normalizeIdioma(request.idioma()));
             user = userRepository.save(user);
 
             log.info("[AuthService] Registro salvo no banco: email={}", request.email());
@@ -76,7 +77,7 @@ public class AuthService {
             FallbackStorage.UserRecord record = fallbackStorage.saveUser(
                 request.nome(), request.email(), encodedPassword,
                 request.cidade(), request.whatsapp(), request.nivelProfissional(),
-                request.areaTecnologia(), request.competenciasAtuais()
+                request.areaTecnologia(), request.competenciasAtuais(), normalizeIdioma(request.idioma())
             );
 
             return buildAuthResponseFromFallback(record);
@@ -158,6 +159,9 @@ public class AuthService {
             }
             applyProfile(user, request.cidade(), request.whatsapp(), request.nivelProfissional(),
                     request.areaTecnologia(), request.competenciasAtuais());
+            if (request.idiomaPreferido() != null && !request.idiomaPreferido().isBlank()) {
+                user.setIdiomaPreferido(normalizeIdioma(request.idiomaPreferido()));
+            }
 
             return toUserResponse(userRepository.save(user));
 
@@ -169,9 +173,12 @@ public class AuthService {
 
             return fallbackStorage.findUserByEmail(email)
                 .map(record -> {
+                    String idiomaNormalizado = request.idiomaPreferido() != null && !request.idiomaPreferido().isBlank()
+                            ? normalizeIdioma(request.idiomaPreferido()) : null;
                     FallbackStorage.UserRecord updated = fallbackStorage.updateUser(
                         record.id(), request.nome(), request.cidade(), request.whatsapp(),
-                        request.nivelProfissional(), request.areaTecnologia(), request.competenciasAtuais()
+                        request.nivelProfissional(), request.areaTecnologia(), request.competenciasAtuais(),
+                        idiomaNormalizado
                     );
                     return toUserResponseFromFallback(updated);
                 })
@@ -260,18 +267,23 @@ public class AuthService {
         user.setCompetenciasAtuais(competenciasAtuais);
     }
 
+    /** Só "pt"/"es" são suportados pela interface — qualquer outro valor cai em "pt". */
+    private static String normalizeIdioma(String idioma) {
+        return "es".equalsIgnoreCase(idioma) ? "es" : "pt";
+    }
+
     private AuthDto.Response toAuthResponse(User user, String token, String refreshToken) {
         return new AuthDto.Response(
                 token, refreshToken, user.getId(), user.getNome(), user.getEmail(),
                 user.getCidade(), user.getWhatsapp(), user.getNivelProfissional(),
-                user.getAreaTecnologia(), user.getCompetenciasAtuais());
+                user.getAreaTecnologia(), user.getCompetenciasAtuais(), user.getIdiomaPreferido());
     }
 
     private AuthDto.UserResponse toUserResponse(User user) {
         return new AuthDto.UserResponse(
                 user.getId(), user.getNome(), user.getEmail(),
                 user.getCidade(), user.getWhatsapp(), user.getNivelProfissional(),
-                user.getAreaTecnologia(), user.getCompetenciasAtuais(),
+                user.getAreaTecnologia(), user.getCompetenciasAtuais(), user.getIdiomaPreferido(),
                 user.getCreatedAt(), user.getUpdatedAt());
     }
 
@@ -300,14 +312,14 @@ public class AuthService {
         return new AuthDto.Response(
                 token, refreshToken, record.id(), record.nome(), record.email(),
                 record.cidade(), record.whatsapp(), record.nivelProfissional(),
-                record.areaTecnologia(), record.competenciasAtuais());
+                record.areaTecnologia(), record.competenciasAtuais(), record.idiomaPreferido());
     }
 
     private AuthDto.UserResponse toUserResponseFromFallback(FallbackStorage.UserRecord record) {
         return new AuthDto.UserResponse(
                 record.id(), record.nome(), record.email(),
                 record.cidade(), record.whatsapp(), record.nivelProfissional(),
-                record.areaTecnologia(), record.competenciasAtuais(),
+                record.areaTecnologia(), record.competenciasAtuais(), record.idiomaPreferido(),
                 record.createdAt(), record.updatedAt());
     }
 }

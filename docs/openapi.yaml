@@ -1382,6 +1382,7 @@ components:
         nivelProfissional: { $ref: '#/components/schemas/NivelProfissional' }
         areaTecnologia: { $ref: '#/components/schemas/AreaTecnologia' }
         competenciasAtuais: { type: string }
+        idioma: { $ref: '#/components/schemas/Idioma', description: "Idioma ativo no toggle da interface no momento do cadastro; aplicado automaticamente no próximo login" }
 
     LoginRequest:
       type: object
@@ -1399,6 +1400,7 @@ components:
         nivelProfissional: { $ref: '#/components/schemas/NivelProfissional' }
         areaTecnologia: { $ref: '#/components/schemas/AreaTecnologia' }
         competenciasAtuais: { type: string }
+        idiomaPreferido: { $ref: '#/components/schemas/Idioma', description: "Persistido apenas quando o usuário troca o idioma estando logado" }
 
     AuthResponse:
       type: object
@@ -1413,6 +1415,7 @@ components:
         nivelProfissional: { $ref: '#/components/schemas/NivelProfissional' }
         areaTecnologia: { $ref: '#/components/schemas/AreaTecnologia' }
         competenciasAtuais: { type: string }
+        idiomaPreferido: { $ref: '#/components/schemas/Idioma', description: "Aplicado automaticamente pelo frontend ao logar" }
 
     UserResponse:
       type: object
@@ -1425,6 +1428,7 @@ components:
         nivelProfissional: { $ref: '#/components/schemas/NivelProfissional' }
         areaTecnologia: { $ref: '#/components/schemas/AreaTecnologia' }
         competenciasAtuais: { type: string }
+        idiomaPreferido: { $ref: '#/components/schemas/Idioma' }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
 

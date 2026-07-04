@@ -15,7 +15,8 @@ public class AuthDto {
         String whatsapp,
         String nivelProfissional,
         String areaTecnologia,
-        String competenciasAtuais
+        String competenciasAtuais,
+        String idioma
     ) {}
 
     public record LoginRequest(
@@ -29,7 +30,8 @@ public class AuthDto {
         String whatsapp,
         String nivelProfissional,
         String areaTecnologia,
-        String competenciasAtuais
+        String competenciasAtuais,
+        String idiomaPreferido
     ) {}
 
     public record Response(
@@ -42,7 +44,8 @@ public class AuthDto {
         String whatsapp,
         String nivelProfissional,
         String areaTecnologia,
-        String competenciasAtuais
+        String competenciasAtuais,
+        String idiomaPreferido
     ) {}
 
     public record UserResponse(
@@ -54,6 +57,7 @@ public class AuthDto {
         String nivelProfissional,
         String areaTecnologia,
         String competenciasAtuais,
+        String idiomaPreferido,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {}

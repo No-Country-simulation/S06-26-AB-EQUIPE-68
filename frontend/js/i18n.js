@@ -2,14 +2,43 @@
 // localStorage 'bit_idioma'. Escopo declarado: conteúdo de DADOS (cursos/vagas
 // do catálogo, pontos de Lazer) permanece PT; INTERFACE e textos gerados pelo
 // backend (acolhimento, fallbacks, comoResolver) viram bilíngues.
+import { updateProfile } from './api.js';
+
 const IDIOMA_KEY = 'bit_idioma';
+const SESSION_KEY = 'bitapp_usuario';
 
 export function getIdioma() {
     return localStorage.getItem(IDIOMA_KEY) === 'es' ? 'es' : 'pt';
 }
 
-export function setIdioma(lang) {
+/** Grava só no localStorage, sem recarregar — usado após login pra aplicar
+ *  o idioma salvo no perfil antes do redirect pro dashboard. */
+export function aplicarIdiomaSemRecarregar(lang) {
     localStorage.setItem(IDIOMA_KEY, lang === 'es' ? 'es' : 'pt');
+}
+
+export async function setIdioma(lang) {
+    aplicarIdiomaSemRecarregar(lang);
+
+    const token = localStorage.getItem('bitapp_token');
+    const usuarioRaw = localStorage.getItem(SESSION_KEY);
+    if (token && usuarioRaw) {
+        try {
+            const usuario = JSON.parse(usuarioRaw);
+            await updateProfile({
+                nome: usuario.nome,
+                cidade: usuario.cidade,
+                whatsapp: usuario.whatsapp,
+                nivelProfissional: usuario.nivelProfissional,
+                areaTecnologia: usuario.areaTecnologia,
+                competenciasAtuais: usuario.competenciasAtuais,
+                idiomaPreferido: getIdioma(),
+            });
+        } catch (e) {
+            // localStorage já é a fonte de verdade da sessão — segue com o reload mesmo se a persistência falhar
+        }
+    }
+
     location.reload();
 }
 

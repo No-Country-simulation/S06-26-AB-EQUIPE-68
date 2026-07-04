@@ -1,5 +1,5 @@
 import { register } from './api.js';
-import { t } from './i18n.js';
+import { t, getIdioma } from './i18n.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -77,6 +77,7 @@ document.getElementById('formCadastro')?.addEventListener('submit', async (event
             nivelProfissional: document.getElementById('regNivel')?.value || 'Estudante',
             areaTecnologia: document.getElementById('regArea')?.value || 'Web',
             competenciasAtuais: document.getElementById('regSkills')?.value.trim() || '',
+            idioma: getIdioma(),
         });
         localStorage.setItem(SESSION_KEY, JSON.stringify({
             id: data.userId,

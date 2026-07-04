@@ -1,5 +1,5 @@
 import { login, logout } from './api.js';
-import { t } from './i18n.js';
+import { t, aplicarIdiomaSemRecarregar } from './i18n.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -86,6 +86,7 @@ document.getElementById('formLogin')?.addEventListener('submit', async (event) =
         }));
         localStorage.setItem('bitapp_token', data.token);
         localStorage.setItem('bitapp_refresh', data.refreshToken);
+        aplicarIdiomaSemRecarregar(data.idiomaPreferido);
         window.location.href = 'dashboard.html';
     } catch (err) {
         showError(err.message || t('index.erroLogin'));
