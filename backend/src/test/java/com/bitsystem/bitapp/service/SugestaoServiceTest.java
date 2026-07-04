@@ -1,11 +1,15 @@
 package com.bitsystem.bitapp.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
 import com.bitsystem.bitapp.dto.DicaLazerDto;
 import com.bitsystem.bitapp.dto.SugestaoDto;
+import com.bitsystem.bitapp.exception.BusinessException;
 import com.bitsystem.bitapp.seed.DicasLazerSeed;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -70,5 +74,15 @@ class SugestaoServiceTest {
         assertThat(comOffline.sugestoes()).extracting(SugestaoDto.Item::titulo)
             .doesNotContain("Ouça música que te acalma");
         assertThat(semOffline.sugestoes()).isNotEmpty();
+    }
+
+    @Test
+    void gerarSugestoesLancaBusinessExceptionQuandoUsuarioNaoExiste() {
+        when(userRepository.findById(999999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> sugestaoService.gerarSugestoes(999999L, "pt"))
+            .isInstanceOf(BusinessException.class)
+            .extracting(ex -> ((BusinessException) ex).getCode())
+            .isEqualTo("USUARIO_NAO_ENCONTRADO");
     }
 }

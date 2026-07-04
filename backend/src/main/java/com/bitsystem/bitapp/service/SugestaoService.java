@@ -6,6 +6,7 @@ import com.bitsystem.bitapp.dto.NetworkStatusDto;
 import com.bitsystem.bitapp.dto.PontoLazerDto;
 import com.bitsystem.bitapp.dto.SaudeDto;
 import com.bitsystem.bitapp.dto.SugestaoDto;
+import com.bitsystem.bitapp.exception.BusinessException;
 import com.bitsystem.bitapp.integration.GeminiClient;
 import com.bitsystem.bitapp.repository.UserRepository;
 import com.bitsystem.bitapp.seed.DicasLazerSeed;
@@ -73,9 +74,12 @@ public class SugestaoService {
     }
 
     public SugestaoDto.Response gerarSugestoes(Long usuarioId, String idioma) {
+        User user = userRepository.findById(usuarioId)
+                .orElseThrow(() -> new BusinessException("USUARIO_NAO_ENCONTRADO", "Usuário não encontrado: " + usuarioId));
+
         String humor = ultimoHumor(usuarioId);
         String contexto = ultimoContexto(usuarioId);
-        String regiao = userRepository.findById(usuarioId).map(User::getCidade).orElse(null);
+        String regiao = user.getCidade();
         List<DicaLazerDto> candidatas = DicasLazerSeed.DICAS_LAZER.getOrDefault(regiao, DicasLazerSeed.DICAS_GERAIS);
 
         NetworkStatusDto networkStatus = geolocationService.getNetworkStatus(usuarioId, 5000);
