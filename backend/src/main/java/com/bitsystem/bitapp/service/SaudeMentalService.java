@@ -57,6 +57,14 @@ public class SaudeMentalService {
         // ── MENSAGEM DE ACOLHIMENTO: agente do Tiago (n8n) com fallback gracioso ──
         SaudeDto.RawResponse rawResponse = obterAcolhimento(request);
 
+        // ── LEITURA EMOCIONAL: texto descritivo (nunca decide/deriva CVV) ──
+        // Sempre preenchida: usa a da IA/agente quando houver, senão um
+        // fallback determinístico local — garante que todo caminho de
+        // acolhimento (Gemini, agente n8n, curadas) responde com o campo.
+        String leituraEmocional = (rawResponse.leituraEmocional() != null && !rawResponse.leituraEmocional().isBlank())
+                ? rawResponse.leituraEmocional()
+                : leituraEmocionalFallback(request);
+
         String alerta = switch (nivelDerivacao == null ? "" : nivelDerivacao) {
             case "REFORCADO" -> "DERIVACAO_REFORCADA";
             case "PREVENTIVO" -> "DERIVACAO_PREVENTIVA";
@@ -69,7 +77,8 @@ public class SaudeMentalService {
                 derivarCvv,
                 request.notaSemanal(),
                 alerta,
-                nivelDerivacao);
+                nivelDerivacao,
+                leituraEmocional);
 
         try {
             HistoricoSaude historico = HistoricoSaude.builder()
@@ -119,6 +128,28 @@ public class SaudeMentalService {
             return "PREVENTIVO";
         }
         return null;
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  LEITURA EMOCIONAL (lote 4.1) — só texto, nunca influencia derivarCvv
+    // ════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Fallback determinístico de leitura emocional, usado quando a fonte de
+     * acolhimento (agente n8n ou curadas) não forneceu uma. Nunca cita a nota.
+     */
+    private String leituraEmocionalFallback(SaudeDto.Request request) {
+        boolean es = "es".equals(request.idiomaOuPadrao());
+        if (request.humor() != null && !request.humor().isBlank()) {
+            return es
+                    ? "Percibí que te estás sintiendo " + request.humor() + "."
+                    : "Percebi que você está se sentindo " + request.humor() + ".";
+        }
+        boolean temContexto = request.contexto() != null && !request.contexto().isBlank();
+        if (temContexto) {
+            return es ? "Gracias por compartir cómo te sientes." : "Obrigado por compartilhar como você está se sentindo.";
+        }
+        return es ? "Estoy aquí para escucharte." : "Estou aqui para te ouvir.";
     }
 
     // ════════════════════════════════════════════════════════════════════════
@@ -210,30 +241,34 @@ public class SaudeMentalService {
 
     private String buildPrompt(SaudeDto.Request request) {
         String idioma = "es".equals(request.idiomaOuPadrao()) ? "espanhol" : "portugues";
+        String notaTexto = request.notaSemanal() != null
+                ? String.valueOf(request.notaSemanal())
+                : "não informada (check-in sem nota semanal)";
         return String.format("""
             Voce e um profissional de saude mental especializado em acolhimento de pessoas em transicao de carreira.
             Analise o check-in do usuario e retorne um JSON EXATAMENTE neste formato:
 
             {
               "mensagem": "sua mensagem empatica e acolhedora",
-              "acaoSugerida": "acao pratica e imediata que o usuario pode tomar agora"
+              "acaoSugerida": "acao pratica e imediata que o usuario pode tomar agora",
+              "leituraEmocional": "uma frase curta e empatica descrevendo o estado emocional que voce percebeu no humor e no texto"
             }
 
             Check-in do usuario (humor e nota sao independentes):
-            - Humor (so o tom, nao decide nada): %s
-            - Nota semanal (0-10, autoavaliacao da semana): %d
+            - Humor (so o tom, nao decide nada; pode estar ausente se o usuario so escreveu texto): %s
+            - Nota semanal (0-10, autoavaliacao da semana): %s
             - Contexto: %s
 
             Regras:
             - Seja sempre empatico e acolhedor, validando os sentimentos da pessoa
             - Se a nota for baixa, ofereca o CVV (188) como recurso disponivel, de forma acolhedora e nunca como bloqueio
             - Se a nota for alta, seja encorajador e motivador
-            - NUNCA cite ou repita a nota numerica na mensagem
+            - NUNCA cite ou repita a nota numerica em nenhum dos campos, inclusive leituraEmocional
             - Responda em %s (idioma escolhido pelo usuario na interface)
             - Retorne APENAS o JSON, sem texto adicional
             """,
-            request.humor(),
-            request.notaSemanal(),
+            request.humor() != null && !request.humor().isBlank() ? request.humor() : "não informado",
+            notaTexto,
             request.contexto() != null && !request.contexto().isBlank() ? request.contexto() : "Nenhum contexto fornecido",
             idioma
         );
@@ -256,8 +291,9 @@ public class SaudeMentalService {
 
             String mensagem = root.path("mensagem").asText("Resposta nao disponivel.");
             String acaoSugerida = root.path("acaoSugerida").asText("Tente novamente mais tarde.");
+            String leituraEmocional = root.path("leituraEmocional").asText(null);
 
-            return new SaudeDto.RawResponse(mensagem, acaoSugerida);
+            return new SaudeDto.RawResponse(mensagem, acaoSugerida, leituraEmocional);
 
         } catch (Exception ex) {
             log.error("[SaudeMentalService] Erro ao parsear resposta Gemini: {}", ex.getMessage());

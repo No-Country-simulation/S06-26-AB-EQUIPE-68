@@ -2,8 +2,8 @@ package com.bitsystem.bitapp.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
 
 import com.bitsystem.bitapp.dto.SaudeDto;
@@ -58,13 +58,20 @@ class SaudeMentalServiceTest {
         // Força o fallback local e evita qualquer chamada de IA real.
         when(mentalHealthClient.process(any())).thenThrow(new RuntimeException("n8n off"));
         when(geminiClient.isConfigured()).thenReturn(false);
-        when(emotionResponseProvider.resolve(anyString(), anyInt(), anyString()))
+        when(emotionResponseProvider.resolve(anyString(), nullable(Integer.class), anyString()))
                 .thenReturn(new SaudeDto.RawResponse("Estamos com você.", "Respire fundo."));
     }
 
     private SaudeDto.Response checkin(String humor, int nota) {
         return service.avaliarEstadoMental(
                 new SaudeDto.Request(1L, humor, nota, "contexto qualquer", "pt"));
+    }
+
+    // Check-in diário (lote 4.1): sem nota semanal — usa Integer nulo, que o
+    // helper acima (int primitivo) não consegue representar.
+    private SaudeDto.Response checkinSemNota(String humor, String contexto) {
+        return service.avaliarEstadoMental(
+                new SaudeDto.Request(1L, humor, null, contexto, "pt"));
     }
 
     // ── REFORCADO: nota 0-1 ──────────────────────────────────────────────────
@@ -109,7 +116,7 @@ class SaudeMentalServiceTest {
     @Test
     void textoDeAcolhimentoMencionandoCriseNaoAlteraDerivacao() {
         // Mesmo que o acolhimento fale em "crise" e "CVV 188", a nota 8 manda.
-        when(emotionResponseProvider.resolve(anyString(), anyInt(), anyString()))
+        when(emotionResponseProvider.resolve(anyString(), nullable(Integer.class), anyString()))
                 .thenReturn(new SaudeDto.RawResponse(
                         "Você está em crise, procure o CVV 188 imediatamente!",
                         "Ligue 188 agora."));
@@ -133,6 +140,43 @@ class SaudeMentalServiceTest {
         Set<ConstraintViolation<SaudeDto.Request>> violacoes =
                 validar(new SaudeDto.Request(1L, "feliz", notaValida, "ctx", "pt"));
         assertThat(violacoes).isEmpty();
+    }
+
+    // ── NOTA AUSENTE (lote 4.1): check-in diário sem nota semanal ────────────
+    @Test
+    void validacaoAceitaNotaAusente() {
+        Set<ConstraintViolation<SaudeDto.Request>> violacoes =
+                validar(new SaudeDto.Request(1L, "feliz", null, "ctx", "pt"));
+        assertThat(violacoes).isEmpty();
+    }
+
+    @Test
+    void checkinSemNotaNaoDeriva() {
+        SaudeDto.Response r = checkinSemNota("feliz", "algum texto sobre o dia");
+        assertThat(r.derivarCvv()).isFalse();
+        assertThat(r.nivelDerivacao()).isNull();
+        assertThat(r.alerta()).isEqualTo("ESTAVEL");
+    }
+
+    // ── LEITURA EMOCIONAL (lote 4.1): sempre preenchida, nunca deriva ────────
+    @Test
+    void leituraEmocionalSempreVemPreenchida() {
+        SaudeDto.Response r = checkin("feliz", 8);
+        assertThat(r.leituraEmocional()).isNotNull().isNotBlank();
+    }
+
+    @Test
+    void leituraEmocionalNaoAlteraDerivacao() {
+        when(emotionResponseProvider.resolve(anyString(), nullable(Integer.class), anyString()))
+                .thenReturn(new SaudeDto.RawResponse("Mensagem A", "Ação A", "Leitura A"));
+        SaudeDto.Response r1 = checkin("triste", 8);
+
+        when(emotionResponseProvider.resolve(anyString(), nullable(Integer.class), anyString()))
+                .thenReturn(new SaudeDto.RawResponse("Mensagem B bem diferente", "Ação B", "Leitura B, completamente distinta"));
+        SaudeDto.Response r2 = checkin("triste", 8);
+
+        assertThat(r1.nivelDerivacao()).isEqualTo(r2.nivelDerivacao());
+        assertThat(r1.derivarCvv()).isEqualTo(r2.derivarCvv());
     }
 
     private Set<ConstraintViolation<SaudeDto.Request>> validar(SaudeDto.Request request) {

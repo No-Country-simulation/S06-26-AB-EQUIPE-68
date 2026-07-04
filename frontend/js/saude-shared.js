@@ -21,32 +21,17 @@ export const MOOD_LABEL_KEYS = {
     sobrecarregado: 'saude.humorSobrecarregado',
 };
 
-// Onze botões 0-10 (nenhum pré-selecionado), navegáveis por Tab. `onSelect(n)`
-// é chamado com a nota escolhida; o realce visual é tratado aqui.
-export function renderNotaBotoes(gridEl, onSelect) {
-    if (!gridEl) return;
-    gridEl.innerHTML = '';
-    for (let n = 0; n <= 10; n++) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.dataset.nota = String(n);
-        btn.textContent = String(n);
-        btn.setAttribute('aria-pressed', 'false');
-        btn.setAttribute('aria-label', `Nota ${n}`);
-        btn.className = 'nota-btn w-10 h-10 text-sm font-bold bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl transition text-slate-200 focus:ring-2 focus:ring-cyan-500 outline-none';
-        btn.addEventListener('click', () => {
-            gridEl.querySelectorAll('.nota-btn').forEach(el => {
-                el.classList.remove('border-cyan-500', 'bg-slate-800', 'text-white');
-                el.classList.add('border-slate-800', 'bg-slate-950', 'text-slate-200');
-                el.setAttribute('aria-pressed', 'false');
-            });
-            btn.classList.remove('border-slate-800', 'bg-slate-950', 'text-slate-200');
-            btn.classList.add('border-cyan-500', 'bg-slate-800', 'text-white');
-            btn.setAttribute('aria-pressed', 'true');
-            onSelect(n);
-        });
-        gridEl.appendChild(btn);
-    }
+// Nota fixa por emoji (lote 4.1 — escala 0-10 extinta), usada SÓ na pergunta
+// semanal: o clique no emoji já resolve a notaSemanal a enviar ao mesmo
+// /api/saude, sem grade de botões numéricos.
+export const SEMANA_NOTA = { sobrecarregado: 1, triste: 3, ansioso: 5, cansado: 7, feliz: 9 };
+
+// "Devida" = não há registro com notaSemanal preenchida nos últimos 7 dias.
+// Usado por bit.js e saude-mental.js para decidir se oferece a pergunta semanal.
+export function semanalDevida(registros) {
+    if (!registros || registros.length === 0) return true;
+    const corte = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return !registros.some(r => r.notaSemanal != null && r.createdAt && new Date(r.createdAt).getTime() >= corte);
 }
 
 // Renderiza o acolhimento. O painel é escolhido por data.nivelDerivacao — decidido

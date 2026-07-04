@@ -20,10 +20,13 @@ public class HistoricoSaude {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(nullable = false)
+    // Opcional (lote 4.1): check-in diário pode chegar só com texto, sem emoji.
+    @Column
     private String humor;
 
-    @Column(name = "nota_semanal", nullable = false)
+    // Opcional (lote 4.1): ausente no check-in diário; presente só quando a
+    // pergunta semanal é respondida (nota fixa por emoji, ver SEMANA_NOTA).
+    @Column(name = "nota_semanal")
     private Integer notaSemanal;
 
     @Column(columnDefinition = "TEXT")

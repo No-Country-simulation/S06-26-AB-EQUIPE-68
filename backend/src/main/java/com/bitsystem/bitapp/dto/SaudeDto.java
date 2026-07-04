@@ -2,7 +2,6 @@ package com.bitsystem.bitapp.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 
 /**
  * ============================================================================
@@ -35,9 +34,12 @@ public class SaudeDto {
          *  nunca deriva ao CVV. */
         String humor,
 
-        /** Autoavaliação da semana (0-10). Único campo que decide a derivação
-         *  ao CVV: 0-1 = reforçada, 2-3 = preventiva, 4-10 = nenhuma. */
-        @NotNull(message = "A nota semanal é obrigatória")
+        /** Autoavaliação da semana (0-10), OPCIONAL — ausente no check-in diário
+         *  (emoji+texto); presente quando a pergunta semanal é respondida (nota
+         *  fixa mapeada a partir do emoji escolhido, ver SEMANA_NOTA no frontend).
+         *  Único campo que decide a derivação ao CVV quando presente: 0-1 =
+         *  reforçada, 2-3 = preventiva, 4-10 = nenhuma. Ausente = sem derivação
+         *  nesse check-in. */
         @Min(value = 0, message = "A nota semanal deve ser no mínimo 0")
         @Max(value = 10, message = "A nota semanal deve ser no máximo 10")
         Integer notaSemanal,
@@ -79,22 +81,40 @@ public class SaudeDto {
         /** Nível da derivação ao CVV, para o frontend escolher o painel:
          *  "REFORCADO" (nota 0-1) | "PREVENTIVO" (nota 2-3) | null (nota 4-10).
          *  Decidido SÓ pela nota; IA/agente/texto nunca influenciam. */
-        String nivelDerivacao
+        String nivelDerivacao,
+
+        /** Frase curta e empática descrevendo o estado emocional percebido
+         *  (emoji e/ou texto do check-in). Nunca cita a nota numérica. Sempre
+         *  preenchida — via IA (Gemini) ou fallback determinístico. Campo
+         *  aditivo (lote 4.1). */
+        String leituraEmocional
     ) {}
 
     /**
      * RESPOSTA BRUTA: Parse intermediário da resposta Gemini
-     * 
+     *
      * Mapeamento JSON simples da IA antes do pós-processamento
      * Usado internamente por SaudeMentalService
      */
     public record RawResponse(
         /** Mensagem bruta do Gemini */
         String mensagem,
-        
+
         /** Ação bruta do Gemini */
-        String acaoSugerida
-    ) {}
+        String acaoSugerida,
+
+        /** Leitura emocional bruta do Gemini (pode ser null nas fontes que só
+         *  fornecem texto, ex.: agente n8n — nesse caso o serviço aplica um
+         *  fallback determinístico). Campo aditivo (lote 4.1). */
+        String leituraEmocional
+    ) {
+        /** Construtor de conveniência para as fontes que só fornecem
+         *  mensagem/ação (curadas, agente n8n) — leituraEmocional fica null e
+         *  é preenchida por SaudeMentalService.leituraEmocionalFallback. */
+        public RawResponse(String mensagem, String acaoSugerida) {
+            this(mensagem, acaoSugerida, null);
+        }
+    }
 
     /**
      * RESPOSTA: Item do histórico de check-ins

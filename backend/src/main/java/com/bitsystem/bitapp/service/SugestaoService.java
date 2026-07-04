@@ -74,6 +74,7 @@ public class SugestaoService {
 
     public SugestaoDto.Response gerarSugestoes(Long usuarioId, String idioma) {
         String humor = ultimoHumor(usuarioId);
+        String contexto = ultimoContexto(usuarioId);
         String regiao = userRepository.findById(usuarioId).map(User::getCidade).orElse(null);
         List<DicaLazerDto> candidatas = DicasLazerSeed.DICAS_LAZER.getOrDefault(regiao, DicasLazerSeed.DICAS_GERAIS);
 
@@ -83,7 +84,7 @@ public class SugestaoService {
 
         if (geminiClient.isConfigured()) {
             try {
-                SugestaoDto.Response viaGemini = chamarGemini(humor, regiao, candidatas, sugerirOffline, zonaPredominante, idioma);
+                SugestaoDto.Response viaGemini = chamarGemini(humor, contexto, regiao, candidatas, sugerirOffline, zonaPredominante, idioma);
                 if (viaGemini != null && !viaGemini.sugestoes().isEmpty()) {
                     log.info("[SugestaoService] Sugestões via Gemini para usuarioId={}", usuarioId);
                     return viaGemini;
@@ -103,6 +104,17 @@ public class SugestaoService {
             .map(SaudeDto.HistoricoResponse::humor)
             .filter(h -> h != null && !h.isBlank())
             .orElse("neutro");
+    }
+
+    /** Texto livre do último check-in (lote 4.1) — aditivo, contexto extra
+     *  para a IA; o fallback determinístico continua ignorando este campo. */
+    private String ultimoContexto(Long usuarioId) {
+        List<SaudeDto.HistoricoResponse> historico = saudeMentalService.buscarHistorico(usuarioId);
+        return historico.stream()
+            .findFirst()
+            .map(SaudeDto.HistoricoResponse::contexto)
+            .filter(c -> c != null && !c.isBlank())
+            .orElse(null);
     }
 
     /** Zona predominante (moda) dos pontos de Lazer da região, se houver. */
@@ -163,14 +175,14 @@ public class SugestaoService {
     //  IA (Gemini)
     // ════════════════════════════════════════════════════════════════════════
 
-    private SugestaoDto.Response chamarGemini(String humor, String regiao, List<DicaLazerDto> candidatas,
+    private SugestaoDto.Response chamarGemini(String humor, String contextoCheckin, String regiao, List<DicaLazerDto> candidatas,
             boolean sugerirOffline, String zonaPredominante, String idioma) throws Exception {
-        String prompt = buildPrompt(humor, regiao, candidatas, sugerirOffline, zonaPredominante, idioma);
+        String prompt = buildPrompt(humor, contextoCheckin, regiao, candidatas, sugerirOffline, zonaPredominante, idioma);
         String resposta = geminiClient.generateContent(prompt);
         return parsearResposta(resposta);
     }
 
-    private String buildPrompt(String humor, String regiao, List<DicaLazerDto> candidatas,
+    private String buildPrompt(String humor, String contextoCheckin, String regiao, List<DicaLazerDto> candidatas,
             boolean sugerirOffline, String zonaPredominante, String idioma) {
         String idiomaTexto = "es".equalsIgnoreCase(idioma) ? "espanhol" : "portugues";
         String lista = candidatas.stream()
@@ -182,6 +194,10 @@ public class SugestaoService {
             : "";
         String contextoOffline = sugerirOffline
             ? "A conectividade do usuário está fraca — priorize sugestões que não dependem de internet."
+            : "";
+        // Lote 4.1: texto livre do último check-in, quando houver, para sugestões mais específicas.
+        String contextoCheckinTexto = contextoCheckin != null
+            ? "Último relato do usuário (se ajudar a entender o momento): " + contextoCheckin
             : "";
 
         return String.format("""
@@ -199,6 +215,7 @@ public class SugestaoService {
             Região: %s
             %s
             %s
+            %s
 
             LISTA CANDIDATA (só pode escolher títulos desta lista):
             %s
@@ -210,7 +227,7 @@ public class SugestaoService {
             - Retorne APENAS o JSON, sem texto adicional
             """,
             QTD_SUGESTOES, humor, regiao != null ? regiao : "não informada",
-            contextoZona, contextoOffline, lista, idiomaTexto
+            contextoZona, contextoOffline, contextoCheckinTexto, lista, idiomaTexto
         );
     }
 

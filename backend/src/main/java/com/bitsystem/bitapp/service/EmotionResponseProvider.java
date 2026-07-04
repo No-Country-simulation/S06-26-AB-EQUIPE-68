@@ -32,6 +32,11 @@ public class EmotionResponseProvider {
         new SaudeDto.RawResponse(
             "Vejo que o peso está grande demais agora. Burnout e exaustão são sinais de que algo precisa mudar — e pedir ajuda é a decisão mais forte que você pode tomar.",
             "Priorize descanso imediato: pare de estudar hoje. Ligue 188 (CVV) ou acesse cvv.org.br — apoio humano, gratuito e sigiloso, 24 horas."
+        ),
+        "neutro",
+        new SaudeDto.RawResponse(
+            "Obrigado por compartilhar um pouco de como você está. Cada check-in é um passo de cuidado com você mesmo.",
+            "Reserve um momento hoje para uma pausa curta e consciente — mesmo pequena, ela conta."
         )
     );
 
@@ -60,15 +65,23 @@ public class EmotionResponseProvider {
         new SaudeDto.RawResponse(
             "Veo que el peso es demasiado grande ahora. El burnout y el agotamiento son señales de que algo necesita cambiar — y pedir ayuda es la decisión más fuerte que puedes tomar.",
             "Prioriza el descanso inmediato: deja de estudiar hoy. Llama al 188 (CVV) o entra a cvv.org.br — apoyo humano, gratuito y confidencial, 24 horas."
+        ),
+        "neutro",
+        new SaudeDto.RawResponse(
+            "Gracias por compartir un poco de cómo estás. Cada check-in es un paso de cuidado contigo mismo.",
+            "Reserva un momento hoy para una pausa corta y consciente — aunque sea pequeña, cuenta."
         )
     );
 
-    public SaudeDto.RawResponse resolve(String humor, int notaSemanal, String idioma) {
+    public SaudeDto.RawResponse resolve(String humor, Integer notaSemanal, String idioma) {
         Map<String, SaudeDto.RawResponse> respostas = "es".equalsIgnoreCase(idioma) ? RESPONSES_ES : RESPONSES_PT;
         String key = humor != null ? humor.toLowerCase().trim() : "";
         SaudeDto.RawResponse curated = respostas.get(key);
         if (curated != null) {
             return curated;
+        }
+        if (notaSemanal == null) {
+            return respostas.get("neutro");
         }
         if (notaSemanal < 4) {
             return respostas.get("ansioso");

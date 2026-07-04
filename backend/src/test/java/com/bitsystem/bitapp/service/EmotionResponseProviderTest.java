@@ -35,4 +35,12 @@ class EmotionResponseProviderTest {
         SaudeDto.RawResponse r = provider.resolve("emoji-nao-mapeado", 2, "es");
         assertTrue(r.mensagem().contains("ansiedad"));
     }
+
+    // ── LOTE 4.1: check-in diário pode chegar sem humor e sem nota ───────────
+    @Test
+    void semHumorESemNotaNaoLancaExcecao() {
+        SaudeDto.RawResponse r = provider.resolve(null, null, "pt");
+        assertNotNull(r.mensagem());
+        assertFalse(r.mensagem().isBlank());
+    }
 }

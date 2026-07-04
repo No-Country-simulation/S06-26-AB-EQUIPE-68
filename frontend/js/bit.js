@@ -1,15 +1,16 @@
 // Card do Bit — check-in conversacional na entrada do dashboard.
-// Duas molduras selecionáveis por query param (comparação visual):
-//   ?bit=card (padrão) — cartão no topo de #bitMount
-//   ?bit=full           — overlay tela cheia antes do conteúdo
-// Mesmo comportamento nas duas: só aparece se o usuário não fez check-in
-// hoje; reaproveita saudeCheckin/buscarSugestoes (api.js), os painéis
-// graduados e o modal de consentimento do lote 2 (saude-shared.js /
+// Lote 4.1: moldura única (modal centrado, sem variantes por query param),
+// aparece em toda carga do dashboard (sem guard de "já fez check-in hoje" e
+// sem persistência em localStorage — "agora não" só esconde na visualização
+// atual). Check-in diário é emoji (opcional) + texto livre; a nota 0-10 foi
+// extinta — a pergunta semanal usa os mesmos 5 emojis mapeados a notas fixas
+// (SEMANA_NOTA). Reaproveita saudeCheckin/buscarSugestoes (api.js), os
+// painéis graduados e o modal de consentimento do lote 2 (saude-shared.js /
 // mesmos textos do DICT). saude-mental.html continua funcionando igual —
 // o Bit é um caminho adicional, não substituto.
 import { saudeCheckin, historicoSaude, buscarSugestoes } from './api.js';
 import { t, getIdioma } from './i18n.js';
-import { MOOD_ORDER, MOOD_EMOJIS, MOOD_LABEL_KEYS, renderNotaBotoes, renderNivelDerivacaoPanel } from './saude-shared.js';
+import { MOOD_ORDER, MOOD_EMOJIS, MOOD_LABEL_KEYS, SEMANA_NOTA, semanalDevida, renderNivelDerivacaoPanel } from './saude-shared.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -20,18 +21,6 @@ function getUsuarioLogado() {
 
 const usuario = getUsuarioLogado();
 
-function hojeISO() {
-    return new Date().toISOString().slice(0, 10);
-}
-
-function dismissKey() {
-    return `bit_dismiss_${hojeISO()}`;
-}
-
-function jaDispensadoHoje() {
-    return localStorage.getItem(dismissKey()) === '1';
-}
-
 function saudacaoPorHora() {
     const hora = new Date().getHours();
     if (hora < 12) return t('bit.saudacaoManha', { nome: usuario.nome });
@@ -39,47 +28,57 @@ function saudacaoPorHora() {
     return t('bit.saudacaoNoite', { nome: usuario.nome });
 }
 
-function checkouHoje(registros) {
-    if (!registros || registros.length === 0) return false;
-    const maisRecente = registros[0];
-    if (!maisRecente?.createdAt) return false;
-    return new Date(maisRecente.createdAt).toISOString().slice(0, 10) === hojeISO();
+// ════════════════════════════════════════════════════════════════════════
+//  MODAL — moldura única centrada (substitui as variantes card/full)
+// ════════════════════════════════════════════════════════════════════════
+
+function onEscKey(e) {
+    if (e.key === 'Escape') dispensar();
 }
 
-// ════════════════════════════════════════════════════════════════════════
-//  MOLDURA — card no topo vs overlay tela cheia (?bit=card | ?bit=full)
-// ════════════════════════════════════════════════════════════════════════
-
-function criarMoldura(moldura) {
-    if (moldura === 'full') {
-        const overlay = document.createElement('div');
-        overlay.id = 'bitOverlay';
-        overlay.className = 'fixed inset-0 z-[90] bg-slate-950/95 backdrop-blur-sm overflow-y-auto px-4 py-10';
-        overlay.innerHTML = `
-            <div class="max-w-xl mx-auto relative">
-                <button type="button" id="bitFechar" aria-label="${t('bit.dispensar')}"
-                    class="absolute -top-2 -right-2 w-9 h-9 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition flex items-center justify-center">✕</button>
-                <div id="bitBubbles" class="space-y-4"></div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-        overlay.querySelector('#bitFechar').addEventListener('click', dispensar);
-        return overlay.querySelector('#bitBubbles');
+function onTabTrap(e) {
+    if (e.key !== 'Tab') return;
+    const overlay = document.getElementById('bitOverlay');
+    if (!overlay) return;
+    const focusables = overlay.querySelectorAll('button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])');
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
     }
+}
 
-    const mount = document.getElementById('bitMount');
-    if (!mount) return null;
-    const card = document.createElement('section');
-    card.id = 'bitCard';
-    card.className = 'rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 shadow-2xl backdrop-blur-lg mb-8 animate-fade-in';
-    card.innerHTML = `<div id="bitBubbles" class="space-y-4"></div>`;
-    mount.appendChild(card);
-    return card.querySelector('#bitBubbles');
+function criarModal() {
+    const overlay = document.createElement('div');
+    overlay.id = 'bitOverlay';
+    overlay.className = 'fixed inset-0 z-[90] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-8';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', t('bit.tituloModal'));
+    overlay.innerHTML = `
+        <div class="w-full max-w-[420px] max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-800 bg-slate-900/95 p-6 sm:p-8 shadow-2xl backdrop-blur-lg relative animate-fade-in">
+            <button type="button" id="bitFechar" aria-label="${t('bit.dispensar')}"
+                class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition flex items-center justify-center">✕</button>
+            <div id="bitBubbles" class="space-y-4 pr-2"></div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#bitFechar').addEventListener('click', dispensar);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) dispensar(); });
+    document.addEventListener('keydown', onEscKey);
+    overlay.addEventListener('keydown', onTabTrap);
+    overlay.querySelector('#bitFechar').focus(); // foco entra no modal ao abrir
+    return overlay.querySelector('#bitBubbles');
 }
 
 function dispensar() {
-    localStorage.setItem(dismissKey(), '1');
-    document.getElementById('bitCard')?.remove();
+    // Só esconde na visualização atual — sem localStorage, reload sempre traz o Bit de volta.
+    document.removeEventListener('keydown', onEscKey);
     document.getElementById('bitOverlay')?.remove();
 }
 
@@ -166,10 +165,50 @@ async function renderSugestoes(bubblesEl) {
 }
 
 // ════════════════════════════════════════════════════════════════════════
-//  FLUXO PRINCIPAL
+//  PERGUNTA SEMANAL — mesmos 5 emojis, mapeados a notas fixas (SEMANA_NOTA)
 // ════════════════════════════════════════════════════════════════════════
 
-function iniciarFluxoCompleto(bubblesEl) {
+function mostrarPerguntaSemanal(bubblesEl, onEscolha) {
+    if (bubblesEl.querySelector('#bitSemanalWrap')) return; // já exibida, idempotente
+
+    addBitBubble(bubblesEl, t('saude.perguntaSemanal'));
+
+    const wrap = document.createElement('div');
+    wrap.id = 'bitSemanalWrap';
+    wrap.className = 'pl-9 space-y-1';
+    wrap.innerHTML = `
+        <div class="flex flex-wrap gap-2">
+            ${MOOD_ORDER.map(m => `
+                <button type="button" data-mood="${m}" class="bit-semana-btn text-2xl px-3 py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl transition focus:ring-2 focus:ring-cyan-500 outline-none" aria-label="${t(MOOD_LABEL_KEYS[m])}">
+                    ${MOOD_EMOJIS[m]}
+                </button>
+            `).join('')}
+        </div>
+        <div class="flex justify-between text-[10px] text-slate-500">
+            <span>${t('saude.semanaAncoraMin')}</span>
+            <span>${t('saude.semanaAncoraMax')}</span>
+        </div>
+    `;
+    bubblesEl.appendChild(wrap);
+
+    wrap.querySelectorAll('.bit-semana-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            wrap.querySelectorAll('.bit-semana-btn').forEach(b => {
+                b.classList.remove('border-cyan-500', 'bg-slate-800');
+                b.classList.add('border-slate-800', 'bg-slate-950');
+            });
+            btn.classList.remove('border-slate-800', 'bg-slate-950');
+            btn.classList.add('border-cyan-500', 'bg-slate-800');
+            onEscolha(SEMANA_NOTA[btn.dataset.mood]);
+        });
+    });
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//  FLUXO PRINCIPAL — check-in diário (emoji opcional + texto livre)
+// ════════════════════════════════════════════════════════════════════════
+
+function perguntarCheckinDiario(bubblesEl, registros) {
     addBitBubble(bubblesEl, saudacaoPorHora());
 
     const moodWrap = document.createElement('div');
@@ -181,43 +220,6 @@ function iniciarFluxoCompleto(bubblesEl) {
     `).join('');
     bubblesEl.appendChild(moodWrap);
 
-    let humorEscolhido = null;
-    moodWrap.querySelectorAll('.bit-mood-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            humorEscolhido = btn.dataset.mood;
-            moodWrap.remove();
-            addUserBubble(bubblesEl, MOOD_EMOJIS[humorEscolhido]);
-            perguntarNota(bubblesEl, humorEscolhido);
-        });
-    });
-
-    linkAgoraNao(bubblesEl);
-}
-
-function perguntarNota(bubblesEl, humor) {
-    addBitBubble(bubblesEl, t('saude.notaLabel'));
-
-    const notaWrap = document.createElement('div');
-    notaWrap.className = 'pl-9 space-y-1';
-    notaWrap.innerHTML = `
-        <div id="bitNotaBotoes" class="flex flex-wrap gap-2"></div>
-        <div class="flex justify-between text-[10px] text-slate-500">
-            <span>${t('saude.notaAncoraMin')}</span>
-            <span>${t('saude.notaAncoraMax')}</span>
-        </div>
-    `;
-    bubblesEl.appendChild(notaWrap);
-
-    renderNotaBotoes(notaWrap.querySelector('#bitNotaBotoes'), (nota) => {
-        setTimeout(() => {
-            notaWrap.remove();
-            addUserBubble(bubblesEl, String(nota));
-            perguntarContexto(bubblesEl, humor, nota);
-        }, 150); // pequena pausa para o usuário ver o botão selecionado
-    });
-}
-
-function perguntarContexto(bubblesEl, humor, nota) {
     addBitBubble(bubblesEl, t('bit.perguntaContar'));
 
     const formWrap = document.createElement('div');
@@ -225,17 +227,58 @@ function perguntarContexto(bubblesEl, humor, nota) {
     formWrap.innerHTML = `
         <textarea rows="3" placeholder="${t('saude.contextoPlaceholder')}"
             class="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition"></textarea>
-        <button type="button" class="rounded-2xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-slate-950 shadow-xl transition hover:bg-cyan-400 transform active:scale-[0.98]">${t('saude.enviarRegistro')}</button>
+        <p class="hidden text-[11px] text-amber-400/90">${t('bit.pedirAlgumaCoisa')}</p>
+        <button type="button" disabled class="rounded-2xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-slate-950 shadow-xl transition hover:bg-cyan-400 transform active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed">${t('saude.enviarRegistro')}</button>
     `;
     bubblesEl.appendChild(formWrap);
 
     const textarea = formWrap.querySelector('textarea');
+    const hint = formWrap.querySelector('p');
     const botaoEnviar = formWrap.querySelector('button');
+
+    let humorEscolhido = null;
+    let notaSemanal = null;
+
+    function atualizarEstadoEnvio() {
+        const podeEnviar = Boolean(humorEscolhido) || textarea.value.trim().length > 0;
+        botaoEnviar.disabled = !podeEnviar;
+        hint.classList.toggle('hidden', podeEnviar);
+    }
+
+    function ofertarSemanalSeDevida() {
+        if (semanalDevida(registros)) {
+            mostrarPerguntaSemanal(bubblesEl, (n) => { notaSemanal = n; });
+        }
+    }
+
+    moodWrap.querySelectorAll('.bit-mood-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            moodWrap.querySelectorAll('.bit-mood-btn').forEach(b => {
+                b.classList.remove('border-cyan-500', 'bg-slate-800');
+                b.classList.add('border-slate-800', 'bg-slate-950');
+            });
+            btn.classList.remove('border-slate-800', 'bg-slate-950');
+            btn.classList.add('border-cyan-500', 'bg-slate-800');
+            humorEscolhido = btn.dataset.mood;
+            atualizarEstadoEnvio();
+            // "sobrecarregado" reoferece a pergunta semanal na hora, mesmo se
+            // não for devida essa semana — convite, nunca deriva por si.
+            if (humorEscolhido === 'sobrecarregado') {
+                mostrarPerguntaSemanal(bubblesEl, (n) => { notaSemanal = n; });
+            }
+        });
+    });
+
+    textarea.addEventListener('input', atualizarEstadoEnvio);
+
+    // Se a semanal já é devida, oferece na mesma conversa, antes do envio.
+    ofertarSemanalSeDevida();
 
     botaoEnviar.addEventListener('click', async () => {
         const contexto = textarea.value || '';
+        if (!humorEscolhido && !contexto.trim()) return; // guarda defensiva
 
-        if (nota <= 1) {
+        if (notaSemanal != null && notaSemanal <= 1) {
             const consentiu = await pedirConsentimento();
             if (!consentiu) return; // "cliquei sem querer": não grava, não avança
         }
@@ -246,12 +289,15 @@ function perguntarContexto(bubblesEl, humor, nota) {
         try {
             const data = await saudeCheckin({
                 usuarioId: usuario.id,
-                humor,
-                notaSemanal: nota,
+                humor: humorEscolhido,
+                notaSemanal,
                 contexto,
                 idioma: getIdioma(),
             });
+            moodWrap.remove();
             formWrap.remove();
+            document.getElementById('bitSemanalWrap')?.remove();
+            if (humorEscolhido) addUserBubble(bubblesEl, MOOD_EMOJIS[humorEscolhido]);
             if (contexto) addUserBubble(bubblesEl, contexto);
             renderRespostaBit(bubblesEl, data);
         } catch {
@@ -263,6 +309,10 @@ function perguntarContexto(bubblesEl, humor, nota) {
 }
 
 function renderRespostaBit(bubblesEl, data) {
+    if (data.leituraEmocional) {
+        addBitBubble(bubblesEl, `<span class="italic text-slate-300">${data.leituraEmocional}</span>`);
+    }
+
     // Não reaproveita addBitBubble aqui: renderNivelDerivacaoPanel substitui o
     // className inteiro do container (mesmo comportamento de saude-mental.js),
     // então o painel precisa de um wrapper flex-1 próprio em vez de ser o
@@ -296,26 +346,16 @@ function renderRespostaBit(bubblesEl, data) {
 
 async function iniciarBit() {
     if (!usuario?.id) return;
-    if (jaDispensadoHoje()) return;
 
-    const params = new URLSearchParams(window.location.search);
-    const moldura = params.get('bit') === 'full' ? 'full' : 'card';
-
-    const bubblesEl = criarMoldura(moldura);
+    const bubblesEl = criarModal();
     if (!bubblesEl) return;
 
     let registros = [];
     try {
         registros = await historicoSaude(usuario.id);
-    } catch { /* histórico indisponível: trata como "ainda não fez check-in hoje" */ }
+    } catch { /* histórico indisponível: trata a semanal como devida por padrão */ }
 
-    if (checkouHoje(registros)) {
-        addBitBubble(bubblesEl, t('bit.jaCheckou', { nome: usuario.nome }));
-        linkAgoraNao(bubblesEl);
-        return;
-    }
-
-    iniciarFluxoCompleto(bubblesEl);
+    perguntarCheckinDiario(bubblesEl, registros);
 }
 
 document.addEventListener('DOMContentLoaded', iniciarBit);
