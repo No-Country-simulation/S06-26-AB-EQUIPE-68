@@ -4,10 +4,13 @@ import com.bitsystem.bitapp.dto.PontoLazerDto;
 import com.bitsystem.bitapp.model.InfraestruturaRede;
 import com.bitsystem.bitapp.repository.InfraestruturaRedeRepository;
 import com.bitsystem.bitapp.util.GeoUtils;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import org.locationtech.jts.geom.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +26,11 @@ import org.springframework.stereotype.Service;
  * como fonte única) enriquecidos com o selo de zona de movimento (Vísent-c):
  * para cada ponto, acha a antena Vísent mais próxima e classifica sua
  * densidade populacional em tranquila/moderada/movimentada pelos percentis
- * 33/66 de TODAS as antenas carregadas (data/antenas_flp.csv). O resultado é
- * cacheado em memória — pontos e antenas são estáticos, não há por que
- * recalcular a cada request.
+ * 33/66 das antenas Vísent mais próximas de cada um dos 16 pontos de Lazer
+ * (podem repetir-se quando pontos compartilham a mesma antena mais próxima —
+ * classificação relativa entre os pontos disponíveis, não contra o dataset
+ * inteiro de antenas). O resultado é cacheado em memória — pontos e antenas
+ * são estáticos, não há por que recalcular a cada request.
  *
  * @author BiT System
  * @version 1.0.0
@@ -100,34 +105,46 @@ public class LazerService {
     }
 
     public List<PontoLazerDto.Response> listarPontos() {
-        List<InfraestruturaRede> antenas;
-        try {
-            antenas = infraestruturaRedeRepository.findAll();
-        } catch (Exception ex) {
-            log.warn("[LazerService] Banco indisponível ao buscar antenas, zona fica 'moderada': {}", ex.getMessage());
-            antenas = List.of();
-        }
-        final List<InfraestruturaRede> antenasFinal = antenas;
+        List<InfraestruturaRede> antenas = carregarAntenas();
+
+        // Resolve a antena mais próxima de CADA um dos 16 pontos primeiro —
+        // os cortes de percentil (D2) são calculados sobre essas 16 densidades
+        // (com repetição quando pontos compartilham a antena mais próxima),
+        // não sobre o dataset inteiro de antenas.
+        Map<Integer, Optional<InfraestruturaRede>> maisProximaPorPonto = PONTOS.stream()
+            .collect(Collectors.toMap(PontoLazerDto.Seed::id, p -> antenaMaisProxima(p, antenas)));
+
+        double[] cortes = obterCortesPercentis(maisProximaPorPonto.values());
 
         return PONTOS.stream()
             .map(p -> new PontoLazerDto.Response(
                 p.id(), p.nome(), p.tipo(), p.regiao(), p.lat(), p.lng(), p.descricao(),
                 p.gratuito(), p.acessivel(), p.horario(), p.tags(),
-                zonaCache.computeIfAbsent(p.id(), id -> calcularZona(p, antenasFinal))))
+                zonaCache.computeIfAbsent(p.id(), id -> calcularZona(maisProximaPorPonto.get(p.id()), cortes))))
             .toList();
     }
 
-    private String calcularZona(PontoLazerDto.Seed ponto, List<InfraestruturaRede> antenas) {
-        Optional<InfraestruturaRede> maisProxima = antenas.stream()
+    private List<InfraestruturaRede> carregarAntenas() {
+        try {
+            return infraestruturaRedeRepository.findAll();
+        } catch (Exception ex) {
+            log.warn("[LazerService] Banco indisponível ao buscar antenas, zona fica 'moderada': {}", ex.getMessage());
+            return List.of();
+        }
+    }
+
+    private Optional<InfraestruturaRede> antenaMaisProxima(PontoLazerDto.Seed ponto, List<InfraestruturaRede> antenas) {
+        return antenas.stream()
             .filter(a -> a.getPosicao() != null && a.getDensidadePopulacional() != null)
             .min(Comparator.comparingDouble(a -> distanciaAtePonto(ponto, a.getPosicao())));
+    }
 
-        if (maisProxima.isEmpty()) {
+    private String calcularZona(Optional<InfraestruturaRede> maisProxima, double[] cortes) {
+        if (maisProxima == null || maisProxima.isEmpty()) {
             return ZONA_MODERADA; // sem dado de antena disponível: classificação neutra
         }
 
         double densidade = maisProxima.get().getDensidadePopulacional();
-        double[] cortes = obterCortesPercentis(antenas);
         if (densidade <= cortes[0]) {
             return ZONA_TRANQUILA;
         }
@@ -142,17 +159,21 @@ public class LazerService {
     }
 
     /**
-     * Cortes de classificação = percentis 33 e 66 da densidade populacional de
-     * TODAS as antenas do dataset Vísent carregado (data/antenas_flp.csv, 132
-     * antenas). Calculado uma única vez (antenas são estáticas) e cacheado.
+     * Cortes de classificação = percentis 33 e 66 da densidade populacional
+     * das antenas Vísent mais próximas de cada um dos 16 pontos de Lazer
+     * (podem repetir-se quando pontos compartilham a mesma antena mais
+     * próxima — classificação relativa entre os pontos, não contra todas as
+     * antenas do dataset). Calculado uma única vez (pontos e antenas são
+     * estáticos) e cacheado.
      */
-    private double[] obterCortesPercentis(List<InfraestruturaRede> antenas) {
+    private double[] obterCortesPercentis(Collection<Optional<InfraestruturaRede>> maisProximasPorPonto) {
         double[] cache = cortesPercentis;
         if (cache != null) {
             return cache;
         }
-        double[] densidades = antenas.stream()
-            .map(InfraestruturaRede::getDensidadePopulacional)
+        double[] densidades = maisProximasPorPonto.stream()
+            .filter(Optional::isPresent)
+            .map(o -> o.get().getDensidadePopulacional())
             .filter(java.util.Objects::nonNull)
             .mapToDouble(Double::doubleValue)
             .sorted()

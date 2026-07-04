@@ -10,15 +10,30 @@ info:
     **Regra de crise (CVV):** a decisão de derivar um usuário para o CVV
     (Centro de Valorização da Vida) é **determinística no Backend**
     (`SaudeMentalService.nivelDerivacao`), baseada **exclusivamente na
-    `notaSemanal` (0-10)** do check-in atual — o humor e o texto **nunca**
-    derivam nada, e a derivação **nunca é delegada ao agente de IA** (Gemini
-    ou Mental Health Agent via n8n). A IA só gera a mensagem de acolhimento
-    (texto); ela nunca decide, aciona ou cancela o CVV. Regra graduada:
-    `notaSemanal` 0-1 → derivação **REFORÇADA** (modal de consentimento antes
-    de gravar + painel de cuidado com CVV em destaque); 2-3 → derivação
-    **PREVENTIVA** (grava direto + escuta suave apresentada como recurso);
-    4-10 → **sem derivação** (acolhimento normal). O nível é devolvido em
-    `nivelDerivacao` e `derivarCvv = (nivelDerivacao != null)`.
+    `notaSemanal` (0-10)** do check-in atual, **quando presente** — o humor e
+    o texto **nunca** derivam nada, e a derivação **nunca é delegada ao agente
+    de IA** (Gemini ou Mental Health Agent via n8n). A IA só gera a mensagem
+    de acolhimento e a `leituraEmocional` (texto); ela nunca decide, aciona ou
+    cancela o CVV. Regra graduada: `notaSemanal` 0-1 → derivação
+    **REFORÇADA** (modal de consentimento antes de gravar + painel de cuidado
+    com CVV em destaque); 2-3 → derivação **PREVENTIVA** (grava direto +
+    escuta suave apresentada como recurso); 4-10 → **sem derivação**
+    (acolhimento normal); **ausente** → **sem derivação** nesse check-in. O
+    nível é devolvido em `nivelDerivacao` e `derivarCvv = (nivelDerivacao !=
+    null)`.
+
+    **`notaSemanal` é opcional (lote 4.1):** o check-in diário do Bit
+    (emoji + texto livre) é enviado **sem** `notaSemanal` — o agente infere o
+    estado emocional do humor/texto só para gerar `leituraEmocional`, nunca
+    para derivar. A nota só é enviada quando o usuário responde à **pergunta
+    semanal** ("E como está sendo a sua semana?"), respondida pelos mesmos 5
+    emojis de humor mas mapeada no frontend a uma nota fixa (SEMANA_NOTA:
+    sobrecarregado=1, triste=3, ansioso=5, cansado=7, feliz=9) antes do envio
+    — backend e regra de derivação permanecem inalterados. A pergunta semanal
+    é oferecida quando não há `notaSemanal` registrada nos últimos 7 dias (ou
+    a qualquer momento, por convite, ao escolher o emoji "sobrecarregado" no
+    check-in diário); é pulável — sem resposta, não há derivação naquela
+    semana.
 
     **Convenções:**
     - Datas em ISO 8601 (`timestamp` de resposta e `createdAt`/`dataEnvio`/
@@ -118,7 +133,11 @@ paths:
         A derivação ao CVV (`derivarCvv`) é 100% determinística no backend —
         ver descrição da regra de crise no topo deste documento. A mensagem
         de acolhimento vem do Mental Health Agent (n8n) com fallback
-        gracioso (Gemini ou respostas curadas locais).
+        gracioso (Gemini ou respostas curadas locais). `notaSemanal` é
+        opcional (lote 4.1) — ausente no check-in diário, presente só quando
+        a pergunta semanal é respondida. A resposta sempre inclui
+        `leituraEmocional`, uma frase curta descrevendo o estado emocional
+        percebido (nunca cita a nota numérica).
       security: []
       requestBody:
         required: true
@@ -882,8 +901,11 @@ paths:
         Pontos migrados de frontend/js/lazer.js (fonte única agora é o
         backend). Cada ponto traz `zonaMovimento`, calculada a partir da
         antena Vísent mais próxima: a densidade populacional dessa antena é
-        classificada pelos percentis 33/66 de todas as antenas carregadas
-        (`data/antenas_flp.csv`) em `tranquila` (≤p33) / `moderada` (≤p66) /
+        classificada pelos percentis 33/66 das antenas Vísent mais próximas
+        de cada um dos 16 pontos de Lazer (podem repetir-se quando pontos
+        compartilham a mesma antena mais próxima — classificação relativa
+        entre os pontos disponíveis, não contra o dataset inteiro de antenas
+        de `data/antenas_flp.csv`) em `tranquila` (≤p33) / `moderada` (≤p66) /
         `movimentada` (>p66). Resultado cacheado em memória (pontos e
         antenas são estáticos).
       security: []
@@ -1055,10 +1077,16 @@ components:
           type: integer
           minimum: 0
           maximum: 10
+          nullable: true
           description: >-
-            Autoavaliação da semana (0-10). Único campo que decide a derivação
-            ao CVV: 0-1 = reforçada, 2-3 = preventiva, 4-10 = nenhuma. O humor
-            nunca deriva. Obrigatório; fora de 0-10 → 400 (código VALIDACAO).
+            Autoavaliação da semana (0-10), OPCIONAL (lote 4.1) — ausente no
+            check-in diário (emoji + texto livre); presente só quando a
+            pergunta semanal é respondida (nota fixa mapeada a partir do
+            emoji escolhido, ver SEMANA_NOTA no frontend). Único campo que
+            decide a derivação ao CVV quando presente: 0-1 = reforçada, 2-3 =
+            preventiva, 4-10 = nenhuma. O humor nunca deriva. Ausente = sem
+            derivação nesse check-in. Quando presente, fora de 0-10 → 400
+            (código VALIDACAO).
         contexto: { type: string }
         idioma:
           type: string
@@ -1081,7 +1109,8 @@ components:
             Equivale a `nivelDerivacao != null` (true para nota 0-3).
         notaAtual:
           type: integer
-          description: Nota reportada no check-in (0-10).
+          nullable: true
+          description: Nota reportada no check-in (0-10), ausente quando o check-in não incluiu notaSemanal.
         nivelDerivacao:
           type: string
           nullable: true
@@ -1094,13 +1123,26 @@ components:
           description: >-
             Token descritivo de status (uso interno/log, não é texto de UI):
             'DERIVACAO_REFORCADA' | 'DERIVACAO_PREVENTIVA' | 'ESTAVEL'.
+        leituraEmocional:
+          type: string
+          description: >-
+            Frase curta e empática descrevendo o estado emocional percebido
+            (emoji e/ou texto do check-in). Nunca cita a nota numérica.
+            Sempre preenchida — via IA (Gemini) ou fallback determinístico.
+            Campo aditivo (lote 4.1).
 
     SaudeHistoricoItem:
       type: object
       properties:
         id: { type: integer, format: int64 }
-        humor: { $ref: '#/components/schemas/Humor' }
-        notaSemanal: { type: integer }
+        humor:
+          allOf: [{ $ref: '#/components/schemas/Humor' }]
+          nullable: true
+          description: Ausente quando o check-in diário chegou só com texto, sem emoji.
+        notaSemanal:
+          type: integer
+          nullable: true
+          description: Ausente no check-in diário; presente quando a pergunta semanal foi respondida.
         contexto: { type: string }
         derivouCvv: { type: boolean }
         createdAt: { type: string, format: date-time }
@@ -1417,7 +1459,9 @@ components:
       description: >
         Selo de concentração de movimento perto do ponto (Vísent-c),
         calculado pelos percentis 33/66 da densidade populacional das
-        antenas Vísent carregadas.
+        antenas Vísent mais próximas de cada um dos 16 pontos de Lazer
+        (podem repetir-se quando pontos compartilham a mesma antena mais
+        próxima — classificação relativa entre os pontos disponíveis).
       enum: [tranquila, moderada, movimentada]
 
     PontoLazer:
