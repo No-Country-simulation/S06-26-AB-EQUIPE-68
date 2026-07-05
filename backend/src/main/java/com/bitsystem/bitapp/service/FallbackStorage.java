@@ -50,7 +50,7 @@ public class FallbackStorage {
     ) {}
 
     public record SaudeRecord(
-        Long id, Long usuarioId, String humor, Integer notaSemanal,
+        Long id, Long usuarioId, Integer nota,
         String contexto, boolean derivouCvv, LocalDateTime createdAt
     ) {}
 
@@ -159,14 +159,14 @@ public class FallbackStorage {
     //  SAÚDE (check-in) operations
     // ════════════════════════════════════════════════════════════════════════
 
-    public void saveSaudeRecord(Long usuarioId, String humor, Integer notaSemanal,
+    public void saveSaudeRecord(Long usuarioId, Integer nota,
             String contexto, boolean derivouCvv) {
         long id = saudeHistory.values().stream().mapToLong(List::size).sum() + 1;
         SaudeRecord record = new SaudeRecord(
-            id, usuarioId, humor, notaSemanal, contexto, derivouCvv, LocalDateTime.now()
+            id, usuarioId, nota, contexto, derivouCvv, LocalDateTime.now()
         );
         saudeHistory.computeIfAbsent(usuarioId, k -> new ArrayList<>()).add(record);
-        log.info("[FallbackStorage] Histórico de saúde salvo: usuarioId={}, humor={}", usuarioId, humor);
+        log.info("[FallbackStorage] Histórico de saúde salvo: usuarioId={}, nota={}", usuarioId, nota);
     }
 
     public List<SaudeRecord> findSaudeByUserId(Long usuarioId) {

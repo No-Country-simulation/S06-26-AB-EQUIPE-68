@@ -8,6 +8,7 @@ import com.bitsystem.bitapp.dto.SaudeDto;
 import com.bitsystem.bitapp.dto.SugestaoDto;
 import com.bitsystem.bitapp.exception.BusinessException;
 import com.bitsystem.bitapp.integration.GeminiClient;
+import com.bitsystem.bitapp.model.NivelCheckin;
 import com.bitsystem.bitapp.repository.UserRepository;
 import com.bitsystem.bitapp.seed.DicasLazerSeed;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,14 +42,11 @@ public class SugestaoService {
     private static final Logger log = LoggerFactory.getLogger(SugestaoService.class);
     private static final int QTD_SUGESTOES = 3;
 
-    /** Mapa fixo humor→categorias, para o fallback determinístico. */
-    private static final Map<String, List<String>> HUMOR_CATEGORIAS = Map.of(
-        "feliz", List.of("social", "cultura"),
-        "sobrecarregado", List.of("calma", "pausa"),
-        "triste", List.of("social", "natureza"),
-        "ansioso", List.of("calma", "natureza"),
-        "cansado", List.of("pausa", "natureza")
-    );
+    /** Categorias "ativas" (nota 7/9 — Feliz/Muito feliz). */
+    private static final List<String> CATEGORIAS_ATIVAS = List.of("social", "cultura");
+    /** Categorias "calmas/acolhedoras" (nota 1/3 — Muito triste/Triste). */
+    private static final List<String> CATEGORIAS_CALMAS = List.of("calma", "pausa");
+    /** Categorias padrão/neutras — nota 5 (Tranquilo), nota ausente (check-in só-texto) ou nota inválida. */
     private static final List<String> CATEGORIAS_PADRAO = List.of("natureza", "social", "cultura");
 
     private final SaudeMentalService saudeMentalService;
@@ -77,7 +75,7 @@ public class SugestaoService {
         User user = userRepository.findById(usuarioId)
                 .orElseThrow(() -> new BusinessException("USUARIO_NAO_ENCONTRADO", "Usuário não encontrado: " + usuarioId));
 
-        String humor = ultimoHumor(usuarioId);
+        Integer nota = ultimaNota(usuarioId);
         String contexto = ultimoContexto(usuarioId);
         String regiao = user.getCidade();
         List<DicaLazerDto> candidatas = DicasLazerSeed.DICAS_LAZER.getOrDefault(regiao, DicasLazerSeed.DICAS_GERAIS);
@@ -88,7 +86,7 @@ public class SugestaoService {
 
         if (geminiClient.isConfigured()) {
             try {
-                SugestaoDto.Response viaGemini = chamarGemini(humor, contexto, regiao, candidatas, sugerirOffline, zonaPredominante, idioma);
+                SugestaoDto.Response viaGemini = chamarGemini(nota, contexto, regiao, candidatas, sugerirOffline, zonaPredominante, idioma);
                 if (viaGemini != null && !viaGemini.sugestoes().isEmpty()) {
                     log.info("[SugestaoService] Sugestões via Gemini para usuarioId={}", usuarioId);
                     return viaGemini;
@@ -98,16 +96,15 @@ public class SugestaoService {
             }
         }
 
-        return fallbackDeterministico(humor, candidatas, sugerirOffline);
+        return fallbackDeterministico(nota, candidatas, sugerirOffline);
     }
 
-    private String ultimoHumor(Long usuarioId) {
+    private Integer ultimaNota(Long usuarioId) {
         List<SaudeDto.HistoricoResponse> historico = saudeMentalService.buscarHistorico(usuarioId);
         return historico.stream()
             .findFirst()
-            .map(SaudeDto.HistoricoResponse::humor)
-            .filter(h -> h != null && !h.isBlank())
-            .orElse("neutro");
+            .map(SaudeDto.HistoricoResponse::nota)
+            .orElse(null);
     }
 
     /** Texto livre do último check-in (lote 4.1) — aditivo, contexto extra
@@ -140,13 +137,14 @@ public class SugestaoService {
     // ════════════════════════════════════════════════════════════════════════
 
     /**
-     * Filtra as dicas candidatas pelas categorias do humor (mapa fixo);
+     * Filtra as dicas candidatas pelas categorias da faixa de nota do último
+     * check-in (1/3=calmas, 5=neutras, 7/9=ativas; nota ausente=neutras);
      * completa até QTD_SUGESTOES com o restante da lista regional e, se ainda
      * faltar, com DICAS_GERAIS. Quando sugerirOffline=true, prioriza as dicas
      * offlineFriendly=true (mantendo a ordem relativa das demais).
      */
-    SugestaoDto.Response fallbackDeterministico(String humor, List<DicaLazerDto> candidatas, boolean sugerirOffline) {
-        List<String> categorias = HUMOR_CATEGORIAS.getOrDefault(humor == null ? "" : humor.toLowerCase(), CATEGORIAS_PADRAO);
+    SugestaoDto.Response fallbackDeterministico(Integer nota, List<DicaLazerDto> candidatas, boolean sugerirOffline) {
+        List<String> categorias = categoriasPorNota(nota);
 
         // LinkedHashMap por título: preserva ordem de inserção e remove duplicatas.
         Map<String, DicaLazerDto> selecionadas = new LinkedHashMap<>();
@@ -175,26 +173,44 @@ public class SugestaoService {
         return new SugestaoDto.Response(itens);
     }
 
+    /** Categorias por faixa de nota do check-in (nota ausente → padrão/neutra). */
+    private static List<String> categoriasPorNota(Integer nota) {
+        if (nota == null) {
+            return CATEGORIAS_PADRAO;
+        }
+        if (nota <= 3) {
+            return CATEGORIAS_CALMAS;
+        }
+        if (nota >= 7) {
+            return CATEGORIAS_ATIVAS;
+        }
+        return CATEGORIAS_PADRAO;
+    }
+
     // ════════════════════════════════════════════════════════════════════════
     //  IA (Gemini)
     // ════════════════════════════════════════════════════════════════════════
 
-    private SugestaoDto.Response chamarGemini(String humor, String contextoCheckin, String regiao, List<DicaLazerDto> candidatas,
+    private SugestaoDto.Response chamarGemini(Integer nota, String contextoCheckin, String regiao, List<DicaLazerDto> candidatas,
             boolean sugerirOffline, String zonaPredominante, String idioma) throws Exception {
-        String prompt = buildPrompt(humor, contextoCheckin, regiao, candidatas, sugerirOffline, zonaPredominante, idioma);
+        String prompt = buildPrompt(nota, contextoCheckin, regiao, candidatas, sugerirOffline, zonaPredominante, idioma);
         String resposta = geminiClient.generateContent(prompt);
         return parsearResposta(resposta);
     }
 
-    private String buildPrompt(String humor, String contextoCheckin, String regiao, List<DicaLazerDto> candidatas,
+    private String buildPrompt(Integer nota, String contextoCheckin, String regiao, List<DicaLazerDto> candidatas,
             boolean sugerirOffline, String zonaPredominante, String idioma) {
         String idiomaTexto = "es".equalsIgnoreCase(idioma) ? "espanhol" : "portugues";
         String lista = candidatas.stream()
             .map(d -> "- " + d.titulo() + ": " + d.desc())
             .collect(Collectors.joining("\n"));
 
+        String rotulo = nota != null
+            ? NivelCheckin.fromNota(nota).getRotulo()
+            : "não informado";
+
         String contextoZona = zonaPredominante != null
-            ? "Zona predominante da região: " + zonaPredominante + ". Se o humor for sobrecarregado, priorize sugestões compatíveis com ambientes tranquilos."
+            ? "Zona predominante da região: " + zonaPredominante + ". Se o estado emocional indicar sobrecarga, priorize sugestões compatíveis com ambientes tranquilos."
             : "";
         String contextoOffline = sugerirOffline
             ? "A conectividade do usuário está fraca — priorize sugestões que não dependem de internet."
@@ -215,7 +231,7 @@ public class SugestaoService {
               ]
             }
 
-            Humor atual do usuario: %s
+            Estado emocional atual do usuario: %s
             Região: %s
             %s
             %s
@@ -230,7 +246,7 @@ public class SugestaoService {
             - Responda em %s (idioma escolhido pelo usuario na interface)
             - Retorne APENAS o JSON, sem texto adicional
             """,
-            QTD_SUGESTOES, humor, regiao != null ? regiao : "não informada",
+            QTD_SUGESTOES, rotulo, regiao != null ? regiao : "não informada",
             contextoZona, contextoOffline, contextoCheckinTexto, lista, idiomaTexto
         );
     }

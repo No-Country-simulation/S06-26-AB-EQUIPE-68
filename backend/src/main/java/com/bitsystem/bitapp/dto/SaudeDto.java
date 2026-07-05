@@ -29,20 +29,17 @@ public class SaudeDto {
     public record Request(
         /** ID do usuário no banco (identificador da sessão) */
         Long usuarioId,
-        
-        /** Estado de humor (emoji/rótulo). Alimenta só o TOM do acolhimento —
-         *  nunca deriva ao CVV. */
-        String humor,
 
-        /** Autoavaliação da semana (0-10), OPCIONAL — ausente no check-in diário
-         *  (emoji+texto); presente quando a pergunta semanal é respondida (nota
-         *  fixa mapeada a partir do emoji escolhido, ver SEMANA_NOTA no frontend).
-         *  Único campo que decide a derivação ao CVV quando presente: 0-1 =
-         *  reforçada, 2-3 = preventiva, 4-10 = nenhuma. Ausente = sem derivação
-         *  nesse check-in. */
-        @Min(value = 0, message = "A nota semanal deve ser no mínimo 0")
-        @Max(value = 10, message = "A nota semanal deve ser no máximo 10")
-        Integer notaSemanal,
+        /** Nota do check-in (escala única CVV v2: 9=Muito feliz, 7=Feliz,
+         *  5=Tranquilo, 3=Triste, 1=Muito triste). OPCIONAL — check-in só de
+         *  texto (sem emoji) chega com nota=null: não deriva ao CVV, não
+         *  entra na agregação diária nem na tendência semanal, só acolhimento.
+         *  Único campo que decide a derivação ao CVV quando presente: nota 1 =
+         *  reforçada, nota 3 = preventiva, nota 5/7/9 = nenhuma. A nota NUNCA
+         *  é inferida do texto livre ou de IA (ver NivelCheckin). */
+        @Min(value = 1, message = "Nota de check-in inválida")
+        @Max(value = 9, message = "Nota de check-in inválida")
+        Integer nota,
 
         /** Contexto livre sobre o estado (pressões, desafios, etc) */
         String contexto,
@@ -71,16 +68,17 @@ public class SaudeDto {
         /** Flag: necessita derivação para Centro de Valorização da Vida? */
         Boolean derivarCvv,
         
-        /** Nota de bem-estar reportada no check-in (0-10) */
-        Integer notaAtual,
+        /** Nota do check-in reportada (escala única: 9/7/5/3/1), ou null
+         *  quando o check-in foi só texto. */
+        Integer nota,
 
         /** Token descritivo de status (uso interno/log, não é texto de UI):
          *  DERIVACAO_REFORCADA | DERIVACAO_PREVENTIVA | ESTAVEL */
         String alerta,
 
         /** Nível da derivação ao CVV, para o frontend escolher o painel:
-         *  "REFORCADO" (nota 0-1) | "PREVENTIVO" (nota 2-3) | null (nota 4-10).
-         *  Decidido SÓ pela nota; IA/agente/texto nunca influenciam. */
+         *  "REFORCADO" (nota 1) | "PREVENTIVO" (nota 3) | null (nota 5/7/9 ou
+         *  ausente). Decidido SÓ pela nota; IA/agente/texto nunca influenciam. */
         String nivelDerivacao,
 
         /** Frase curta e empática descrevendo o estado emocional percebido
@@ -124,8 +122,7 @@ public class SaudeDto {
      */
     public record HistoricoResponse(
         Long id,
-        String humor,
-        Integer notaSemanal,
+        Integer nota,
         String contexto,
         Boolean derivouCvv,
         java.time.LocalDateTime createdAt

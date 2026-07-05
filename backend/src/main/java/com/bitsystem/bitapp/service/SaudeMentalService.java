@@ -5,6 +5,7 @@ import com.bitsystem.bitapp.dto.SaudeDto;
 import com.bitsystem.bitapp.integration.GeminiClient;
 import com.bitsystem.bitapp.integration.N8NMentalHealthClient;
 import com.bitsystem.bitapp.model.HistoricoSaude;
+import com.bitsystem.bitapp.model.NivelCheckin;
 import com.bitsystem.bitapp.repository.HistoricoSaudeRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,9 +50,9 @@ public class SaudeMentalService {
     }
 
     public SaudeDto.Response avaliarEstadoMental(SaudeDto.Request request) {
-        // ── DECISÃO DO CVV: 100% determinística, baseada SÓ na nota semanal ──
+        // ── DECISÃO DO CVV: 100% determinística, baseada SÓ na nota do check-in ──
         // A IA, o Mental Health Agent e o texto do usuário NUNCA entram aqui.
-        String nivelDerivacao = nivelDerivacao(request.notaSemanal());
+        String nivelDerivacao = nivelDerivacao(request.nota());
         boolean derivarCvv = nivelDerivacao != null;
 
         // ── MENSAGEM DE ACOLHIMENTO: agente do Tiago (n8n) com fallback gracioso ──
@@ -75,7 +76,7 @@ public class SaudeMentalService {
                 rawResponse.mensagem(),
                 rawResponse.acaoSugerida(),
                 derivarCvv,
-                request.notaSemanal(),
+                request.nota(),
                 alerta,
                 nivelDerivacao,
                 leituraEmocional);
@@ -83,8 +84,7 @@ public class SaudeMentalService {
         try {
             HistoricoSaude historico = HistoricoSaude.builder()
                     .userId(request.usuarioId())
-                    .humor(request.humor())
-                    .notaSemanal(request.notaSemanal())
+                    .nota(request.nota())
                     .contexto(request.contexto())
                     .derivouCvv(derivarCvv)
                     .build();
@@ -95,7 +95,7 @@ public class SaudeMentalService {
         } catch (Exception ex) {
             log.warn("[SaudeMentalService] Banco indisponivel, salvando em memoria: {}", ex.getMessage());
             fallbackStorage.saveSaudeRecord(
-                request.usuarioId(), request.humor(), request.notaSemanal(),
+                request.usuarioId(), request.nota(),
                 request.contexto(), derivarCvv
             );
         }
@@ -108,12 +108,12 @@ public class SaudeMentalService {
     // ════════════════════════════════════════════════════════════════════════
 
     /**
-     * Nível de derivação ao CVV, decidido EXCLUSIVAMENTE pela nota semanal (0-10).
-     * O humor, a IA, o Mental Health Agent e o texto do usuário NUNCA entram aqui
-     * (contrato do Dia 1). Retorna:
-     *   - "REFORCADO"  → nota 0-1 (crise aguda: modal de consentimento + CVV em destaque);
-     *   - "PREVENTIVO" → nota 2-3 (escuta suave, apresentada como recurso);
-     *   - null         → nota 4-10 (sem derivação, acolhimento normal).
+     * Nível de derivação ao CVV, decidido EXCLUSIVAMENTE pela nota do check-in
+     * (escala única CVV v2: 9/7/5/3/1, ou null se check-in só-texto). A IA, o
+     * Mental Health Agent e o texto do usuário NUNCA entram aqui. Retorna:
+     *   - "REFORCADO"  → nota 1 (crise aguda: modal de consentimento + CVV em destaque);
+     *   - "PREVENTIVO" → nota 3 (escuta suave, apresentada como recurso);
+     *   - null         → nota 5/7/9 ou ausente (sem derivação, acolhimento normal).
      */
     private String nivelDerivacao(Integer nota) {
         if (nota == null) {
@@ -140,10 +140,11 @@ public class SaudeMentalService {
      */
     private String leituraEmocionalFallback(SaudeDto.Request request) {
         boolean es = "es".equals(request.idiomaOuPadrao());
-        if (request.humor() != null && !request.humor().isBlank()) {
+        if (request.nota() != null) {
+            String rotulo = NivelCheckin.fromNota(request.nota()).getRotulo();
             return es
-                    ? "Percibí que te estás sintiendo " + request.humor() + "."
-                    : "Percebi que você está se sentindo " + request.humor() + ".";
+                    ? "Percibí que te estás sintiendo " + rotulo.toLowerCase() + "."
+                    : "Percebi que você está se sentindo " + rotulo.toLowerCase() + ".";
         }
         boolean temContexto = request.contexto() != null && !request.contexto().isBlank();
         if (temContexto) {
@@ -181,8 +182,7 @@ public class SaudeMentalService {
     private Map<String, Object> montarPayloadAgente(SaudeDto.Request request) {
         Map<String, Object> payload = new HashMap<>();
         payload.put("userId", request.usuarioId());
-        payload.put("humor", request.humor());
-        payload.put("notaSemanal", request.notaSemanal());
+        payload.put("nota", request.nota());
         payload.put("message", request.contexto() != null ? request.contexto() : "");
         payload.put("tipo", "mental-health");
         return payload;
@@ -230,7 +230,7 @@ public class SaudeMentalService {
                 log.warn("[SaudeMentalService] Gemini indisponivel, usando respostas curadas: {}", ex.getMessage());
             }
         }
-        return emotionResponseProvider.resolve(request.humor(), request.notaSemanal(), request.idiomaOuPadrao());
+        return emotionResponseProvider.resolve(request.nota(), request.idiomaOuPadrao());
     }
 
     private SaudeDto.RawResponse chamarGemini(SaudeDto.Request request) throws Exception {
@@ -241,9 +241,9 @@ public class SaudeMentalService {
 
     private String buildPrompt(SaudeDto.Request request) {
         String idioma = "es".equals(request.idiomaOuPadrao()) ? "espanhol" : "portugues";
-        String notaTexto = request.notaSemanal() != null
-                ? String.valueOf(request.notaSemanal())
-                : "não informada (check-in sem nota semanal)";
+        String rotuloTexto = request.nota() != null
+                ? NivelCheckin.fromNota(request.nota()).getRotulo()
+                : "não informado (check-in só com texto)";
         return String.format("""
             Voce e um profissional de saude mental especializado em acolhimento de pessoas em transicao de carreira.
             Analise o check-in do usuario e retorne um JSON EXATAMENTE neste formato:
@@ -251,24 +251,22 @@ public class SaudeMentalService {
             {
               "mensagem": "sua mensagem empatica e acolhedora",
               "acaoSugerida": "acao pratica e imediata que o usuario pode tomar agora",
-              "leituraEmocional": "uma frase curta e empatica descrevendo o estado emocional que voce percebeu no humor e no texto"
+              "leituraEmocional": "uma frase curta e empatica descrevendo o estado emocional que voce percebeu no rotulo e no texto"
             }
 
-            Check-in do usuario (humor e nota sao independentes):
-            - Humor (so o tom, nao decide nada; pode estar ausente se o usuario so escreveu texto): %s
-            - Nota semanal (0-10, autoavaliacao da semana): %s
+            Check-in do usuario:
+            - Rótulo do check-in (não decide nada sozinho; pode estar ausente se o usuario so escreveu texto): %s
             - Contexto: %s
 
             Regras:
             - Seja sempre empatico e acolhedor, validando os sentimentos da pessoa
-            - Se a nota for baixa, ofereca o CVV (188) como recurso disponivel, de forma acolhedora e nunca como bloqueio
-            - Se a nota for alta, seja encorajador e motivador
+            - Se o rótulo indicar um momento difícil, ofereca o CVV (188) como recurso disponivel, de forma acolhedora e nunca como bloqueio
+            - Se o rótulo indicar um bom momento, seja encorajador e motivador
             - NUNCA cite ou repita a nota numerica em nenhum dos campos, inclusive leituraEmocional
             - Responda em %s (idioma escolhido pelo usuario na interface)
             - Retorne APENAS o JSON, sem texto adicional
             """,
-            request.humor() != null && !request.humor().isBlank() ? request.humor() : "não informado",
-            notaTexto,
+            rotuloTexto,
             request.contexto() != null && !request.contexto().isBlank() ? request.contexto() : "Nenhum contexto fornecido",
             idioma
         );
@@ -309,8 +307,7 @@ public class SaudeMentalService {
             for (HistoricoSaude h : registros) {
                 resultado.add(new SaudeDto.HistoricoResponse(
                         h.getId(),
-                        h.getHumor(),
-                        h.getNotaSemanal(),
+                        h.getNota(),
                         h.getContexto(),
                         h.getDerivouCvv(),
                         h.getCreatedAt()
@@ -322,8 +319,7 @@ public class SaudeMentalService {
             for (FallbackStorage.SaudeRecord r : fallbackRecords) {
                 resultado.add(new SaudeDto.HistoricoResponse(
                         r.id(),
-                        r.humor(),
-                        r.notaSemanal(),
+                        r.nota(),
                         r.contexto(),
                         r.derivouCvv(),
                         r.createdAt()
