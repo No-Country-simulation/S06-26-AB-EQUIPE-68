@@ -9,7 +9,9 @@ import com.bitsystem.bitapp.model.NivelCheckin;
 import com.bitsystem.bitapp.repository.HistoricoSaudeRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,15 +74,6 @@ public class SaudeMentalService {
             default -> "ESTAVEL";
         };
 
-        SaudeDto.Response response = new SaudeDto.Response(
-                rawResponse.mensagem(),
-                rawResponse.acaoSugerida(),
-                derivarCvv,
-                request.nota(),
-                alerta,
-                nivelDerivacao,
-                leituraEmocional);
-
         try {
             HistoricoSaude historico = HistoricoSaude.builder()
                     .userId(request.usuarioId())
@@ -100,7 +93,19 @@ public class SaudeMentalService {
             );
         }
 
-        return response;
+        // ── TENDÊNCIA SEMANAL: calculada DEPOIS de persistir, para incluir o
+        // check-in de hoje na janela. Independente do gatilho imediato acima.
+        boolean tendenciaSemana = calcularTendenciaSemana(request.usuarioId());
+
+        return new SaudeDto.Response(
+                rawResponse.mensagem(),
+                rawResponse.acaoSugerida(),
+                derivarCvv,
+                request.nota(),
+                alerta,
+                nivelDerivacao,
+                leituraEmocional,
+                tendenciaSemana);
     }
 
     // ════════════════════════════════════════════════════════════════════════
@@ -328,5 +333,56 @@ public class SaudeMentalService {
         }
 
         return resultado;
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  TENDÊNCIA SEMANAL (CVV v2) — agregação diária + janela de 7 dias corridos
+    // ════════════════════════════════════════════════════════════════════════
+
+    private boolean calcularTendenciaSemana(Long usuarioId) {
+        return calcularTendenciaSemana(buscarHistorico(usuarioId), LocalDate.now());
+    }
+
+    /**
+     * Tendência semanal: verdadeiro quando 3+ dos até 5 dias-com-registro mais
+     * recentes, dentro de uma janela de 7 dias corridos (hoje e os 6
+     * anteriores), tiveram nota-do-dia (pior nota do dia) <=3.
+     *
+     * Check-ins sem nota (só texto) NUNCA entram na agregação — nem como
+     * ponto do dia, nem contando o dia como "dia com registro". Menos de 3
+     * dias-com-registro na janela → tendência nunca avaliada (retorna false).
+     *
+     * Pacote-privado e estático para ser testável diretamente com listas
+     * construídas em memória, sem depender de manipulação de datas no banco.
+     */
+    static boolean calcularTendenciaSemana(List<SaudeDto.HistoricoResponse> historico, LocalDate hoje) {
+        LocalDate inicioJanela = hoje.minusDays(6);
+        Map<LocalDate, Integer> piorNotaPorDia = new HashMap<>();
+
+        for (SaudeDto.HistoricoResponse registro : historico) {
+            if (registro.nota() == null) {
+                continue;
+            }
+            LocalDate dia = registro.createdAt().toLocalDate();
+            if (dia.isBefore(inicioJanela) || dia.isAfter(hoje)) {
+                continue;
+            }
+            piorNotaPorDia.merge(dia, registro.nota(), Math::min);
+        }
+
+        List<LocalDate> diasMaisRecentes = piorNotaPorDia.keySet().stream()
+                .sorted(Comparator.reverseOrder())
+                .limit(5)
+                .toList();
+
+        if (diasMaisRecentes.size() < 3) {
+            return false;
+        }
+
+        long diasComNotaBaixa = diasMaisRecentes.stream()
+                .filter(dia -> piorNotaPorDia.get(dia) <= 3)
+                .count();
+
+        return diasComNotaBaixa >= 3;
     }
 }

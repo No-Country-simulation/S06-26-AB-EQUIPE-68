@@ -11,36 +11,53 @@ class EmotionResponseProviderTest {
 
     @Test
     void idiomaEsDevolveRespostaEmEspanhol() {
-        SaudeDto.RawResponse r = provider.resolve("feliz", 8, "es");
-        assertTrue(r.mensagem().contains("ligero") || r.mensagem().contains("ligero".toLowerCase()));
+        SaudeDto.RawResponse r = provider.resolve(9, "es");
+        assertTrue(r.mensagem().toLowerCase().contains("muy bien"));
         assertFalse(r.mensagem().toLowerCase().contains("leve"), "não deve vazar texto em PT quando idioma=es");
     }
 
     @Test
     void idiomaPtDevolveRespostaEmPortugues() {
-        SaudeDto.RawResponse r = provider.resolve("ansioso", 3, "pt");
-        assertTrue(r.mensagem().contains("ansiedade"));
+        SaudeDto.RawResponse r = provider.resolve(3, "pt");
+        assertTrue(r.mensagem().toLowerCase().contains("tristeza"));
     }
 
     @Test
     void idiomaAusenteCaiParaPortuguesPorPadrao() {
-        SaudeDto.RawResponse comIdiomaNulo = provider.resolve("triste", 5, null);
-        SaudeDto.RawResponse comPt = provider.resolve("triste", 5, "pt");
+        SaudeDto.RawResponse comIdiomaNulo = provider.resolve(3, null);
+        SaudeDto.RawResponse comPt = provider.resolve(3, "pt");
         assertEquals(comPt.mensagem(), comIdiomaNulo.mensagem());
     }
 
     @Test
-    void humorDesconhecidoUsaFallbackPorNotaNoIdiomaCorreto() {
-        // nota < 4 sem humor reconhecido -> cai no "ansioso" do idioma pedido
-        SaudeDto.RawResponse r = provider.resolve("emoji-nao-mapeado", 2, "es");
-        assertTrue(r.mensagem().contains("ansiedad"));
+    void notaMuitoTristeRetornaTextoDeReforco() {
+        SaudeDto.RawResponse r = provider.resolve(1, "pt");
+        assertTrue(r.mensagem().toLowerCase().contains("peso"));
+        assertTrue(r.acaoSugerida().contains("188"));
     }
 
-    // ── LOTE 4.1: check-in diário pode chegar sem humor e sem nota ───────────
     @Test
-    void semHumorESemNotaNaoLancaExcecao() {
-        SaudeDto.RawResponse r = provider.resolve(null, null, "pt");
+    void cadaNivelDaEscalaRetornaRespostaDistinta() {
+        var respostas = java.util.List.of(
+                provider.resolve(9, "pt").mensagem(),
+                provider.resolve(7, "pt").mensagem(),
+                provider.resolve(5, "pt").mensagem(),
+                provider.resolve(3, "pt").mensagem(),
+                provider.resolve(1, "pt").mensagem()
+        );
+        assertEquals(5, java.util.Set.copyOf(respostas).size(), "os 5 níveis devem ter textos distintos");
+    }
+
+    // ── CHECK-IN SÓ-TEXTO: nota null não lança exceção ───────────────────────
+    @Test
+    void notaAusenteNaoLancaExcecao() {
+        SaudeDto.RawResponse r = provider.resolve(null, "pt");
         assertNotNull(r.mensagem());
         assertFalse(r.mensagem().isBlank());
+    }
+
+    @Test
+    void notaInvalidaLancaExcecao() {
+        assertThrows(IllegalArgumentException.class, () -> provider.resolve(4, "pt"));
     }
 }

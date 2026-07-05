@@ -1,7 +1,7 @@
 package com.bitsystem.bitapp.dto;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import com.bitsystem.bitapp.model.NivelCheckin;
+import jakarta.validation.constraints.AssertTrue;
 
 /**
  * ============================================================================
@@ -37,8 +37,6 @@ public class SaudeDto {
          *  Único campo que decide a derivação ao CVV quando presente: nota 1 =
          *  reforçada, nota 3 = preventiva, nota 5/7/9 = nenhuma. A nota NUNCA
          *  é inferida do texto livre ou de IA (ver NivelCheckin). */
-        @Min(value = 1, message = "Nota de check-in inválida")
-        @Max(value = 9, message = "Nota de check-in inválida")
         Integer nota,
 
         /** Contexto livre sobre o estado (pressões, desafios, etc) */
@@ -49,6 +47,13 @@ public class SaudeDto {
     ) {
         public String idiomaOuPadrao() {
             return "es".equalsIgnoreCase(idioma) ? "es" : "pt";
+        }
+
+        /** Nota ausente (check-in só-texto) é válida; se presente, precisa ser
+         *  um dos 5 valores da escala única (ver NivelCheckin). */
+        @AssertTrue(message = "Nota de check-in inválida")
+        public boolean isNotaValida() {
+            return nota == null || NivelCheckin.isNotaValida(nota);
         }
     }
 
@@ -85,7 +90,13 @@ public class SaudeDto {
          *  (emoji e/ou texto do check-in). Nunca cita a nota numérica. Sempre
          *  preenchida — via IA (Gemini) ou fallback determinístico. Campo
          *  aditivo (lote 4.1). */
-        String leituraEmocional
+        String leituraEmocional,
+
+        /** Tendência semanal (CVV v2): true quando 3+ dos até 5 dias-com-
+         *  registro mais recentes (janela de 7 dias corridos) tiveram nota-do-
+         *  dia (pior nota do dia) <=3. Independente do nivelDerivacao de hoje
+         *  — o frontend decide a prioridade visual entre os painéis. */
+        Boolean tendenciaSemana
     ) {}
 
     /**

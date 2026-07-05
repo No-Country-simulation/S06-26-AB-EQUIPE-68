@@ -35,10 +35,10 @@ class SugestaoServiceTest {
     private static final List<DicaLazerDto> DICAS_TRINDADE = DicasLazerSeed.DICAS_LAZER.get("TRINDADE");
 
     @Test
-    void fallbackMapeiaHumorSobrecarregadoParaCalmaEPausa() {
+    void fallbackMapeiaNotaBaixaParaCalmaEPausa() {
         // TRINDADE só tem 2 dicas calma/pausa — o fallback completa até 3 com o
         // restante da região, mas as 2 da categoria certa devem sempre aparecer.
-        SugestaoDto.Response resposta = sugestaoService.fallbackDeterministico("sobrecarregado", DICAS_TRINDADE, false);
+        SugestaoDto.Response resposta = sugestaoService.fallbackDeterministico(3, DICAS_TRINDADE, false);
 
         assertThat(resposta.sugestoes()).hasSize(3);
         List<String> titulosEsperados = DICAS_TRINDADE.stream()
@@ -50,8 +50,8 @@ class SugestaoServiceTest {
     }
 
     @Test
-    void fallbackMapeiaHumorFelizParaSocialECultura() {
-        SugestaoDto.Response resposta = sugestaoService.fallbackDeterministico("feliz", DICAS_TRINDADE, false);
+    void fallbackMapeiaNotaAltaParaSocialECultura() {
+        SugestaoDto.Response resposta = sugestaoService.fallbackDeterministico(9, DICAS_TRINDADE, false);
 
         List<String> titulosEsperados = DICAS_TRINDADE.stream()
             .filter(d -> d.categoria().equals("social") || d.categoria().equals("cultura"))
@@ -62,14 +62,23 @@ class SugestaoServiceTest {
     }
 
     @Test
+    void fallbackMapeiaNotaAusenteParaCategoriasPadrao() {
+        SugestaoDto.Response comNotaAusente = sugestaoService.fallbackDeterministico(null, DICAS_TRINDADE, false);
+        SugestaoDto.Response comNotaNeutra = sugestaoService.fallbackDeterministico(5, DICAS_TRINDADE, false);
+
+        assertThat(comNotaAusente.sugestoes()).extracting(SugestaoDto.Item::titulo)
+            .containsExactlyElementsOf(comNotaNeutra.sugestoes().stream().map(SugestaoDto.Item::titulo).toList());
+    }
+
+    @Test
     void fallbackPriorizaOfflineFriendlyQuandoConectividadeFraca() {
         // DICAS_GERAIS tem 2 itens offlineFriendly=false ("calma" e "social") — usando
-        // humor "ansioso" (categorias calma/natureza), a dica de música (calma,
+        // nota 3 (categorias calma/pausa), a dica de música (calma,
         // offline=false) deve perder posição para as offlineFriendly=true.
         SugestaoDto.Response semOffline = sugestaoService.fallbackDeterministico(
-                "ansioso", DicasLazerSeed.DICAS_GERAIS, false);
+                3, DicasLazerSeed.DICAS_GERAIS, false);
         SugestaoDto.Response comOffline = sugestaoService.fallbackDeterministico(
-                "ansioso", DicasLazerSeed.DICAS_GERAIS, true);
+                3, DicasLazerSeed.DICAS_GERAIS, true);
 
         assertThat(comOffline.sugestoes()).extracting(SugestaoDto.Item::titulo)
             .doesNotContain("Ouça música que te acalma");
