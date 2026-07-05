@@ -1,6 +1,6 @@
 import { saudeCheckin, historicoSaude, buscarSugestoes } from './api.js';
 import { t, getIdioma } from './i18n.js';
-import { MOOD_EMOJIS, MOOD_ORDER, MOOD_LABEL_KEYS, SEMANA_NOTA, semanalDevida, renderNivelDerivacaoPanel } from './saude-shared.js';
+import { nivelPorNota, renderNivelDerivacaoPanel } from './saude-shared.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -25,14 +25,11 @@ const REGION_LABELS = {
     SAO_JOSE_CENTRO: 'São José — Centro',
 };
 
-// Estado do check-in — humor e nota são INDEPENDENTES (contrato do Dia 1).
-// O humor alimenta só o tom do acolhimento; a nota (agora opcional, só na
-// pergunta semanal) é a única entrada que deriva.
-let selectedMoodState = null;
-let notaSemanal = null; // preenchida só pela seleção na seção semanal (SEMANA_NOTA).
+// Escala única de check-in (CVV v2): nota é a ÚNICA entrada que deriva ao
+// CVV. Emoji é opcional — texto livre sozinho continua válido (nota=null).
+let notaSelecionada = null;
 
-// O emoji seleciona SÓ o humor/tom — nunca mais é convertido em nota.
-function selectMood(btn, mood) {
+function selectMood(btn, nota) {
     document.querySelectorAll('.mood-btn').forEach(el => {
         el.classList.remove('border-cyan-500', 'bg-slate-800');
         el.classList.add('border-slate-800', 'bg-slate-950');
@@ -41,48 +38,13 @@ function selectMood(btn, mood) {
     btn.classList.remove('border-slate-800', 'bg-slate-950');
     btn.classList.add('border-cyan-500', 'bg-slate-800');
     btn.setAttribute('aria-pressed', 'true');
-    selectedMoodState = mood;
-    // "sobrecarregado" reoferece a pergunta semanal, mesmo se não for devida.
-    if (mood === 'sobrecarregado') document.getElementById('semanalSection')?.classList.remove('hidden');
+    notaSelecionada = nota;
 }
 window.selectMood = selectMood;
-
-// 5 botões de emoji da pergunta semanal (mesmos da grade de humor, mas o
-// clique aqui mapeia para uma nota fixa via SEMANA_NOTA, não para o humor).
-function renderSemanaBotoes() {
-    const grid = document.getElementById('semanalBotoes');
-    if (!grid) return;
-    grid.innerHTML = MOOD_ORDER.map(m => `
-        <button type="button" data-mood="${m}" aria-pressed="false" aria-label="${t(MOOD_LABEL_KEYS[m])}"
-            class="semana-btn text-2xl px-3 py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl transition focus:ring-2 focus:ring-cyan-500 outline-none">
-            ${MOOD_EMOJIS[m]}
-        </button>
-    `).join('');
-    grid.querySelectorAll('.semana-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            grid.querySelectorAll('.semana-btn').forEach(el => {
-                el.classList.remove('border-cyan-500', 'bg-slate-800');
-                el.classList.add('border-slate-800', 'bg-slate-950');
-                el.setAttribute('aria-pressed', 'false');
-            });
-            btn.classList.remove('border-slate-800', 'bg-slate-950');
-            btn.classList.add('border-cyan-500', 'bg-slate-800');
-            btn.setAttribute('aria-pressed', 'true');
-            notaSemanal = SEMANA_NOTA[btn.dataset.mood];
-        });
-    });
-}
-
-function toggleSemanalSection(registros) {
-    document.getElementById('semanalSection')?.classList.toggle('hidden', !semanalDevida(registros));
-}
 
 // Aplica os textos do idioma atual nos rótulos/âncoras/modal estáticos.
 function aplicarTextos() {
     const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-    set('semanalLabel', t('saude.perguntaSemanal'));
-    set('semanalAncoraMin', t('saude.semanaAncoraMin'));
-    set('semanalAncoraMax', t('saude.semanaAncoraMax'));
     set('contextoLabel', t('saude.contextoLabel'));
     set('confirmTitle', t('saude.modalTitulo'));
     set('confirmMsg', t('saude.modalMsg'));
@@ -100,8 +62,7 @@ async function enviarCheckin() {
     try {
         const data = await saudeCheckin({
             usuarioId: usuario.id,
-            humor: selectedMoodState,
-            notaSemanal,
+            nota: notaSelecionada,
             contexto: document.getElementById('healthContext')?.value || '',
             idioma: getIdioma(),
         });
@@ -124,7 +85,7 @@ async function enviarCheckin() {
     finally { if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = t('saude.enviarRegistro'); } }
 }
 
-// Passo de confirmação empática (Plano A): para nota <= 1 (REFORÇADO), confirma
+// Passo de confirmação empática (Plano A): para nota 1 (REFORÇADO), confirma
 // antes de gravar. A confirmação é o único filtro do clique acidental — texto
 // e IA nunca cancelam nada.
 const confirmModal = document.getElementById('confirmModal');
@@ -136,7 +97,7 @@ document.getElementById('confirmSim')?.addEventListener('click', () => {
     enviarCheckin();
 });
 document.getElementById('confirmNao')?.addEventListener('click', () => {
-    // Cancela o envio: não submete, não grava. O usuário pode reescolher o humor.
+    // Cancela o envio: não submete, não grava. O usuário pode reescolher o nível.
     fecharConfirmacao();
 });
 confirmModal?.addEventListener('click', (e) => { if (e.target === confirmModal) fecharConfirmacao(); });
@@ -145,10 +106,10 @@ formSaude?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const contexto = document.getElementById('healthContext')?.value || '';
     // Nada obrigatório sozinho — só exige pelo menos um dos dois (emoji ou texto).
-    if (!selectedMoodState && !contexto.trim()) { alert(t('saude.alertaSemNadaPreencher')); return; }
-    // Nota 0-1 (derivação REFORÇADA): consentimento ANTES de gravar.
-    // "Cliquei sem querer" não grava nada. Sem nota, ou nota 2-10, grava direto.
-    if (notaSemanal !== null && notaSemanal <= 1) {
+    if (!notaSelecionada && !contexto.trim()) { alert(t('saude.alertaSemNadaPreencher')); return; }
+    // Nota 1 (derivação REFORÇADA): consentimento ANTES de gravar.
+    // "Cliquei sem querer" não grava nada. Sem nota, ou nota 3/5/7/9, grava direto.
+    if (notaSelecionada === 1) {
         abrirConfirmacao();
         return;
     }
@@ -183,10 +144,7 @@ async function carregarDicasLazer() {
 }
 
 document.addEventListener('DOMContentLoaded', carregarDicasLazer);
-document.addEventListener('DOMContentLoaded', () => {
-    renderSemanaBotoes();
-    aplicarTextos();
-});
+document.addEventListener('DOMContentLoaded', aplicarTextos);
 
 async function carregarHistorico() {
     const grid = document.getElementById('historicoGrid');
@@ -195,22 +153,25 @@ async function carregarHistorico() {
 
     try {
         const registros = await historicoSaude(usuario.id);
-        toggleSemanalSection(registros);
         if (!registros || registros.length === 0) {
             empty.classList.remove('hidden');
             return;
         }
         empty.classList.add('hidden');
-        grid.innerHTML = registros.slice(0, 10).map(r => `
+        grid.innerHTML = registros.slice(0, 10).map(r => {
+            const nivel = nivelPorNota(r.nota);
+            const emoji = nivel ? nivel.emoji : '📝';
+            const rotulo = nivel ? t(nivel.labelKey) : t('saude.semNota');
+            return `
             <div class="rounded-2xl bg-slate-900/60 border border-slate-800 p-4 flex items-center gap-4">
-                <span class="text-2xl">${MOOD_EMOJIS[r.humor] || '—'}</span>
+                <span class="text-2xl">${emoji}</span>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-white capitalize">${r.humor || '—'}</p>
+                    <p class="text-sm font-semibold text-white">${rotulo}</p>
                     <p class="text-xs text-slate-400 truncate">${r.contexto || t('saude.semContexto')}</p>
                 </div>
                 <span class="text-[10px] text-slate-500 shrink-0">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('pt-BR') : '—'}</span>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
     } catch {
         empty.classList.remove('hidden');
         empty.textContent = t('saude.historicoErro');

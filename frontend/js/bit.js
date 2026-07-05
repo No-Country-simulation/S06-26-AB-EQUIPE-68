@@ -1,16 +1,16 @@
 // Card do Bit — check-in conversacional na entrada do dashboard.
-// Lote 4.1: moldura única (modal centrado, sem variantes por query param),
-// aparece em toda carga do dashboard (sem guard de "já fez check-in hoje" e
-// sem persistência em localStorage — "agora não" só esconde na visualização
-// atual). Check-in diário é emoji (opcional) + texto livre; a nota 0-10 foi
-// extinta — a pergunta semanal usa os mesmos 5 emojis mapeados a notas fixas
-// (SEMANA_NOTA). Reaproveita saudeCheckin/buscarSugestoes (api.js), os
-// painéis graduados e o modal de consentimento do lote 2 (saude-shared.js /
-// mesmos textos do DICT). saude-mental.html continua funcionando igual —
-// o Bit é um caminho adicional, não substituto.
-import { saudeCheckin, historicoSaude, buscarSugestoes } from './api.js';
+// Moldura única (modal centrado, sem variantes por query param), aparece em
+// toda carga do dashboard (sem guard de "já fez check-in hoje" e sem
+// persistência em localStorage — "agora não" só esconde na visualização
+// atual). Check-in é a escala única CVV v2 (emoji opcional) + texto livre;
+// sem emoji, nota=null (não deriva, não entra em agregação/tendência).
+// Reaproveita saudeCheckin/buscarSugestoes (api.js), os painéis graduados e
+// o modal de consentimento (saude-shared.js / mesmos textos do DICT).
+// saude-mental.html continua funcionando igual — o Bit é um caminho
+// adicional, não substituto.
+import { saudeCheckin, buscarSugestoes } from './api.js';
 import { t, getIdioma } from './i18n.js';
-import { MOOD_ORDER, MOOD_EMOJIS, MOOD_LABEL_KEYS, SEMANA_NOTA, semanalDevida, renderNivelDerivacaoPanel } from './saude-shared.js';
+import { NIVEL_CHECKIN, nivelPorNota, renderNivelDerivacaoPanel } from './saude-shared.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -165,57 +165,17 @@ async function renderSugestoes(bubblesEl) {
 }
 
 // ════════════════════════════════════════════════════════════════════════
-//  PERGUNTA SEMANAL — mesmos 5 emojis, mapeados a notas fixas (SEMANA_NOTA)
+//  FLUXO PRINCIPAL — check-in único (emoji opcional + texto livre)
 // ════════════════════════════════════════════════════════════════════════
 
-function mostrarPerguntaSemanal(bubblesEl, onEscolha) {
-    if (bubblesEl.querySelector('#bitSemanalWrap')) return; // já exibida, idempotente
-
-    addBitBubble(bubblesEl, t('saude.perguntaSemanal'));
-
-    const wrap = document.createElement('div');
-    wrap.id = 'bitSemanalWrap';
-    wrap.className = 'pl-9 space-y-1';
-    wrap.innerHTML = `
-        <div class="flex flex-wrap gap-2">
-            ${MOOD_ORDER.map(m => `
-                <button type="button" data-mood="${m}" class="bit-semana-btn text-2xl px-3 py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl transition focus:ring-2 focus:ring-cyan-500 outline-none" aria-label="${t(MOOD_LABEL_KEYS[m])}">
-                    ${MOOD_EMOJIS[m]}
-                </button>
-            `).join('')}
-        </div>
-        <div class="flex justify-between text-[10px] text-slate-500">
-            <span>${t('saude.semanaAncoraMin')}</span>
-            <span>${t('saude.semanaAncoraMax')}</span>
-        </div>
-    `;
-    bubblesEl.appendChild(wrap);
-
-    wrap.querySelectorAll('.bit-semana-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            wrap.querySelectorAll('.bit-semana-btn').forEach(b => {
-                b.classList.remove('border-cyan-500', 'bg-slate-800');
-                b.classList.add('border-slate-800', 'bg-slate-950');
-            });
-            btn.classList.remove('border-slate-800', 'bg-slate-950');
-            btn.classList.add('border-cyan-500', 'bg-slate-800');
-            onEscolha(SEMANA_NOTA[btn.dataset.mood]);
-        });
-    });
-}
-
-// ════════════════════════════════════════════════════════════════════════
-//  FLUXO PRINCIPAL — check-in diário (emoji opcional + texto livre)
-// ════════════════════════════════════════════════════════════════════════
-
-function perguntarCheckinDiario(bubblesEl, registros) {
+function perguntarCheckinDiario(bubblesEl) {
     addBitBubble(bubblesEl, saudacaoPorHora());
 
     const moodWrap = document.createElement('div');
     moodWrap.className = 'flex flex-wrap gap-2 pl-9';
-    moodWrap.innerHTML = MOOD_ORDER.map(m => `
-        <button type="button" data-mood="${m}" class="bit-mood-btn text-2xl px-3 py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl transition focus:ring-2 focus:ring-cyan-500 outline-none" aria-label="${t(MOOD_LABEL_KEYS[m])}">
-            ${MOOD_EMOJIS[m]}
+    moodWrap.innerHTML = NIVEL_CHECKIN.map(n => `
+        <button type="button" data-nota="${n.nota}" class="bit-mood-btn text-2xl px-3 py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl transition focus:ring-2 focus:ring-cyan-500 outline-none" aria-label="${t(n.labelKey)}">
+            ${n.emoji}
         </button>
     `).join('');
     bubblesEl.appendChild(moodWrap);
@@ -236,19 +196,12 @@ function perguntarCheckinDiario(bubblesEl, registros) {
     const hint = formWrap.querySelector('p');
     const botaoEnviar = formWrap.querySelector('button');
 
-    let humorEscolhido = null;
-    let notaSemanal = null;
+    let notaEscolhida = null;
 
     function atualizarEstadoEnvio() {
-        const podeEnviar = Boolean(humorEscolhido) || textarea.value.trim().length > 0;
+        const podeEnviar = Boolean(notaEscolhida) || textarea.value.trim().length > 0;
         botaoEnviar.disabled = !podeEnviar;
         hint.classList.toggle('hidden', podeEnviar);
-    }
-
-    function ofertarSemanalSeDevida() {
-        if (semanalDevida(registros)) {
-            mostrarPerguntaSemanal(bubblesEl, (n) => { notaSemanal = n; });
-        }
     }
 
     moodWrap.querySelectorAll('.bit-mood-btn').forEach(btn => {
@@ -259,26 +212,19 @@ function perguntarCheckinDiario(bubblesEl, registros) {
             });
             btn.classList.remove('border-slate-800', 'bg-slate-950');
             btn.classList.add('border-cyan-500', 'bg-slate-800');
-            humorEscolhido = btn.dataset.mood;
+            notaEscolhida = Number(btn.dataset.nota);
             atualizarEstadoEnvio();
-            // "sobrecarregado" reoferece a pergunta semanal na hora, mesmo se
-            // não for devida essa semana — convite, nunca deriva por si.
-            if (humorEscolhido === 'sobrecarregado') {
-                mostrarPerguntaSemanal(bubblesEl, (n) => { notaSemanal = n; });
-            }
         });
     });
 
     textarea.addEventListener('input', atualizarEstadoEnvio);
 
-    // Se a semanal já é devida, oferece na mesma conversa, antes do envio.
-    ofertarSemanalSeDevida();
-
     botaoEnviar.addEventListener('click', async () => {
         const contexto = textarea.value || '';
-        if (!humorEscolhido && !contexto.trim()) return; // guarda defensiva
+        if (!notaEscolhida && !contexto.trim()) return; // guarda defensiva
 
-        if (notaSemanal != null && notaSemanal <= 1) {
+        // Nota 1 (derivação REFORÇADA): consentimento ANTES de gravar.
+        if (notaEscolhida === 1) {
             const consentiu = await pedirConsentimento();
             if (!consentiu) return; // "cliquei sem querer": não grava, não avança
         }
@@ -289,15 +235,13 @@ function perguntarCheckinDiario(bubblesEl, registros) {
         try {
             const data = await saudeCheckin({
                 usuarioId: usuario.id,
-                humor: humorEscolhido,
-                notaSemanal,
+                nota: notaEscolhida,
                 contexto,
                 idioma: getIdioma(),
             });
             moodWrap.remove();
             formWrap.remove();
-            document.getElementById('bitSemanalWrap')?.remove();
-            if (humorEscolhido) addUserBubble(bubblesEl, MOOD_EMOJIS[humorEscolhido]);
+            if (notaEscolhida) addUserBubble(bubblesEl, nivelPorNota(notaEscolhida)?.emoji || '');
             if (contexto) addUserBubble(bubblesEl, contexto);
             renderRespostaBit(bubblesEl, data);
         } catch {
@@ -350,12 +294,7 @@ async function iniciarBit() {
     const bubblesEl = criarModal();
     if (!bubblesEl) return;
 
-    let registros = [];
-    try {
-        registros = await historicoSaude(usuario.id);
-    } catch { /* histórico indisponível: trata a semanal como devida por padrão */ }
-
-    perguntarCheckinDiario(bubblesEl, registros);
+    perguntarCheckinDiario(bubblesEl);
 }
 
 document.addEventListener('DOMContentLoaded', iniciarBit);
