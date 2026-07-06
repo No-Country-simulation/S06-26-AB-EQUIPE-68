@@ -22,7 +22,7 @@ function usuarioAtual() {
 }
 
 function formatarRegiao(r) {
-    return r.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return r.replace(/_/g, ' ').replace(/(^|\s)(\p{L})/gu, (m, sep, c) => sep + c.toUpperCase());
 }
 
 function matchCor(pct) {

@@ -142,13 +142,6 @@ export async function listarRegioesCursos() {
     return apiFetch('/api/cursos/regioes');
 }
 
-export async function inscreverCurso(cursoId, usuarioId) {
-    return apiFetch('/api/cursos/inscrever', {
-        method: 'POST',
-        body: JSON.stringify({ cursoId, usuarioId }),
-    });
-}
-
 export async function historicoSaude(usuarioId) {
     return apiFetch(`/api/saude/historico?usuarioId=${usuarioId}`);
 }
