@@ -70,4 +70,45 @@ class VagaMatchServiceTest {
         assertTrue(r.skillsAtendidas().isEmpty());
         assertEquals(3, r.skillsFaltantes().size());
     }
+
+    @Test
+    void textoForaDoParenteseFazMatchComTermoCurto() {
+        VagaMatchDto.Resultado r = service.calcular("Java SE (Core Java)", "Java");
+        assertEquals(100, r.matchPercentual());
+        assertEquals(List.of("Java"), r.skillsAtendidas());
+    }
+
+    @Test
+    void conteudoEntreParentesesComBarraGeraTokensSeparados() {
+        VagaMatchDto.Resultado r = service.calcular(
+                "Banco de Dados Relacionais (PostgreSQL/MySQL)", "PostgreSQL, MySQL");
+        assertEquals(100, r.matchPercentual());
+        assertEquals(2, r.skillsAtendidas().size());
+        assertTrue(r.skillsAtendidas().containsAll(List.of("PostgreSQL", "MySQL")));
+    }
+
+    @Test
+    void sinonimoContinuaFuncionandoComSufixoEntreParenteses() {
+        VagaMatchDto.Resultado r = service.calcular("Spring Boot (e Spring Framework)", "Spring Boot");
+        assertEquals(100, r.matchPercentual());
+        assertEquals(List.of("Spring Boot"), r.skillsAtendidas());
+    }
+
+    @Test
+    void javaNaoFazMatchComJavascript() {
+        VagaMatchDto.Resultado r = service.calcular("Java", "JavaScript");
+        assertEquals(0, r.matchPercentual());
+        assertTrue(r.skillsAtendidas().isEmpty());
+        assertEquals(List.of("JavaScript"), r.skillsFaltantes());
+    }
+
+    @Test
+    void perfilCompletoDeExemploFazMatchComVagaJavaJpaPostgresql() {
+        String competencias = "Java SE (Core Java), Spring Boot (e Spring Framework), "
+                + "Banco de Dados Relacionais (PostgreSQL/MySQL), Python (Django/Flask)";
+        VagaMatchDto.Resultado r = service.calcular(competencias, "Java, JPA/Hibernate, PostgreSQL");
+        assertNotNull(r.matchPercentual());
+        assertTrue(r.matchPercentual() > 0);
+        assertTrue(r.skillsAtendidas().containsAll(List.of("Java", "PostgreSQL")));
+    }
 }
