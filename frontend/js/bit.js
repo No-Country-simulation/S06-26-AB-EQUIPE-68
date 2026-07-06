@@ -61,7 +61,7 @@ function criarModal() {
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', t('bit.tituloModal'));
     overlay.innerHTML = `
-        <div class="w-full max-w-[420px] max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-800 bg-slate-900/95 p-6 sm:p-8 shadow-2xl backdrop-blur-lg relative animate-fade-in">
+        <div id="bitModalBox" class="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-800 bg-slate-900/95 p-6 sm:p-8 shadow-2xl backdrop-blur-lg relative animate-fade-in transition-[max-width]">
             <button type="button" id="bitFechar" aria-label="${t('bit.dispensar')}"
                 class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition flex items-center justify-center">✕</button>
             <div id="bitBubbles" class="space-y-4 pr-2"></div>
@@ -168,16 +168,18 @@ async function renderSugestoes(bubblesEl) {
 //  PERGUNTA SEMANAL — mesmos 5 emojis, mapeados a notas fixas (SEMANA_NOTA)
 // ════════════════════════════════════════════════════════════════════════
 
-function mostrarPerguntaSemanal(bubblesEl, onEscolha) {
-    if (bubblesEl.querySelector('#bitSemanalWrap')) return; // já exibida, idempotente
+function mostrarPerguntaSemanal(moodGrid, onEscolha) {
+    if (moodGrid.querySelector('#bitSemanalWrap')) return; // já exibida, idempotente
 
-    addBitBubble(bubblesEl, t('saude.perguntaSemanal'));
+    const cell = document.createElement('div');
+    cell.className = 'space-y-3';
+    addBitBubble(cell, t('saude.perguntaSemanal'));
 
     const wrap = document.createElement('div');
     wrap.id = 'bitSemanalWrap';
     wrap.className = 'pl-9 space-y-1';
     wrap.innerHTML = `
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap sm:flex-nowrap gap-3">
             ${MOOD_ORDER.map(m => `
                 <button type="button" data-mood="${m}" class="bit-semana-btn text-2xl px-3 py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl transition focus:ring-2 focus:ring-cyan-500 outline-none" aria-label="${t(MOOD_LABEL_KEYS[m])}">
                     ${MOOD_EMOJIS[m]}
@@ -189,7 +191,12 @@ function mostrarPerguntaSemanal(bubblesEl, onEscolha) {
             <span>${t('saude.semanaAncoraMax')}</span>
         </div>
     `;
-    bubblesEl.appendChild(wrap);
+    cell.appendChild(wrap);
+    moodGrid.appendChild(cell);
+    // duas colunas só quando a semanal entra em cena — sem ela, o grid fica com 1 item só.
+    moodGrid.classList.add('md:grid-cols-2', 'gap-x-6');
+    // com 2 colunas, cada linha de 5 emojis precisa de mais largura pra não quebrar.
+    moodGrid.closest('#bitModalBox')?.classList.replace('max-w-2xl', 'max-w-3xl');
 
     wrap.querySelectorAll('.bit-semana-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -211,14 +218,19 @@ function mostrarPerguntaSemanal(bubblesEl, onEscolha) {
 function perguntarCheckinDiario(bubblesEl, registros) {
     addBitBubble(bubblesEl, saudacaoPorHora());
 
+    const moodGrid = document.createElement('div');
+    moodGrid.id = 'bitMoodGrid';
+    moodGrid.className = 'grid grid-cols-1 gap-4';
+
     const moodWrap = document.createElement('div');
-    moodWrap.className = 'flex flex-wrap gap-2 pl-9';
+    moodWrap.className = 'flex flex-wrap sm:flex-nowrap gap-3 pl-9';
     moodWrap.innerHTML = MOOD_ORDER.map(m => `
         <button type="button" data-mood="${m}" class="bit-mood-btn text-2xl px-3 py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl transition focus:ring-2 focus:ring-cyan-500 outline-none" aria-label="${t(MOOD_LABEL_KEYS[m])}">
             ${MOOD_EMOJIS[m]}
         </button>
     `).join('');
-    bubblesEl.appendChild(moodWrap);
+    moodGrid.appendChild(moodWrap);
+    bubblesEl.appendChild(moodGrid);
 
     addBitBubble(bubblesEl, t('bit.perguntaContar'));
 
@@ -247,7 +259,7 @@ function perguntarCheckinDiario(bubblesEl, registros) {
 
     function ofertarSemanalSeDevida() {
         if (semanalDevida(registros)) {
-            mostrarPerguntaSemanal(bubblesEl, (n) => { notaSemanal = n; });
+            mostrarPerguntaSemanal(moodGrid, (n) => { notaSemanal = n; });
         }
     }
 
@@ -264,7 +276,7 @@ function perguntarCheckinDiario(bubblesEl, registros) {
             // "sobrecarregado" reoferece a pergunta semanal na hora, mesmo se
             // não for devida essa semana — convite, nunca deriva por si.
             if (humorEscolhido === 'sobrecarregado') {
-                mostrarPerguntaSemanal(bubblesEl, (n) => { notaSemanal = n; });
+                mostrarPerguntaSemanal(moodGrid, (n) => { notaSemanal = n; });
             }
         });
     });
