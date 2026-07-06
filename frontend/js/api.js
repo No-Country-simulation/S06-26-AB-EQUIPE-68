@@ -142,13 +142,6 @@ export async function listarRegioesCursos() {
     return apiFetch('/api/cursos/regioes');
 }
 
-export async function enviarCurriculo(vagaId, usuarioId) {
-    return apiFetch('/api/vagas/enviar-curriculo', {
-        method: 'POST',
-        body: JSON.stringify({ vagaId, usuarioId }),
-    });
-}
-
 export async function inscreverCurso(cursoId, usuarioId) {
     return apiFetch('/api/cursos/inscrever', {
         method: 'POST',
