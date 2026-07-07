@@ -1,4 +1,4 @@
-import { login, logout } from './api.js';
+import { login, logout, clearAssessmentCache } from './api.js';
 import { t, aplicarIdiomaSemRecarregar } from './i18n.js';
 
 const SESSION_KEY = 'bitapp_usuario';
@@ -74,6 +74,7 @@ document.getElementById('formLogin')?.addEventListener('submit', async (event) =
 
     try {
         const data = await login({ email, password });
+        clearAssessmentCache(data.userId);
         localStorage.setItem(SESSION_KEY, JSON.stringify({
             id: data.userId,
             nome: data.nome,

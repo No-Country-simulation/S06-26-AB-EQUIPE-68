@@ -1,4 +1,4 @@
-import { updateProfile } from './api.js';
+import { updateProfile, clearAssessmentCache } from './api.js';
 import { t } from './i18n.js';
 
 const SESSION_KEY = 'bitapp_usuario';
@@ -61,6 +61,7 @@ document.getElementById('formPerfil')?.addEventListener('submit', async (event) 
                 areaTecnologia: data.areaTecnologia || usuario.areaTecnologia,
                 competenciasAtuais: data.competenciasAtuais || usuario.competenciasAtuais,
             }));
+            clearAssessmentCache(usuario.id);
         }
 
         showMsg(t('perfil.sucesso'), 'success');

@@ -1,4 +1,4 @@
-import { assessment, logout, listarVagas, listarCursos, networkStatus, salvarLocalizacao } from './api.js';
+import { assessment, logout, listarVagas, listarCursos, networkStatus, salvarLocalizacao, getAssessmentCache, setAssessmentCache } from './api.js';
 import { t, getIdioma } from './i18n.js';
 
 const SESSION_KEY = 'bitapp_usuario';
@@ -45,19 +45,23 @@ window.handleLogout = handleLogout;
 async function carregarAssessment() {
     if (!usuario) return;
     try {
-        // Monta o request a partir do que existir no perfil do usuário logado.
-        const competencias = (usuario.competenciasAtuais || '')
-            .split(',').map(s => s.trim()).filter(Boolean);
-        const data = await assessment({
-            nome: usuario.nome || 'Usuário',
-            idade: null,
-            escolaridade: null,
-            experiencia: usuario.nivelProfissional || null,
-            hardSkills: competencias,
-            softSkills: [],
-            tecnologias: usuario.areaTecnologia ? [usuario.areaTecnologia] : [],
-            idioma: getIdioma(),
-        }, usuario.id);
+        let data = getAssessmentCache(usuario.id);
+        if (!data) {
+            // Monta o request a partir do que existir no perfil do usuário logado.
+            const competencias = (usuario.competenciasAtuais || '')
+                .split(',').map(s => s.trim()).filter(Boolean);
+            data = await assessment({
+                nome: usuario.nome || 'Usuário',
+                idade: null,
+                escolaridade: null,
+                experiencia: usuario.nivelProfissional || null,
+                hardSkills: competencias,
+                softSkills: [],
+                tecnologias: usuario.areaTecnologia ? [usuario.areaTecnologia] : [],
+                idioma: getIdioma(),
+            }, usuario.id);
+            setAssessmentCache(usuario.id, data);
+        }
 
         const match = typeof data.compatibilidade === 'number' ? data.compatibilidade : 0;
         const matchEl = document.getElementById('dashMatchPercent');

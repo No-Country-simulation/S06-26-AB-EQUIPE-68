@@ -79,6 +79,35 @@ export async function updateProfile(data) {
     });
 }
 
+const ASSESSMENT_CACHE_PREFIX = 'bit_assessment_';
+
+export function getAssessmentCache(usuarioId) {
+    try {
+        const raw = sessionStorage.getItem(ASSESSMENT_CACHE_PREFIX + usuarioId);
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+}
+
+export function setAssessmentCache(usuarioId, data) {
+    try {
+        sessionStorage.setItem(ASSESSMENT_CACHE_PREFIX + usuarioId, JSON.stringify(data));
+    } catch {
+        // falha de escrita degrada para "sem cache" — próxima visita chama a API de novo
+    }
+}
+
+export function clearAssessmentCache(usuarioId) {
+    if (usuarioId) {
+        sessionStorage.removeItem(ASSESSMENT_CACHE_PREFIX + usuarioId);
+        return;
+    }
+    Object.keys(sessionStorage)
+        .filter((k) => k.startsWith(ASSESSMENT_CACHE_PREFIX))
+        .forEach((k) => sessionStorage.removeItem(k));
+}
+
 export async function logout() {
     try {
         await apiFetch('/api/auth/logout', { method: 'POST' });
@@ -86,6 +115,7 @@ export async function logout() {
     localStorage.removeItem('bitapp_token');
     localStorage.removeItem('bitapp_refresh');
     localStorage.removeItem('bitapp_usuario');
+    clearAssessmentCache();
 }
 
 export async function assessment(dados, usuarioId = 0) {
