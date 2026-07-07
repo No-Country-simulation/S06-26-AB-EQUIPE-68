@@ -11,10 +11,12 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 @Service
+@Order(1) // boot: 1º — popula o catálogo de vagas aleatórias (guarda count()>0)
 public class VagaSeedService implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(VagaSeedService.class);

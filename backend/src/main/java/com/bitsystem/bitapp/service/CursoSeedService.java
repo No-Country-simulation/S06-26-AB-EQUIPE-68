@@ -8,6 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 /**
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
  * IFSC, Senac, SENAI, Go Up, ACATE, Católica SC): regiao = "Florianópolis".
  */
 @Service
+@Order(2) // boot: 2º — popula catálogo de cursos (independente)
 public class CursoSeedService implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(CursoSeedService.class);
