@@ -1,4 +1,4 @@
-import { listarVagas, buscarVaga, listarRegioesVagas, enviarCurriculo, matchLoteVagas, matchVaga } from './api.js';
+import { listarVagas, buscarVaga, listarRegioesVagas, matchLoteVagas, matchVaga } from './api.js';
 import { t, getIdioma } from './i18n.js';
 
 const grid = document.getElementById('vagasGrid');
@@ -22,7 +22,7 @@ function usuarioAtual() {
 }
 
 function formatarRegiao(r) {
-    return r.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return r.replace(/_/g, ' ').replace(/(^|\s)(\p{L})/gu, (m, sep, c) => sep + c.toUpperCase());
 }
 
 function matchCor(pct) {
@@ -152,13 +152,6 @@ async function abrirModal(id) {
                 <div class="text-xs text-slate-500 text-right">
                     ${t('vagas.publicadaEm', { data: new Date(v.createdAt).toLocaleDateString('pt-BR') })}
                 </div>
-                <div id="enviarCurriculoArea">
-                    <button onclick="enviarCurriculoParaVaga(${v.id})"
-                        class="w-full rounded-2xl bg-cyan-500 px-6 py-3 text-sm font-bold text-slate-950 shadow-xl transition hover:bg-cyan-400 transform active:scale-[0.98] focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-slate-900 outline-none">
-                        ${t('vagas.enviarCurriculo')}
-                    </button>
-                    <p id="enviarCurriculoMsg" class="mt-2 text-xs text-center hidden"></p>
-                </div>
             </div>`;
         modal.classList.remove('hidden');
         carregarMatchDetalhado(id);
@@ -222,23 +215,6 @@ document.addEventListener('keydown', (e) => {
         modal.classList.add('hidden');
     }
 });
-
-window.enviarCurriculoParaVaga = async function(vagaId) {
-    const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
-    if (!usuario) { window.location.href = 'index.html?msg=auth_required'; return; }
-    const msgEl = document.getElementById('enviarCurriculoMsg');
-    const area = document.getElementById('enviarCurriculoArea');
-    const btn = area?.querySelector('button');
-    if (btn) { btn.disabled = true; btn.innerHTML = `<span class="loader"></span> ${t('vagas.enviando')}`; }
-    try {
-        await enviarCurriculo(vagaId, usuario.id);
-        if (msgEl) { msgEl.textContent = t('vagas.curriculoSucesso'); msgEl.className = 'mt-2 text-xs text-center text-emerald-400'; }
-        if (btn) { btn.textContent = t('vagas.enviado'); btn.classList.remove('bg-cyan-500'); btn.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border', 'border-emerald-500/30'); }
-    } catch (err) {
-        if (msgEl) { msgEl.textContent = err.message || t('vagas.erroCurriculo'); msgEl.className = 'mt-2 text-xs text-center text-rose-400'; }
-        if (btn) { btn.disabled = false; btn.textContent = t('vagas.enviarCurriculo'); }
-    }
-};
 
 async function aplicarFiltros() {
     const params = {

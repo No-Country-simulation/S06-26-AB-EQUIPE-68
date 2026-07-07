@@ -61,7 +61,7 @@ function criarModal() {
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', t('bit.tituloModal'));
     overlay.innerHTML = `
-        <div class="w-full max-w-[420px] max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-800 bg-slate-900/95 p-6 sm:p-8 shadow-2xl backdrop-blur-lg relative animate-fade-in">
+        <div id="bitModalBox" class="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-800 bg-slate-900/95 p-6 sm:p-8 shadow-2xl backdrop-blur-lg relative animate-fade-in transition-[max-width]">
             <button type="button" id="bitFechar" aria-label="${t('bit.dispensar')}"
                 class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition flex items-center justify-center">✕</button>
             <div id="bitBubbles" class="space-y-4 pr-2"></div>

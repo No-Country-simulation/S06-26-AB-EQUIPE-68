@@ -8,10 +8,11 @@ import com.bitsystem.bitapp.repository.UserRepository;
 import com.bitsystem.bitapp.repository.VagaRepository;
 import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +36,13 @@ public class VagaMatchService {
         "postgres", "postgresql",
         "reactjs", "react"
     );
+
+    /** Conteúdo entre parênteses, capturado para virar tokens adicionais. */
+    private static final Pattern PARENTESES = Pattern.compile("\\(([^()]*)\\)");
+
+    /** Separadores dentro de um fragmento: barra, ou " e "/" ou " (exigem espaço nos dois lados). */
+    private static final Pattern SEPARADOR_FRAGMENTO =
+        Pattern.compile("\\s*/\\s*|\\s+e\\s+|\\s+ou\\s+", Pattern.CASE_INSENSITIVE);
 
     private final UserRepository userRepository;
     private final VagaRepository vagaRepository;
@@ -74,7 +82,7 @@ public class VagaMatchService {
             return new VagaMatchDto.Resultado(null, List.of(), List.of());
         }
 
-        Set<String> canonicosUsuario = splitLista(competenciasUsuario).stream()
+        Set<String> canonicosUsuario = expandirPalavras(splitLista(competenciasUsuario)).stream()
                 .map(VagaMatchService::canonicalizar)
                 .collect(Collectors.toSet());
 
@@ -96,10 +104,64 @@ public class VagaMatchService {
         if (raw == null || raw.isBlank()) {
             return List.of();
         }
-        return Arrays.stream(raw.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toList());
+        List<String> tokens = new ArrayList<>();
+        for (String item : raw.split(",")) {
+            tokens.addAll(tokenizarItem(item));
+        }
+        return tokens;
+    }
+
+    /**
+     * Quebra um item (já separado por vírgula) em tokens: o texto fora dos
+     * parênteses vira um token, e o conteúdo de cada parênteses vira token(s)
+     * adicionais — depois cada fragmento ainda é quebrado por "/", " e " e " ou ".
+     * Ex.: "Java SE (Core Java)" -> ["Java SE", "Core Java"]
+     *      "Banco de Dados (PostgreSQL/MySQL)" -> ["Banco de Dados", "PostgreSQL", "MySQL"]
+     */
+    private static List<String> tokenizarItem(String item) {
+        List<String> fragmentos = new ArrayList<>();
+        Matcher matcher = PARENTESES.matcher(item);
+        StringBuilder fora = new StringBuilder();
+        int ultimoFim = 0;
+        while (matcher.find()) {
+            fora.append(item, ultimoFim, matcher.start());
+            fragmentos.add(matcher.group(1));
+            ultimoFim = matcher.end();
+        }
+        fora.append(item.substring(ultimoFim));
+        fragmentos.add(0, fora.toString());
+
+        List<String> tokens = new ArrayList<>();
+        for (String fragmento : fragmentos) {
+            for (String sub : SEPARADOR_FRAGMENTO.split(fragmento)) {
+                String token = sub.trim();
+                if (!token.isEmpty()) {
+                    tokens.add(token);
+                }
+            }
+        }
+        return tokens;
+    }
+
+    /**
+     * Adiciona, para cada token composto (ex.: "Java SE", "Core Java"), também
+     * suas palavras individuais como tokens extras — só assim um item de perfil
+     * como "Java SE (Core Java)" bate com uma tecnologia curta de vaga ("Java").
+     * Aplicado só ao lado do usuário: o lado da vaga precisa manter os tokens
+     * originais intactos, pois eles compõem a lista exibida em atendidas/faltantes.
+     */
+    private static List<String> expandirPalavras(List<String> tokens) {
+        List<String> expandido = new ArrayList<>(tokens);
+        for (String token : tokens) {
+            if (token.contains(" ")) {
+                for (String palavra : token.split("\\s+")) {
+                    if (!palavra.isBlank()) {
+                        expandido.add(palavra);
+                    }
+                }
+            }
+        }
+        return expandido;
     }
 
     /** Normaliza (lowercase, trim, sem acentos) e resolve sinônimos fixos. */
