@@ -40,13 +40,20 @@
                     aria-expanded="false">☰</button>
 
                 <div id="navLinks" class="hidden md:flex items-center space-x-2">
-                    <a href="index.html" data-i18n="nav.login" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Login</a>
-                    <a href="cadastro.html" data-i18n="nav.cadastro" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cadastro</a>
-                    <a href="vagas.html" data-i18n="nav.vagas" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
-                    <a href="cursos.html" data-i18n="nav.cursos" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
-                    <a href="lazer.html" data-i18n="nav.lazer" class="text-sm font-medium text-amber-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Lazer</a>
-                    <div id="authSection" class="hidden">
-                        <a href="dashboard.html" data-i18n="nav.meuPainel" class="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition py-2 px-3">Meu Painel</a>
+                    <div id="navLoggedOut">
+                        <a href="index.html" data-i18n="nav.login" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Login</a>
+                        <a href="cadastro.html" data-i18n="nav.cadastro" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cadastro</a>
+                        <a href="vagas.html" data-i18n="nav.vagas" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
+                        <a href="cursos.html" data-i18n="nav.cursos" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
+                        <a href="lazer.html" data-i18n="nav.lazer" class="text-sm font-medium text-amber-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Lazer</a>
+                    </div>
+                    <div id="navLoggedIn" class="hidden">
+                        <a href="dashboard.html" data-i18n="nav.dashboard" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Dashboard</a>
+                        <a href="vagas.html" data-i18n="nav.vagas" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
+                        <a href="cursos.html" data-i18n="nav.cursos" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
+                        <a href="lazer.html" data-i18n="nav.lazer" class="text-sm font-medium text-amber-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Lazer</a>
+                        <a href="saude-mental.html" data-i18n="nav.saudeMental" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde Mental</a>
+                        <a href="perfil.html" data-i18n="nav.meuPerfil" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Meu Perfil</a>
                         <button onclick="handleLogout()" data-i18n="nav.sair" class="text-sm font-medium text-rose-400 hover:text-rose-300 transition py-2 px-3">Sair</button>
                     </div>
                     <span data-idioma-toggle class="flex items-center gap-1.5 text-xs ml-2"></span>
@@ -54,14 +61,22 @@
             </div>
 
             <div id="mobileNav" class="hidden md:hidden pb-4 space-y-2">
-                <a href="index.html" data-i18n="nav.login" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Login</a>
-                <a href="cadastro.html" data-i18n="nav.cadastro" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cadastro</a>
-                <a href="dashboard.html" data-i18n="nav.dashboard" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Painel</a>
-                <a href="vagas.html" data-i18n="nav.vagas" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
-                <a href="cursos.html" data-i18n="nav.cursos" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
-                <a href="lazer.html" data-i18n="nav.lazer" class="block text-sm font-medium text-amber-400 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
-                <a href="dashboard.html" data-i18n="nav.meuPainel" class="block text-sm font-medium text-cyan-400 py-2 px-3 rounded-lg border border-slate-800">Meu Painel</a>
-                <button onclick="handleLogout()" data-i18n="nav.sair" class="block w-full text-left text-sm font-medium text-rose-400 py-2 px-3 rounded-lg border border-slate-800">Sair</button>
+                <div id="mobileNavLoggedOut">
+                    <a href="index.html" data-i18n="nav.login" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Login</a>
+                    <a href="cadastro.html" data-i18n="nav.cadastro" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cadastro</a>
+                    <a href="vagas.html" data-i18n="nav.vagas" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
+                    <a href="cursos.html" data-i18n="nav.cursos" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
+                    <a href="lazer.html" data-i18n="nav.lazer" class="block text-sm font-medium text-amber-400 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
+                </div>
+                <div id="mobileNavLoggedIn" class="hidden">
+                    <a href="dashboard.html" data-i18n="nav.dashboard" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Dashboard</a>
+                    <a href="vagas.html" data-i18n="nav.vagas" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
+                    <a href="cursos.html" data-i18n="nav.cursos" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
+                    <a href="lazer.html" data-i18n="nav.lazer" class="block text-sm font-medium text-amber-400 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
+                    <a href="saude-mental.html" data-i18n="nav.saudeMental" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde Mental</a>
+                    <a href="perfil.html" data-i18n="nav.meuPerfil" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Meu Perfil</a>
+                    <button onclick="handleLogout()" data-i18n="nav.sair" class="block w-full text-left text-sm font-medium text-rose-400 py-2 px-3 rounded-lg border border-slate-800">Sair</button>
+                </div>
             </div>
         </div>
     </nav>
@@ -193,7 +208,10 @@
 
         const usuario = JSON.parse(localStorage.getItem('bitapp_usuario') || 'null');
         if (usuario) {
-            document.getElementById('authSection')?.classList.remove('hidden');
+            document.getElementById('navLoggedOut')?.classList.add('hidden');
+            document.getElementById('navLoggedIn')?.classList.remove('hidden');
+            document.getElementById('mobileNavLoggedOut')?.classList.add('hidden');
+            document.getElementById('mobileNavLoggedIn')?.classList.remove('hidden');
         }
 
         function handleLogout() {
