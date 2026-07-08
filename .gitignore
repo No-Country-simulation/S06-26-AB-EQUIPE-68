@@ -42,6 +42,7 @@ n8n/.n8n/
 n8n/cookies.txt
 n8n/*.json
 !n8n/bitapp-agent-workflow.json
+!n8n/bitapp-workflow-v2-producao.json
 
 # ─── Docker ────────────────────────────────────────────────────────────────
 docker/data/
