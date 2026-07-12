@@ -1,4 +1,5 @@
-import { orientar, saudeCheckin, logout, listarVagas, listarCursos } from './api.js';
+import { assessment, logout, listarVagas, listarCursos, networkStatus, salvarLocalizacao, getAssessmentCache, setAssessmentCache } from './api.js';
+import { t, getIdioma } from './i18n.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -14,24 +15,8 @@ if (!usuario) {
 
 if (usuario) {
     const nomeEl = document.getElementById('dashUsuarioNome');
-    if (nomeEl) nomeEl.textContent = `Olá, ${usuario.nome}`;
+    if (nomeEl) nomeEl.textContent = t('dashboard.ola', { nome: usuario.nome });
 }
-
-function switchTab(tabName) {
-    ['dashboard', 'saude'].forEach(t => {
-        document.getElementById(`tab-${t}`)?.classList.add('hidden');
-    });
-    document.getElementById(`tab-${tabName}`)?.classList.remove('hidden');
-    document.querySelectorAll('.nav-tab').forEach(btn => {
-        const active = btn.dataset.tab === tabName;
-        btn.classList.toggle('bg-slate-800', active);
-        btn.classList.toggle('border', active);
-        btn.classList.toggle('border-slate-700', active);
-        btn.classList.toggle('rounded-full', active);
-    });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-window.switchTab = switchTab;
 
 function closeMobileMenu() {
     document.getElementById('mobileNav')?.classList.add('hidden');
@@ -47,124 +32,75 @@ document.getElementById('menuToggle')?.addEventListener('click', () => {
     toggle.setAttribute('aria-expanded', String(!isOpen));
 });
 
-function handleLogout() {
-    logout();
+async function handleLogout() {
+    await logout();
     window.location.href = 'index.html';
 }
 window.handleLogout = handleLogout;
 
-function formatConfianca(valor) {
-    if (typeof valor === 'number') {
-        return valor >= 0.8 ? 'Alta' : valor >= 0.5 ? 'Média' : 'Baixa';
-    }
-    return valor || 'Alta';
-}
-
-async function carregarOrientacao() {
+// Dashboard usa o Assessment Agent (POST /api/assessment). Enquanto o n8n do Tiago
+// não estiver plugado, o backend responde com o FALLBACK do AssessmentService — o que
+// é o comportamento esperado. Formato: {compatibilidade, nivel, pontosFortes[], gaps[],
+// planoDesenvolvimento[]}.
+async function carregarAssessment() {
     if (!usuario) return;
     try {
-        const data = await orientar({
-            usuarioId: usuario.id,
-            perfil: usuario.competenciasAtuais || 'Perfil em formação',
-            nivel: usuario.nivelProfissional || 'Junior',
-            regiao: usuario.cidade || 'BR-SP',
-            idioma: 'PT',
-            lat: null,
-            lng: null,
-        });
-        const match = 100 - (data.gapPercentual || 30);
+        let data = getAssessmentCache(usuario.id);
+        if (!data) {
+            // Monta o request a partir do que existir no perfil do usuário logado.
+            const competencias = (usuario.competenciasAtuais || '')
+                .split(',').map(s => s.trim()).filter(Boolean);
+            data = await assessment({
+                nome: usuario.nome || 'Usuário',
+                idade: null,
+                escolaridade: null,
+                experiencia: usuario.nivelProfissional || null,
+                hardSkills: competencias,
+                softSkills: [],
+                tecnologias: usuario.areaTecnologia ? [usuario.areaTecnologia] : [],
+                idioma: getIdioma(),
+            }, usuario.id);
+            setAssessmentCache(usuario.id, data);
+        }
+
+        const match = typeof data.compatibilidade === 'number' ? data.compatibilidade : 0;
         const matchEl = document.getElementById('dashMatchPercent');
         if (matchEl) matchEl.textContent = match + '%';
+
         const gapList = document.getElementById('dashGapItens');
         if (gapList) {
-            gapList.innerHTML = (data.gapItens || []).map(item =>
+            gapList.innerHTML = (data.gaps || []).map(item =>
                 `<li class="rounded-xl bg-slate-950 px-4 py-3 border border-slate-800/60 flex items-center gap-2">
                     <span class="text-rose-500">❌</span> ${item}</li>`
             ).join('');
         }
+
         const trilha = document.getElementById('dashTrilha');
         if (trilha) {
-            trilha.innerHTML = (data.trilhaSugerida || []).map(item =>
+            trilha.innerHTML = (data.planoDesenvolvimento || []).map(item =>
                 `<article class="rounded-2xl bg-slate-950/80 p-5 border border-slate-800 hover:border-slate-700 transition">
                     <h3 class="text-base font-bold text-white">${item}</h3>
-                    <span class="inline-block mt-2 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 px-2.5 py-1 text-xs font-bold">Gratuito</span>
+                    <span class="inline-block mt-2 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 px-2.5 py-1 text-xs font-bold">${t('dashboard.recomendado')}</span>
                 </article>`
             ).join('');
         }
-        const vagas = data.vagasCompatibles || [];
+
         const vagaTitulo = document.getElementById('dashVagaTitulo');
         const vagaDesc = document.getElementById('dashVagaDesc');
-        if (vagas.length > 0 && vagaTitulo) {
-            vagaTitulo.textContent = vagas[0];
-            if (vagaDesc) {
-                vagaDesc.textContent = `Mercado atende ${match}% das necessidades. Foque nos ${data.gapPercentual || 30}% restantes.`;
-            }
+        if (vagaTitulo) vagaTitulo.textContent = data.nivel ? t('dashboard.nivelEstimado', { nivel: data.nivel }) : t('dashboard.perfilAnalisado');
+        if (vagaDesc) {
+            const fortes = data.pontosFortes || [];
+            vagaDesc.textContent = fortes.length > 0
+                ? t('dashboard.pontosFortes', { lista: fortes.join('; ') })
+                : t('dashboard.compatibilidadeMercado', { pct: match });
         }
     } catch (err) {
         const vagaTitulo = document.getElementById('dashVagaTitulo');
-        if (vagaTitulo) vagaTitulo.textContent = 'Análise indisponível';
+        if (vagaTitulo) vagaTitulo.textContent = t('dashboard.analiseIndisponivel');
     }
 }
 
-let selectedMoodState = null;
-let selectedNoteState = 5;
-
-function selectMood(btn, mood, note) {
-    document.querySelectorAll('.mood-btn').forEach(el => {
-        el.classList.remove('border-cyan-500', 'bg-slate-800');
-        el.classList.add('border-slate-800', 'bg-slate-950');
-        el.setAttribute('aria-pressed', 'false');
-    });
-    btn.classList.remove('border-slate-800', 'bg-slate-950');
-    btn.classList.add('border-cyan-500', 'bg-slate-800');
-    btn.setAttribute('aria-pressed', 'true');
-    selectedMoodState = mood;
-    selectedNoteState = note;
-}
-window.selectMood = selectMood;
-
-document.getElementById('formSaude')?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if (!selectedMoodState) { alert('Selecione um emoji.'); return; }
-    const submitBtn = event.target.querySelector('button[type="submit"]');
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="loader"></span> Salvando...'; }
-    try {
-        const data = await saudeCheckin({
-            usuarioId: usuario.id,
-            humor: selectedMoodState,
-            notaSemanal: selectedNoteState,
-            contexto: document.getElementById('healthContext')?.value || '',
-        });
-        renderAiResponse(data);
-    } catch { alert('Erro ao salvar check-in.'); }
-    finally { if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Enviar Registro Diário'; } }
-});
-
-function renderAiResponse(data) {
-    const container = document.getElementById('aiResponseContainer');
-    const title = document.getElementById('aiResponseTitle');
-    const msg = document.getElementById('aiResponseMsg');
-    const action = document.getElementById('aiResponseAction');
-    container.classList.remove('hidden');
-    if (data.derivarCvv) {
-        container.className = 'p-6 rounded-3xl border border-rose-900 bg-rose-950/30 mt-6 animate-fade-in';
-        title.className = 'text-sm font-bold uppercase tracking-wider mb-2 text-rose-400 flex items-center gap-2';
-        title.innerHTML = '⚠️ Suporte Crítico Ativado';
-        msg.innerText = data.mensagem;
-        action.innerHTML = `<div class="p-4 bg-slate-950 border border-rose-800/50 rounded-2xl space-y-2">
-            <p class="text-sm font-bold text-white">CVV — Disque 188</p>
-            <p class="text-xs text-slate-400">${data.acaoSugerida}</p></div>`;
-    } else {
-        container.className = 'p-6 rounded-3xl border border-slate-800 bg-slate-900/60 mt-6 animate-fade-in';
-        title.className = 'text-sm font-bold uppercase tracking-wider mb-2 text-cyan-400';
-        title.innerText = '✨ Resposta do Agente BiT';
-        msg.innerText = data.mensagem;
-        action.innerHTML = `<p class="text-xs text-slate-400 font-semibold mb-1">Ação:</p>
-            <p class="text-sm text-slate-200">${data.acaoSugerida}</p>`;
-    }
-}
-
-document.addEventListener('DOMContentLoaded', carregarOrientacao);
+document.addEventListener('DOMContentLoaded', carregarAssessment);
 
 async function loadSignal() {
     const badge = document.getElementById('signalBadge');
@@ -173,18 +109,26 @@ async function loadSignal() {
     badge.classList.remove('hidden');
     try {
         if (usuario?.id) {
-            const resp = await fetch(`http://localhost:8080/api/network-status/${usuario.id}`);
-            const json = await resp.json();
-            if (json.success && json.data) {
-                const d = json.data;
-                text.textContent = d.status === 'Estavel' ? `Rede Estável — ${d.tecnologiaPredominante || '4G'}` : 'Rede Instável';
-                return;
-            }
+            const d = await networkStatus(usuario.id);
+            text.textContent = d.status === 'Estavel' ? t('common.redeEstavel', { tec: d.tecnologiaPredominante || '4G' }) : t('common.redeInstavel');
+            return;
         }
-        text.textContent = 'Rede Estável — 4G';
-    } catch { text.textContent = 'Rede Estável — 4G'; }
+        text.textContent = t('common.redeEstavel', { tec: '4G' });
+    } catch { text.textContent = t('common.redeEstavel', { tec: '4G' }); }
 }
 document.addEventListener('DOMContentLoaded', loadSignal);
+
+// Captura silenciosa da localização (sem bloquear, sem erro visível ao usuário).
+function capturarLocalizacao() {
+    if (!usuario?.id || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            salvarLocalizacao(usuario.id, pos.coords.latitude, pos.coords.longitude).catch(() => {});
+        },
+        () => {} // permissão negada ou falha: silêncio total
+    );
+}
+document.addEventListener('DOMContentLoaded', capturarLocalizacao);
 
 const REGION_LABELS = {
     CBD_BEIRAMAR: 'Centro/Beiramar',
@@ -257,7 +201,7 @@ async function carregarRecomendacoes() {
     const nomeRegiao = REGION_LABELS[regiao] || regiao;
     const areas = AREA_MAP[usuario.areaTecnologia] || ['Java', 'Web', 'Dados'];
 
-    subtitulo.textContent = `Baseado na sua região — ${nomeRegiao}`;
+    subtitulo.textContent = t('dashboard.baseadoNaRegiao', { regiao: nomeRegiao });
 
     let vagasEncontradas = [];
     let cursosEncontrados = [];

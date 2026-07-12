@@ -19,14 +19,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<StandardApiResponse<Void>> handleBusiness(BusinessException ex) {
         log.warn("Business exception: {} - {}", ex.getCode(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(StandardApiResponse.error(ex.getMessage()));
+                .body(StandardApiResponse.error(ex.getMessage(), ex.getCode()));
     }
 
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<StandardApiResponse<List<String>>> handleValidation(ValidationException ex) {
         log.warn("Validation exception: {}", ex.getErrors());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(StandardApiResponse.error(String.join("; ", ex.getErrors())));
+                .body(StandardApiResponse.error(String.join("; ", ex.getErrors()), "VALIDACAO"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -36,13 +36,13 @@ public class GlobalExceptionHandler {
                 .toList();
         log.warn("Method validation failed: {}", errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(StandardApiResponse.error(String.join("; ", errors)));
+                .body(StandardApiResponse.error(String.join("; ", errors), "VALIDACAO"));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<StandardApiResponse<Void>> handleGeneral(Exception ex) {
         log.error("Unhandled exception", ex);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(StandardApiResponse.error("Serviço temporariamente indisponível. Tente novamente em alguns instantes."));
+                .body(StandardApiResponse.error("Serviço temporariamente indisponível. Tente novamente em alguns instantes.", "ERRO_INTERNO"));
     }
 }

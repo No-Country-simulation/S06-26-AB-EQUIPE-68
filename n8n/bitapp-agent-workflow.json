@@ -1,5 +1,5 @@
 {
-  "name": "BiT App - Orquestrador",
+  "name": "BiT App - Orquestrador (Gemini)",
   "nodes": [
     {
       "parameters": {
@@ -25,20 +25,30 @@
     },
     {
       "parameters": {
-        "model": "gpt-4o-mini",
-        "systemMessage": "Responda SOMENTE com uma palavra: ASSESSMENT ou MENTAL_HEALTH. ASSESSMENT = avaliacao de carreira, perfil profissional, skills, compatibilidade com vagas. MENTAL_HEALTH = saude mental, emocoes, bem-estar, humor, estresse.",
-        "messages": [
-          {
-            "role": "user",
-            "content": "={{ $json.message }}"
-          }
-        ]
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={{$env.GEMINI_API_KEY}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Responda SOMENTE com uma palavra: ASSESSMENT ou MENTAL_HEALTH. ASSESSMENT = avaliacao de carreira, perfil profissional, skills, compatibilidade com vagas. MENTAL_HEALTH = saude mental, emocoes, bem-estar, humor, estresse.\\n\\nMensagem do usuario: {{ $json.message }}\"\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"temperature\": 0.1,\n    \"maxOutputTokens\": 10\n  }\n}",
+        "options": {
+          "timeout": 30000
+        }
       },
-      "id": "openai_classify",
+      "id": "gemini_classify",
       "name": "Classificar Intent",
-      "type": "n8n-nodes-base.openAi",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nlet text = '';\ntry {\n  text = response.candidates[0].content.parts[0].text.trim().toUpperCase();\n} catch (e) {\n  text = 'MENTAL_HEALTH';\n}\nreturn [{ json: { intent: text } }];"
+      },
+      "id": "parse_classify",
+      "name": "Parse Intent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 300]
     },
     {
       "parameters": {
@@ -48,7 +58,7 @@
               "conditions": {
                 "string": [
                   {
-                    "value1": "={{ $json.choices[0].message.content }}",
+                    "value1": "={{ $json.intent }}",
                     "operation": "contains",
                     "value2": "ASSESSMENT"
                   }
@@ -60,7 +70,7 @@
               "conditions": {
                 "string": [
                   {
-                    "value1": "={{ $json.choices[0].message.content }}",
+                    "value1": "={{ $json.intent }}",
                     "operation": "contains",
                     "value2": "MENTAL_HEALTH"
                   }
@@ -76,46 +86,56 @@
       "name": "Router",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
-      "position": [800, 300]
+      "position": [900, 300]
     },
     {
       "parameters": {
-        "model": "gpt-4o-mini",
-        "systemMessage": "Voce e o agente de Avaliacao Profissional do BiT App. Analise o perfil do usuario e retorne EXATAMENTE um JSON valido. Estrutura obrigatoria: { compatibilidade: numero 0-100, nivel: string (Junior Trainee/Pleno/Pleno/Senior), pontosFortes: array de strings, gaps: array de strings, planoDesenvolvimento: array de strings }. Analise as skills, tecnologias e experiencia do usuario para gerar uma avaliacao realista e personalizada. Responda APENAS com o JSON, sem texto adicional.",
-        "messages": [
-          {
-            "role": "user",
-            "content": "={{ $('Formatar Request').first().json.message }}"
-          }
-        ]
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={{$env.GEMINI_API_KEY}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Voce e o agente de Avaliacao Profissional do BiT App. Analise o perfil do usuario e retorne EXATAMENTE um JSON valido. Estrutura obrigatoria: { compatibilidade: numero 0-100, nivel: string (Estagiario/Junior/Pleno/Senior), pontosFortes: array de strings, gaps: array de strings, planoDesenvolvimento: array de strings }. Analise as skills, tecnologias e experiencia do usuario para gerar uma avaliacao realista e personalizada. Responda APENAS com o JSON, sem texto adicional.\\n\\nDados do usuario: {{ $('Formatar Request').first().json.message }}\"\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"maxOutputTokens\": 2048,\n    \"candidateCount\": 1\n  }\n}",
+        "options": {
+          "timeout": 30000
+        }
       },
-      "id": "openai_assessment",
+      "id": "gemini_assessment",
       "name": "Assessment Agent",
-      "type": "n8n-nodes-base.openAi",
-      "typeVersion": 1,
-      "position": [1100, 200]
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 200]
     },
     {
       "parameters": {
-        "model": "gpt-4o-mini",
-        "systemMessage": "Voce e o agente de Saude Mental do BiT App. Avalie o estado emocional do usuario com empatia e acolhimento. Retorne EXATAMENTE um JSON valido. Estrutura obrigatoria: { nivel: string (estavel/alerta/critico), alerta: string com observacao, recomendacoes: array de strings, acoes: array de strings, canaisApoio: array de strings incluindo CVV Disque 188 }. Se identificar risco imediato, inclua recomendacao de contato com CVV (188). Responda APENAS com o JSON, sem texto adicional.",
-        "messages": [
-          {
-            "role": "user",
-            "content": "={{ $('Formatar Request').first().json.message }}"
-          }
-        ]
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={{$env.GEMINI_API_KEY}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Voce e o agente de Saude Mental do BiT App. Avalie o estado emocional do usuario com empatia e acolhimento. Retorne EXATAMENTE um JSON valido. Estrutura obrigatoria: { nivel: string (estavel/alerta/critico), alerta: string com observacao, recomendacoes: array de strings, acoes: array de strings, canaisApoio: array de strings incluindo CVV Disque 188 }. Se identificar risco imediato, inclua recomendacao de contato com CVV (188). Responda APENAS com o JSON, sem texto adicional.\\n\\nDados do usuario: {{ $('Formatar Request').first().json.message }}\"\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"maxOutputTokens\": 2048,\n    \"candidateCount\": 1\n  }\n}",
+        "options": {
+          "timeout": 30000
+        }
       },
-      "id": "openai_mental_health",
+      "id": "gemini_mental_health",
       "name": "Mental Health Agent",
-      "type": "n8n-nodes-base.openAi",
-      "typeVersion": 1,
-      "position": [1100, 400]
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nlet text = '';\ntry {\n  text = response.candidates[0].content.parts[0].text.trim();\n  // Remove possible markdown code block markers\n  if (text.startsWith('```')) {\n    text = text.replace(/^```(?:json)?\\s*/, '').replace(/```\\s*$/, '');\n  }\n} catch (e) {\n  text = JSON.stringify({ error: 'Falha ao processar resposta da IA' });\n}\n\n// Parse the JSON string into an object so the backend receives proper JSON\nlet parsed;\ntry {\n  parsed = JSON.parse(text);\n} catch (e) {\n  parsed = { raw: text };\n}\n\nreturn [{ json: parsed }];"
+      },
+      "id": "parse_response",
+      "name": "Parse Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1400, 300]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ success: true, response: $json.choices[0].message.content }) }}",
+        "responseBody": "={{ $json }}",
         "options": {
           "responseHeaders": {
             "entries": [
@@ -131,7 +151,7 @@
       "name": "Responder",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1400, 300]
+      "position": [1600, 300]
     }
   ],
   "connections": {
@@ -158,6 +178,17 @@
       ]
     },
     "Classificar Intent": {
+      "main": [
+        [
+          {
+            "node": "Parse Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Intent": {
       "main": [
         [
           {
@@ -190,7 +221,7 @@
       "main": [
         [
           {
-            "node": "Responder",
+            "node": "Parse Response",
             "type": "main",
             "index": 0
           }
@@ -198,6 +229,17 @@
       ]
     },
     "Mental Health Agent": {
+      "main": [
+        [
+          {
+            "node": "Parse Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Response": {
       "main": [
         [
           {

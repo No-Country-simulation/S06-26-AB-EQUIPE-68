@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:8080' : '';
 
 function getToken() {
     return localStorage.getItem('bitapp_token');
@@ -30,12 +30,14 @@ async function apiFetch(path, options = {}) {
     return json.data;
 }
 
-export async function orientar(dados) {
-    return apiFetch('/api/orientar', {
-        method: 'POST',
-        body: JSON.stringify(dados),
-    });
-}
+// DESATIVADO (2026-07): o Dashboard passou a usar o Assessment Agent (assessment()).
+// A chamada a /api/orientar fica comentada para retomada futura.
+// export async function orientar(dados) {
+//     return apiFetch('/api/orientar', {
+//         method: 'POST',
+//         body: JSON.stringify(dados),
+//     });
+// }
 
 export async function saudeCheckin(dados) {
     return apiFetch('/api/saude', {
@@ -77,6 +79,35 @@ export async function updateProfile(data) {
     });
 }
 
+const ASSESSMENT_CACHE_PREFIX = 'bit_assessment_';
+
+export function getAssessmentCache(usuarioId) {
+    try {
+        const raw = sessionStorage.getItem(ASSESSMENT_CACHE_PREFIX + usuarioId);
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+}
+
+export function setAssessmentCache(usuarioId, data) {
+    try {
+        sessionStorage.setItem(ASSESSMENT_CACHE_PREFIX + usuarioId, JSON.stringify(data));
+    } catch {
+        // falha de escrita degrada para "sem cache" — próxima visita chama a API de novo
+    }
+}
+
+export function clearAssessmentCache(usuarioId) {
+    if (usuarioId) {
+        sessionStorage.removeItem(ASSESSMENT_CACHE_PREFIX + usuarioId);
+        return;
+    }
+    Object.keys(sessionStorage)
+        .filter((k) => k.startsWith(ASSESSMENT_CACHE_PREFIX))
+        .forEach((k) => sessionStorage.removeItem(k));
+}
+
 export async function logout() {
     try {
         await apiFetch('/api/auth/logout', { method: 'POST' });
@@ -84,18 +115,13 @@ export async function logout() {
     localStorage.removeItem('bitapp_token');
     localStorage.removeItem('bitapp_refresh');
     localStorage.removeItem('bitapp_usuario');
+    clearAssessmentCache();
 }
 
 export async function assessment(dados, usuarioId = 0) {
     return apiFetch(`/api/assessment?usuarioId=${usuarioId}`, {
         method: 'POST',
         body: JSON.stringify(dados),
-    });
-}
-
-export async function mentalHealth(usuarioId = 0) {
-    return apiFetch(`/api/mental-health?usuarioId=${usuarioId}`, {
-        method: 'POST',
     });
 }
 
@@ -118,6 +144,14 @@ export async function listarRegioesVagas() {
     return apiFetch('/api/vagas/regioes');
 }
 
+export async function matchLoteVagas(usuarioId) {
+    return apiFetch(`/api/vagas/match-lote?usuarioId=${usuarioId}`);
+}
+
+export async function matchVaga(vagaId, usuarioId, idioma = 'pt') {
+    return apiFetch(`/api/vagas/${vagaId}/match?usuarioId=${usuarioId}&idioma=${idioma}`);
+}
+
 export async function listarCursos(params = {}) {
     const qs = new URLSearchParams();
     if (params.q) qs.set('q', params.q);
@@ -136,4 +170,23 @@ export async function buscarCurso(id) {
 
 export async function listarRegioesCursos() {
     return apiFetch('/api/cursos/regioes');
+}
+
+export async function historicoSaude(usuarioId) {
+    return apiFetch(`/api/saude/historico?usuarioId=${usuarioId}`);
+}
+
+export async function salvarLocalizacao(usuarioId, latitude, longitude) {
+    return apiFetch(`/api/usuarios/${usuarioId}/localizacao`, {
+        method: 'PUT',
+        body: JSON.stringify({ latitude, longitude }),
+    });
+}
+
+export async function listarPontosLazer() {
+    return apiFetch('/api/lazer/pontos');
+}
+
+export async function buscarSugestoes(usuarioId, idioma = 'pt') {
+    return apiFetch(`/api/sugestoes/${usuarioId}?idioma=${idioma}`);
 }

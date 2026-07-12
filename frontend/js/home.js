@@ -1,4 +1,5 @@
-import { login, logout } from './api.js';
+import { login, logout, clearAssessmentCache } from './api.js';
+import { t, aplicarIdiomaSemRecarregar } from './i18n.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -7,9 +8,9 @@ function getUsuarioLogado() {
     return raw ? JSON.parse(raw) : null;
 }
 
-function handleLogout() {
-    logout();
-    window.location.reload();
+async function handleLogout() {
+    await logout();
+    window.location.href = 'index.html';
 }
 window.handleLogout = handleLogout;
 
@@ -69,10 +70,11 @@ document.getElementById('formLogin')?.addEventListener('submit', async (event) =
 
     const btn = document.getElementById('btnLogin');
     btn.disabled = true;
-    btn.innerHTML = '<span class="loader"></span> Entrando...';
+    btn.innerHTML = `<span class="loader"></span> ${t('index.entrando')}`;
 
     try {
         const data = await login({ email, password });
+        clearAssessmentCache(data.userId);
         localStorage.setItem(SESSION_KEY, JSON.stringify({
             id: data.userId,
             nome: data.nome,
@@ -85,11 +87,12 @@ document.getElementById('formLogin')?.addEventListener('submit', async (event) =
         }));
         localStorage.setItem('bitapp_token', data.token);
         localStorage.setItem('bitapp_refresh', data.refreshToken);
+        aplicarIdiomaSemRecarregar(data.idiomaPreferido);
         window.location.href = 'dashboard.html';
     } catch (err) {
-        showError(err.message || 'E-mail ou senha incorretos.');
+        showError(err.message || t('index.erroLogin'));
         btn.disabled = false;
-        btn.textContent = 'Entrar';
+        btn.textContent = t('index.entrar');
     }
 });
 
@@ -107,6 +110,22 @@ document.getElementById('loginPassword')?.addEventListener('input', function() {
     clearError();
 });
 
+document.getElementById('togglePassword')?.addEventListener('click', function() {
+    const input = document.getElementById('loginPassword');
+    if (!input) return;
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    this.setAttribute('aria-label', isPassword ? 'Ocultar senha' : 'Mostrar senha');
+    this.innerHTML = isPassword
+        ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>'
+        : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>';
+});
+
 (function init() {
-    // Removed auto-redirect: login page is the initial landing page
+    var msg = new URLSearchParams(window.location.search).get('msg');
+    if (msg === 'auth_required') {
+        var authMsg = document.getElementById('authMessage');
+        if (authMsg) authMsg.classList.remove('hidden');
+        window.history.replaceState({}, '', 'index.html');
+    }
 })();

@@ -1,6 +1,5 @@
 package com.bitsystem.bitapp.model;
 
-import com.bitsystem.bitapp.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -18,15 +17,14 @@ public class HistoricoSaude {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = true, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
-    @Column(nullable = false)
-    private String humor;
-
-    @Column(name = "nota_semanal", nullable = false)
-    private Integer notaSemanal;
+    // Opcional (CVV v2): check-in sem emoji (só texto) grava nota=null —
+    // nunca gera gatilho nem entra na agregação/tendência. Nota fixa por
+    // nível (ver NivelCheckin), nunca inferida do texto/IA.
+    @Column
+    private Integer nota;
 
     @Column(columnDefinition = "TEXT")
     private String contexto;
@@ -39,6 +37,10 @@ public class HistoricoSaude {
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        // Só preenche se ausente: permite testes fixarem createdAt para
+        // simular dias diferentes (agregação diária / tendência semanal).
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
     }
 }

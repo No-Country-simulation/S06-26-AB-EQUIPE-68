@@ -21,7 +21,7 @@ class AuthControllerTest {
         String email = "teste_" + System.currentTimeMillis() + "@teste.com";
         var request = new AuthDto.RegisterRequest(
                 "Teste", email, "123456", "São Paulo", "11999999999",
-                "Estudante", "Java", "HTML, CSS");
+                "Estudante", "Java", "HTML, CSS", "pt");
         ResponseEntity<StandardApiResponse> response = restTemplate
                 .postForEntity("/api/auth/register", request, StandardApiResponse.class);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -33,7 +33,7 @@ class AuthControllerTest {
     void shouldLoginUser() {
         String email = "login_" + System.currentTimeMillis() + "@teste.com";
         var registerRequest = new AuthDto.RegisterRequest(
-                "Login", email, "123456", "SP", null, "Estudante", "Web", null);
+                "Login", email, "123456", "SP", null, "Estudante", "Web", null, "es");
         restTemplate.postForEntity("/api/auth/register", registerRequest, StandardApiResponse.class);
 
         var loginRequest = new AuthDto.LoginRequest(email, "123456");

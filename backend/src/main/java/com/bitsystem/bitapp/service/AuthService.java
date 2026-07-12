@@ -4,6 +4,7 @@ import com.bitsystem.bitapp.config.JwtUtil;
 import com.bitsystem.bitapp.domain.User;
 import com.bitsystem.bitapp.domain.UserSession;
 import com.bitsystem.bitapp.dto.AuthDto;
+import com.bitsystem.bitapp.dto.UsuarioDto;
 import com.bitsystem.bitapp.exception.BusinessException;
 import com.bitsystem.bitapp.repository.UserRepository;
 import com.bitsystem.bitapp.repository.UserSessionRepository;
@@ -25,14 +26,17 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final FallbackStorage fallbackStorage;
+    private final GeolocationService geolocationService;
 
     public AuthService(UserRepository userRepository, UserSessionRepository sessionRepository,
-            PasswordEncoder passwordEncoder, JwtUtil jwtUtil, FallbackStorage fallbackStorage) {
+            PasswordEncoder passwordEncoder, JwtUtil jwtUtil, FallbackStorage fallbackStorage,
+            GeolocationService geolocationService) {
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.fallbackStorage = fallbackStorage;
+        this.geolocationService = geolocationService;
     }
 
     // ════════════════════════════════════════════════════════════════════════
@@ -52,6 +56,7 @@ public class AuthService {
             User user = new User(request.nome(), request.email(), encodedPassword);
             applyProfile(user, request.cidade(), request.whatsapp(), request.nivelProfissional(),
                     request.areaTecnologia(), request.competenciasAtuais());
+            user.setIdiomaPreferido(normalizeIdioma(request.idioma()));
             user = userRepository.save(user);
 
             log.info("[AuthService] Registro salvo no banco: email={}", request.email());
@@ -72,7 +77,7 @@ public class AuthService {
             FallbackStorage.UserRecord record = fallbackStorage.saveUser(
                 request.nome(), request.email(), encodedPassword,
                 request.cidade(), request.whatsapp(), request.nivelProfissional(),
-                request.areaTecnologia(), request.competenciasAtuais()
+                request.areaTecnologia(), request.competenciasAtuais(), normalizeIdioma(request.idioma())
             );
 
             return buildAuthResponseFromFallback(record);
@@ -154,6 +159,9 @@ public class AuthService {
             }
             applyProfile(user, request.cidade(), request.whatsapp(), request.nivelProfissional(),
                     request.areaTecnologia(), request.competenciasAtuais());
+            if (request.idiomaPreferido() != null && !request.idiomaPreferido().isBlank()) {
+                user.setIdiomaPreferido(normalizeIdioma(request.idiomaPreferido()));
+            }
 
             return toUserResponse(userRepository.save(user));
 
@@ -165,14 +173,42 @@ public class AuthService {
 
             return fallbackStorage.findUserByEmail(email)
                 .map(record -> {
+                    String idiomaNormalizado = request.idiomaPreferido() != null && !request.idiomaPreferido().isBlank()
+                            ? normalizeIdioma(request.idiomaPreferido()) : null;
                     FallbackStorage.UserRecord updated = fallbackStorage.updateUser(
                         record.id(), request.nome(), request.cidade(), request.whatsapp(),
-                        request.nivelProfissional(), request.areaTecnologia(), request.competenciasAtuais()
+                        request.nivelProfissional(), request.areaTecnologia(), request.competenciasAtuais(),
+                        idiomaNormalizado
                     );
                     return toUserResponseFromFallback(updated);
                 })
                 .orElseThrow(() -> new BusinessException("USER_NOT_FOUND", "Usuário não encontrado"));
         }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  ATUALIZAR LOCALIZAÇÃO
+    // ════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Grava a localização (WGS84) do usuário autenticado. O usuário é sempre
+     * resolvido pelo e-mail do token (nunca pelo {id} do path — mesmo padrão de
+     * updateProfile); o {id} do path só é usado para confirmar que o chamador
+     * está atualizando a própria localização.
+     */
+    @Transactional
+    public UsuarioDto.LocalizacaoResponse atualizarLocalizacao(String email, Long pathId, Double latitude, Double longitude) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("USER_NOT_FOUND", "Usuário não encontrado"));
+
+        if (!user.getId().equals(pathId)) {
+            throw new BusinessException("ACESSO_NEGADO", "Você só pode atualizar a sua própria localização");
+        }
+
+        user.setLocalizacao(geolocationService.createPoint(latitude, longitude));
+        userRepository.save(user);
+
+        return new UsuarioDto.LocalizacaoResponse(latitude, longitude);
     }
 
     // ════════════════════════════════════════════════════════════════════════
@@ -231,18 +267,23 @@ public class AuthService {
         user.setCompetenciasAtuais(competenciasAtuais);
     }
 
+    /** Só "pt"/"es" são suportados pela interface — qualquer outro valor cai em "pt". */
+    private static String normalizeIdioma(String idioma) {
+        return "es".equalsIgnoreCase(idioma) ? "es" : "pt";
+    }
+
     private AuthDto.Response toAuthResponse(User user, String token, String refreshToken) {
         return new AuthDto.Response(
                 token, refreshToken, user.getId(), user.getNome(), user.getEmail(),
                 user.getCidade(), user.getWhatsapp(), user.getNivelProfissional(),
-                user.getAreaTecnologia(), user.getCompetenciasAtuais());
+                user.getAreaTecnologia(), user.getCompetenciasAtuais(), user.getIdiomaPreferido());
     }
 
     private AuthDto.UserResponse toUserResponse(User user) {
         return new AuthDto.UserResponse(
                 user.getId(), user.getNome(), user.getEmail(),
                 user.getCidade(), user.getWhatsapp(), user.getNivelProfissional(),
-                user.getAreaTecnologia(), user.getCompetenciasAtuais(),
+                user.getAreaTecnologia(), user.getCompetenciasAtuais(), user.getIdiomaPreferido(),
                 user.getCreatedAt(), user.getUpdatedAt());
     }
 
@@ -271,14 +312,14 @@ public class AuthService {
         return new AuthDto.Response(
                 token, refreshToken, record.id(), record.nome(), record.email(),
                 record.cidade(), record.whatsapp(), record.nivelProfissional(),
-                record.areaTecnologia(), record.competenciasAtuais());
+                record.areaTecnologia(), record.competenciasAtuais(), record.idiomaPreferido());
     }
 
     private AuthDto.UserResponse toUserResponseFromFallback(FallbackStorage.UserRecord record) {
         return new AuthDto.UserResponse(
                 record.id(), record.nome(), record.email(),
                 record.cidade(), record.whatsapp(), record.nivelProfissional(),
-                record.areaTecnologia(), record.competenciasAtuais(),
+                record.areaTecnologia(), record.competenciasAtuais(), record.idiomaPreferido(),
                 record.createdAt(), record.updatedAt());
     }
 }

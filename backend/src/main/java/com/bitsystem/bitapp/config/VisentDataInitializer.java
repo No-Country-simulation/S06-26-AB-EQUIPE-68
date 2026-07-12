@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 /**
  * ============================================================================
@@ -20,7 +21,8 @@ import org.springframework.context.annotation.Configuration;
  * @version 1.0.0
  */
 @Configuration
-@ConditionalOnProperty(name = "bitapp.visent.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "visent.enabled", havingValue = "true")
+@Order(3) // boot: 3º — ingestão geográfica Vísent (só com visent.enabled=true)
 public class VisentDataInitializer implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(

@@ -1,23 +1,28 @@
 package com.bitsystem.bitapp.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public class AssessmentDto {
 
     public record Request(
         @NotBlank String nome,
-        @NotNull Integer idade,
+        // idade opcional: o perfil do Dashboard não coleta idade; o Assessment
+        // funciona (e o fallback) com o que existir no perfil, sem novo formulário.
+        Integer idade,
         String escolaridade,
         String experiencia,
         List<String> hardSkills,
         List<String> softSkills,
         List<String> tecnologias,
-        String tipo
-
-
-    ) {}
+        String tipo,
+        /** Idioma da UI ("pt"|"es"), default "pt" — campo aditivo (lote i18n). */
+        String idioma
+    ) {
+        public String idiomaOuPadrao() {
+            return "es".equalsIgnoreCase(idioma) ? "es" : "pt";
+        }
+    }
 
     public record Response(
         Integer compatibilidade,

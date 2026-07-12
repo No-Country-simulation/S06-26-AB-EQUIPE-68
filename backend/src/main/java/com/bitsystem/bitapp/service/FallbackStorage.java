@@ -1,7 +1,6 @@
 package com.bitsystem.bitapp.service;
 
 import com.bitsystem.bitapp.dto.AssessmentDto;
-import com.bitsystem.bitapp.dto.MentalHealthDto;
 import com.bitsystem.bitapp.dto.SaudeDto;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -34,9 +33,6 @@ public class FallbackStorage {
     // ── Assessments de Carreira ───────────────────────────────────────────
     private final Map<Long, List<AssessmentRecord>> assessments = new ConcurrentHashMap<>();
 
-    // ── Registros de Saúde Mental (N8N) ──────────────────────────────────
-    private final Map<Long, List<MentalHealthRecord>> mentalHealthRecords = new ConcurrentHashMap<>();
-
     // ════════════════════════════════════════════════════════════════════════
     //  RECORDS internos
     // ════════════════════════════════════════════════════════════════════════
@@ -44,7 +40,7 @@ public class FallbackStorage {
     public record UserRecord(
         Long id, String nome, String email, String passwordHash,
         String cidade, String whatsapp, String nivelProfissional,
-        String areaTecnologia, String competenciasAtuais,
+        String areaTecnologia, String competenciasAtuais, String idiomaPreferido,
         LocalDateTime createdAt, LocalDateTime updatedAt
     ) {}
 
@@ -54,7 +50,7 @@ public class FallbackStorage {
     ) {}
 
     public record SaudeRecord(
-        Long id, Long usuarioId, String humor, Integer notaSemanal,
+        Long id, Long usuarioId, Integer nota,
         String contexto, boolean derivouCvv, LocalDateTime createdAt
     ) {}
 
@@ -64,26 +60,19 @@ public class FallbackStorage {
         List<String> planoDesenvolvimento, LocalDateTime createdAt
     ) {}
 
-    public record MentalHealthRecord(
-        Long id, Long usuarioId, String nivel, String alerta,
-        List<String> recomendacoes, List<String> acoes,
-        List<String> canaisApoio, Boolean derivarCvv, Integer scoreRisco,
-        LocalDateTime createdAt
-    ) {}
-
     // ════════════════════════════════════════════════════════════════════════
     //  USER operations
     // ════════════════════════════════════════════════════════════════════════
 
     public UserRecord saveUser(String nome, String email, String passwordHash,
             String cidade, String whatsapp, String nivelProfissional,
-            String areaTecnologia, String competenciasAtuais) {
+            String areaTecnologia, String competenciasAtuais, String idiomaPreferido) {
         Long id = userIdSeq.getAndIncrement();
         LocalDateTime now = LocalDateTime.now();
         UserRecord record = new UserRecord(
             id, nome, email, passwordHash,
             cidade, whatsapp, nivelProfissional,
-            areaTecnologia, competenciasAtuais,
+            areaTecnologia, competenciasAtuais, idiomaPreferido,
             now, now
         );
         users.put(id, record);
@@ -110,7 +99,8 @@ public class FallbackStorage {
     }
 
     public UserRecord updateUser(Long id, String nome, String cidade, String whatsapp,
-            String nivelProfissional, String areaTecnologia, String competenciasAtuais) {
+            String nivelProfissional, String areaTecnologia, String competenciasAtuais,
+            String idiomaPreferido) {
         UserRecord existing = users.get(id);
         if (existing == null) return null;
         UserRecord updated = new UserRecord(
@@ -123,6 +113,7 @@ public class FallbackStorage {
             nivelProfissional != null ? nivelProfissional : existing.nivelProfissional(),
             areaTecnologia != null ? areaTecnologia : existing.areaTecnologia(),
             competenciasAtuais != null ? competenciasAtuais : existing.competenciasAtuais(),
+            idiomaPreferido != null && !idiomaPreferido.isBlank() ? idiomaPreferido : existing.idiomaPreferido(),
             existing.createdAt(),
             LocalDateTime.now()
         );
@@ -168,14 +159,14 @@ public class FallbackStorage {
     //  SAÚDE (check-in) operations
     // ════════════════════════════════════════════════════════════════════════
 
-    public void saveSaudeRecord(Long usuarioId, String humor, Integer notaSemanal,
+    public void saveSaudeRecord(Long usuarioId, Integer nota,
             String contexto, boolean derivouCvv) {
         long id = saudeHistory.values().stream().mapToLong(List::size).sum() + 1;
         SaudeRecord record = new SaudeRecord(
-            id, usuarioId, humor, notaSemanal, contexto, derivouCvv, LocalDateTime.now()
+            id, usuarioId, nota, contexto, derivouCvv, LocalDateTime.now()
         );
         saudeHistory.computeIfAbsent(usuarioId, k -> new ArrayList<>()).add(record);
-        log.info("[FallbackStorage] Histórico de saúde salvo: usuarioId={}, humor={}", usuarioId, humor);
+        log.info("[FallbackStorage] Histórico de saúde salvo: usuarioId={}, nota={}", usuarioId, nota);
     }
 
     public List<SaudeRecord> findSaudeByUserId(Long usuarioId) {
@@ -202,26 +193,6 @@ public class FallbackStorage {
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    //  MENTAL HEALTH operations
-    // ════════════════════════════════════════════════════════════════════════
-
-    public void saveMentalHealthRecord(Long usuarioId, MentalHealthDto.Response response) {
-        long id = mentalHealthRecords.values().stream().mapToLong(List::size).sum() + 1;
-        MentalHealthRecord record = new MentalHealthRecord(
-            id, usuarioId, response.nivel(), response.alerta(),
-            response.recomendacoes(), response.acoes(),
-            response.canaisApoio(), response.derivarCvv(),
-            response.scoreRisco(), LocalDateTime.now()
-        );
-        mentalHealthRecords.computeIfAbsent(usuarioId, k -> new ArrayList<>()).add(record);
-        log.info("[FallbackStorage] Registro de saúde mental salvo: usuarioId={}", usuarioId);
-    }
-
-    public List<MentalHealthRecord> findMentalHealthByUserId(Long usuarioId) {
-        return mentalHealthRecords.getOrDefault(usuarioId, Collections.emptyList());
-    }
-
-    // ════════════════════════════════════════════════════════════════════════
     //  Stats
     // ════════════════════════════════════════════════════════════════════════
 
@@ -234,8 +205,7 @@ public class FallbackStorage {
             "users", users.size(),
             "sessions", sessions.size(),
             "saudeRecords", saudeHistory.values().stream().mapToInt(List::size).sum(),
-            "assessments", assessments.values().stream().mapToInt(List::size).sum(),
-            "mentalHealthRecords", mentalHealthRecords.values().stream().mapToInt(List::size).sum()
+            "assessments", assessments.values().stream().mapToInt(List::size).sum()
         );
     }
 }

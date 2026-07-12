@@ -1,7 +1,10 @@
 package com.bitsystem.bitapp.dto;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * ============================================================================
@@ -52,5 +55,29 @@ public class UsuarioDto {
         String nivelProfissional,
         String areaTecnologia,
         String competenciasAtuais
+    ) {}
+
+    /**
+     * REQUISIÇÃO: atualização da localização geográfica do usuário (WGS84).
+     * Enviado via PUT /api/usuarios/{id}/localizacao.
+     */
+    public record LocalizacaoRequest(
+        @NotNull(message = "Latitude é obrigatória")
+        @DecimalMin(value = "-90", message = "Latitude deve estar entre -90 e 90")
+        @DecimalMax(value = "90", message = "Latitude deve estar entre -90 e 90")
+        Double latitude,
+
+        @NotNull(message = "Longitude é obrigatória")
+        @DecimalMin(value = "-180", message = "Longitude deve estar entre -180 e 180")
+        @DecimalMax(value = "180", message = "Longitude deve estar entre -180 e 180")
+        Double longitude
+    ) {}
+
+    /**
+     * RESPOSTA: confirmação da localização gravada.
+     */
+    public record LocalizacaoResponse(
+        Double latitude,
+        Double longitude
     ) {}
 }

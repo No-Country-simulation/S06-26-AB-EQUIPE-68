@@ -1,5 +1,8 @@
 package com.bitsystem.bitapp.dto;
 
+import com.bitsystem.bitapp.model.NivelCheckin;
+import jakarta.validation.constraints.AssertTrue;
+
 /**
  * ============================================================================
  * CLASSES DTO: SaudeDto
@@ -26,18 +29,33 @@ public class SaudeDto {
     public record Request(
         /** ID do usuário no banco (identificador da sessão) */
         Long usuarioId,
-        
-        /** Estado de humor (ex: "😢 Triste", "😰 Ansioso", "😊 Feliz") */
-        String humor,
-        
-        /** Nota numérica de bem-estar (1-5)
-         *  1 = Muito ruim (risco)
-         *  5 = Excelente */
-        Integer notaSemanal,
-        
+
+        /** Nota do check-in (escala única CVV v2: 9=Muito feliz, 7=Feliz,
+         *  5=Tranquilo, 3=Triste, 1=Muito triste). OPCIONAL — check-in só de
+         *  texto (sem emoji) chega com nota=null: não deriva ao CVV, não
+         *  entra na agregação diária nem na tendência semanal, só acolhimento.
+         *  Único campo que decide a derivação ao CVV quando presente: nota 1 =
+         *  reforçada, nota 3 = preventiva, nota 5/7/9 = nenhuma. A nota NUNCA
+         *  é inferida do texto livre ou de IA (ver NivelCheckin). */
+        Integer nota,
+
         /** Contexto livre sobre o estado (pressões, desafios, etc) */
-        String contexto
-    ) {}
+        String contexto,
+
+        /** Idioma da UI ("pt"|"es"), default "pt" — campo aditivo (lote i18n). */
+        String idioma
+    ) {
+        public String idiomaOuPadrao() {
+            return "es".equalsIgnoreCase(idioma) ? "es" : "pt";
+        }
+
+        /** Nota ausente (check-in só-texto) é válida; se presente, precisa ser
+         *  um dos 5 valores da escala única (ver NivelCheckin). */
+        @AssertTrue(message = "Nota de check-in inválida")
+        public boolean isNotaValida() {
+            return nota == null || NivelCheckin.isNotaValida(nota);
+        }
+    }
 
     /**
      * RESPOSTA: Acolhimento e sugestões de ação emitidas por IA
@@ -55,24 +73,69 @@ public class SaudeDto {
         /** Flag: necessita derivação para Centro de Valorização da Vida? */
         Boolean derivarCvv,
         
-        /** Nota de bem-estar reportada no check-in */
-        Integer notaAtual,
-        
-        /** Alerta crítico (texto descritivo) */
-        String alerta
+        /** Nota do check-in reportada (escala única: 9/7/5/3/1), ou null
+         *  quando o check-in foi só texto. */
+        Integer nota,
+
+        /** Token descritivo de status (uso interno/log, não é texto de UI):
+         *  DERIVACAO_REFORCADA | DERIVACAO_PREVENTIVA | ESTAVEL */
+        String alerta,
+
+        /** Nível da derivação ao CVV, para o frontend escolher o painel:
+         *  "REFORCADO" (nota 1) | "PREVENTIVO" (nota 3) | null (nota 5/7/9 ou
+         *  ausente). Decidido SÓ pela nota; IA/agente/texto nunca influenciam. */
+        String nivelDerivacao,
+
+        /** Frase curta e empática descrevendo o estado emocional percebido
+         *  (emoji e/ou texto do check-in). Nunca cita a nota numérica. Sempre
+         *  preenchida — via IA (Gemini) ou fallback determinístico. Campo
+         *  aditivo (lote 4.1). */
+        String leituraEmocional,
+
+        /** Tendência semanal (CVV v2): true quando 3+ dos até 5 dias-com-
+         *  registro mais recentes (janela de 7 dias corridos) tiveram nota-do-
+         *  dia (pior nota do dia) <=3. Independente do nivelDerivacao de hoje
+         *  — o frontend decide a prioridade visual entre os painéis. */
+        Boolean tendenciaSemana
     ) {}
 
     /**
      * RESPOSTA BRUTA: Parse intermediário da resposta Gemini
-     * 
+     *
      * Mapeamento JSON simples da IA antes do pós-processamento
      * Usado internamente por SaudeMentalService
      */
     public record RawResponse(
         /** Mensagem bruta do Gemini */
         String mensagem,
-        
+
         /** Ação bruta do Gemini */
-        String acaoSugerida
+        String acaoSugerida,
+
+        /** Leitura emocional bruta do Gemini (pode ser null nas fontes que só
+         *  fornecem texto, ex.: agente n8n — nesse caso o serviço aplica um
+         *  fallback determinístico). Campo aditivo (lote 4.1). */
+        String leituraEmocional
+    ) {
+        /** Construtor de conveniência para as fontes que só fornecem
+         *  mensagem/ação (curadas, agente n8n) — leituraEmocional fica null e
+         *  é preenchida por SaudeMentalService.leituraEmocionalFallback. */
+        public RawResponse(String mensagem, String acaoSugerida) {
+            this(mensagem, acaoSugerida, null);
+        }
+    }
+
+    /**
+     * RESPOSTA: Item do histórico de check-ins
+     * 
+     * Retornado por GET /api/saude/historico
+     * Lista de registros anteriores do usuário
+     */
+    public record HistoricoResponse(
+        Long id,
+        Integer nota,
+        String contexto,
+        Boolean derivouCvv,
+        java.time.LocalDateTime createdAt
     ) {}
 }

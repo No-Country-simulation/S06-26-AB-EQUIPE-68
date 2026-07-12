@@ -39,7 +39,8 @@ public class AssessmentService {
                 request.hardSkills(),
                 request.softSkills(),
                 request.tecnologias(),
-                "orientacao"
+                "orientacao",
+                request.idioma()
             );
             AssessmentDto.Response response = n8nClient.process(enrichedRequest);
 
@@ -76,8 +77,10 @@ public class AssessmentService {
 
     /**
      * Gera uma avaliação local baseada nas skills e tecnologias informadas.
+     * Textos por idioma (pt/es) — o número de compatibilidade não muda, só a redação.
      */
     private AssessmentDto.Response buildFallbackAssessment(AssessmentDto.Request request) {
+        boolean es = "es".equals(request.idiomaOuPadrao());
         List<String> hardSkills = request.hardSkills() != null ? request.hardSkills() : List.of();
         List<String> softSkills = request.softSkills() != null ? request.softSkills() : List.of();
         List<String> tecnologias = request.tecnologias() != null ? request.tecnologias() : List.of();
@@ -91,38 +94,38 @@ public class AssessmentService {
 
         // Analisar hard skills
         if (hardSkills.stream().anyMatch(s -> s.toLowerCase().contains("java") || s.toLowerCase().contains("spring"))) {
-            pontosFortes.add("Conhecimento sólido em desenvolvimento Java/Spring Boot");
-            gaps.add("Aprofundar em microsserviços e Cloud Native");
-            planoDesenvolvimento.add("Estudar Spring Cloud e Docker/Kubernetes");
+            pontosFortes.add(es ? "Conocimiento sólido en desarrollo Java/Spring Boot" : "Conhecimento sólido em desenvolvimento Java/Spring Boot");
+            gaps.add(es ? "Profundizar en microservicios y Cloud Native" : "Aprofundar em microsserviços e Cloud Native");
+            planoDesenvolvimento.add(es ? "Estudiar Spring Cloud y Docker/Kubernetes" : "Estudar Spring Cloud e Docker/Kubernetes");
         }
         if (hardSkills.stream().anyMatch(s -> s.toLowerCase().contains("python") || s.toLowerCase().contains("data"))) {
-            pontosFortes.add("Base em análise e ciência de dados");
-            gaps.add("Pipeline de dados e Modelos de ML");
-            planoDesenvolvimento.add("Praticar ETL com Airflow e modelagem com Scikit-learn");
+            pontosFortes.add(es ? "Base en análisis y ciencia de datos" : "Base em análise e ciência de dados");
+            gaps.add(es ? "Pipeline de datos y modelos de ML" : "Pipeline de dados e Modelos de ML");
+            planoDesenvolvimento.add(es ? "Practicar ETL con Airflow y modelado con Scikit-learn" : "Praticar ETL com Airflow e modelagem com Scikit-learn");
         }
         if (hardSkills.stream().anyMatch(s -> s.toLowerCase().contains("react") || s.toLowerCase().contains("javascript"))) {
-            pontosFortes.add("Desenvolvimento front-end moderno");
-            gaps.add("Testes automatizados e performance web");
-            planoDesenvolvimento.add("Implementar Jest/RTL e otimizar Core Web Vitals");
+            pontosFortes.add(es ? "Desarrollo front-end moderno" : "Desenvolvimento front-end moderno");
+            gaps.add(es ? "Pruebas automatizadas y rendimiento web" : "Testes automatizados e performance web");
+            planoDesenvolvimento.add(es ? "Implementar Jest/RTL y optimizar Core Web Vitals" : "Implementar Jest/RTL e otimizar Core Web Vitals");
         }
 
         // Soft skills genéricas
         if (softSkills.isEmpty()) {
-            pontosFortes.add("Disposição para aprendizado contínuo");
-            gaps.add("Comunicação técnica e trabalho em equipe");
-            planoDesenvolvimento.add("Participar de code reviews e eventos de networking");
+            pontosFortes.add(es ? "Disposición para el aprendizaje continuo" : "Disposição para aprendizado contínuo");
+            gaps.add(es ? "Comunicación técnica y trabajo en equipo" : "Comunicação técnica e trabalho em equipe");
+            planoDesenvolvimento.add(es ? "Participar en code reviews y eventos de networking" : "Participar de code reviews e eventos de networking");
         }
 
         // Gaps padrão se nenhum específico foi detectado
         if (gaps.isEmpty()) {
-            gaps.add("Segurança de APIs e boas práticas de autenticação");
-            gaps.add("版本控制 avançado com Git e CI/CD");
-            gaps.add("Testes automatizados e TDD");
+            gaps.add(es ? "Seguridad de APIs y buenas prácticas de autenticación" : "Segurança de APIs e boas práticas de autenticação");
+            gaps.add(es ? "Control de versiones avanzado con Git y CI/CD" : "Controle de versão avançado com Git e CI/CD");
+            gaps.add(es ? "Pruebas automatizadas y TDD" : "Testes automatizados e TDD");
         }
         if (planoDesenvolvimento.isEmpty()) {
-            planoDesenvolvimento.add("Complementar formação com trilhas gratuitas (Alura ONE, Oracle Next)");
-            planoDesenvolvimento.add("Construir portfólio com projetos open-source");
-            planoDesenvolvimento.add("Praticar entrevistas técnicas (LeetCode, HackerRank)");
+            planoDesenvolvimento.add(es ? "Complementar formación con rutas gratuitas (Alura ONE, Oracle Next)" : "Complementar formação com trilhas gratuitas (Alura ONE, Oracle Next)");
+            planoDesenvolvimento.add(es ? "Construir portafolio con proyectos open-source" : "Construir portfólio com projetos open-source");
+            planoDesenvolvimento.add(es ? "Practicar entrevistas técnicas (LeetCode, HackerRank)" : "Praticar entrevistas técnicas (LeetCode, HackerRank)");
         }
 
         String nivel = compatibilidade >= 70 ? "Júnior Pleno" : "Júnior Trainee";
