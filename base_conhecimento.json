@@ -1,0 +1,117 @@
+{
+  "roadmaps": {
+    "frontend": {
+      "titulo": "Desenvolvedor Frontend",
+      "descricao": "Habilidades necessárias para atuar como dev frontend completo",
+      "habilidades": {
+        "fundamentos": {
+          "obrigatorio": true,
+          "itens": [
+            {
+              "nome": "HTML",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "CSS",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "JavaScript",
+              "nivel_minimo": "avancado"
+            },
+            {
+              "nome": "Git",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Terminal/CLI",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "HTTP/APIs REST",
+              "nivel_minimo": "basico"
+            }
+          ]
+        },
+        "frameworks": {
+          "obrigatorio": true,
+          "descricao": "Pelo menos um framework principal",
+          "itens": [
+            {
+              "nome": "React",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Vue",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Angular",
+              "nivel_minimo": "intermediario"
+            }
+          ]
+        },
+        "complementares": {
+          "obrigatorio": false,
+          "descricao": "Diferenciais importantes no mercado",
+          "itens": [
+            {
+              "nome": "TypeScript",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Testes (Jest/Vitest)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Responsividade/Mobile First",
+              "nivel_minimo": "intermediario"
+            },
+            {
+              "nome": "Acessibilidade (WCAG)",
+              "nivel_minimo": "basico"
+            },
+            {
+              "nome": "Performance Web",
+              "nivel_minimo": "basico"
+            }
+          ]
+        }
+      },
+      "cursos": {
+        "HTML": {
+          "nome": "HTML do Zero",
+          "plataforma": "Alura"
+        },
+        "CSS": {
+          "nome": "CSS Avançado",
+          "plataforma": "Rocketseat"
+        },
+        "JavaScript": {
+          "nome": "JavaScript Completo",
+          "plataforma": "Origamid"
+        },
+        "Git": {
+          "nome": "Git e GitHub",
+          "plataforma": "DIO"
+        },
+        "React": {
+          "nome": "Ignite React",
+          "plataforma": "Rocketseat"
+        },
+        "TypeScript": {
+          "nome": "TypeScript do Zero",
+          "plataforma": "Alura"
+        },
+        "Vue": {
+          "nome": "Vue.js Completo",
+          "plataforma": "Udemy"
+        },
+        "Testes (Jest/Vitest)": {
+          "nome": "Testes em JavaScript",
+          "plataforma": "Alura"
+        }
+      }
+    }
+  }
+}
