@@ -68,7 +68,7 @@
     },
     {
       "parameters": {
-        "url": "https://s06-26-appbit-v2.onrender.com/api/cursos",
+        "url": "https://s06-26-appbit-demo.onrender.com/api/cursos",
         "options": {
           "timeout": 15000
         }
