@@ -213,7 +213,9 @@ Fallback local (OrientacaoService / SaudeMentalService)
 Experiência preservada — e a regra de segurança do CVV,
 por ser local e determinística, nunca sai do ar
 ```
-
+> **Limitação conhecida:** o workflow n8n exportado em `n8n/` referencia a URL
+> do serviço via valor fixo no nó de catálogo. Ao importar em outra instância,
+> ajuste a URL do nó "Buscar Catálogo (RAG)" para o seu deploy.
 ---
 
 ## 🎬 Modo Demonstração
@@ -439,21 +441,14 @@ O contrato completo (OpenAPI 3) acompanha o repositório na pasta `docs/`.
 
 # 👨‍💻 Equipe de Desenvolvimento
 
-### Andre Teixeira
+| Integrante | Papel | Contribuições |
+|---|---|---|
+| **[André Teixeira](https://github.com/AndreTeixeir)** | Backend Developer & Tech Lead | 💻 🔧 🚀 |
+| **[Carlos Alexandre](https://github.com/Carlosaleee)** | Full Stack Developer | 💻 🎨 |
+| **Tiago Farias** | AI Engineer | 🤖 |
+| **Daniela Vieira** | QA Engineer | 🧪 |
 
-**Backend Developer & Tech Leader**
-
-### Carlos Alexandre
-
-**Full Stack Developer**
-
-### Tiago Farias
-
-**AI Engineer**
-
-### Daniela Vieira
-
-**QA Engineer**
+<sub>💻 Código · 🔧 Backend · 🚀 Infra/Deploy · 🎨 Frontend · 🤖 IA · 🧪 QA</sub>
 
 ---
 
