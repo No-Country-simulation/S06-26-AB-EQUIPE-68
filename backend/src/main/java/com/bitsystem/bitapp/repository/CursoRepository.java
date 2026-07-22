@@ -11,9 +11,9 @@ public interface CursoRepository extends JpaRepository<Curso, Long> {
     List<Curso> findByAtivaTrue();
 
     @Query("SELECT c FROM Curso c WHERE c.ativa = true AND " +
-           "(:q IS NULL OR LOWER(c.titulo) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
-           "LOWER(c.instituicao) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
-           "LOWER(c.area) LIKE LOWER(CONCAT('%', :q, '%'))) AND " +
+           "(:q IS NULL OR LOWER(c.titulo) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%')) OR " +
+           "LOWER(c.instituicao) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%')) OR " +
+           "LOWER(c.area) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%'))) AND " +
            "(:regiao IS NULL OR c.regiao = :regiao OR c.regiao = 'Nacional (EAD)') AND " +
            "(:area IS NULL OR c.area = :area) AND " +
            "(:modalidade IS NULL OR c.modalidade = :modalidade) AND " +
