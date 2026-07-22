@@ -54,6 +54,15 @@ public class VisentDataIngestionServiceImpl
         String concentracaoCsvPath
     ) {
         try {
+            long existentes = repository.count();
+            if (existentes > 0) {
+                log.info(
+                    "Dados Vísent já presentes ({} registros) — ingestão pulada",
+                    existentes
+                );
+                return;
+            }
+
             log.info("Iniciando carga de dados do Dataset Vísent...");
 
             // 1. Carregar antenas
@@ -101,7 +110,7 @@ public class VisentDataIngestionServiceImpl
             repository.saveAll(entidadesParaSalvar);
 
             log.info(
-                "Sucesso! Ingestão concluída de {} registros de infraestrutura de rede no MySQL.",
+                "Sucesso! Ingestão concluída de {} registros de infraestrutura de rede no banco de dados.",
                 entidadesParaSalvar.size()
             );
         } catch (Exception e) {
