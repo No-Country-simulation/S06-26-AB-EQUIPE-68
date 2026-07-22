@@ -2,7 +2,6 @@ package com.bitsystem.bitapp.domain;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import org.locationtech.jts.geom.Point;
 
 @Entity
 @Table(name = "users", indexes = {
@@ -36,8 +35,9 @@ public class User {
     @Column(name = "competencias_atuais", columnDefinition = "TEXT")
     private String competenciasAtuais;
 
-    @Column(columnDefinition = "GEOMETRY")
-    private Point localizacao;
+    private Double latitude;
+
+    private Double longitude;
 
     @Column(name = "idioma_preferido")
     private String idiomaPreferido = "pt";
@@ -85,8 +85,10 @@ public class User {
     public void setAreaTecnologia(String areaTecnologia) { this.areaTecnologia = areaTecnologia; }
     public String getCompetenciasAtuais() { return competenciasAtuais; }
     public void setCompetenciasAtuais(String competenciasAtuais) { this.competenciasAtuais = competenciasAtuais; }
-    public Point getLocalizacao() { return localizacao; }
-    public void setLocalizacao(Point localizacao) { this.localizacao = localizacao; }
+    public Double getLatitude() { return latitude; }
+    public void setLatitude(Double latitude) { this.latitude = latitude; }
+    public Double getLongitude() { return longitude; }
+    public void setLongitude(Double longitude) { this.longitude = longitude; }
     public String getIdiomaPreferido() { return idiomaPreferido; }
     public void setIdiomaPreferido(String idiomaPreferido) { this.idiomaPreferido = idiomaPreferido; }
     public LocalDateTime getCreatedAt() { return createdAt; }

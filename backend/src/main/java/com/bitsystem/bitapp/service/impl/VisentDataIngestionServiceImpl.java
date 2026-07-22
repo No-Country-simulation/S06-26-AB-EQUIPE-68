@@ -2,14 +2,12 @@ package com.bitsystem.bitapp.service.impl;
 
 import com.bitsystem.bitapp.model.InfraestruturaRede;
 import com.bitsystem.bitapp.repository.InfraestruturaRedeRepository;
-import com.bitsystem.bitapp.service.GeolocationService;
 import com.bitsystem.bitapp.service.VisentDataIngestionService;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import org.locationtech.jts.geom.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -37,14 +35,11 @@ public class VisentDataIngestionServiceImpl
     );
 
     private final InfraestruturaRedeRepository repository;
-    private final GeolocationService geolocationService;
 
     public VisentDataIngestionServiceImpl(
-        InfraestruturaRedeRepository repository,
-        GeolocationService geolocationService
+        InfraestruturaRedeRepository repository
     ) {
         this.repository = repository;
-        this.geolocationService = geolocationService;
     }
 
     @Override
@@ -85,11 +80,6 @@ public class VisentDataIngestionServiceImpl
                     continue; // Pular registros sem coordenadas válidas
                 }
 
-                Point posicaoGeo = geolocationService.createPoint(
-                    temp.latitude,
-                    temp.longitude
-                );
-
                 InfraestruturaRede infra = InfraestruturaRede.builder()
                     .codigoEstacao(temp.ecgi)
                     .operadora(
@@ -99,7 +89,8 @@ public class VisentDataIngestionServiceImpl
                         temp.tecnologia != null ? temp.tecnologia : "4G"
                     )
                     .densidadePopulacional(temp.concentracaoMedia)
-                    .posicao(posicaoGeo)
+                    .latitude(temp.latitude)
+                    .longitude(temp.longitude)
                     .build();
 
                 entidadesParaSalvar.add(infra);
