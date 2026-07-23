@@ -176,6 +176,10 @@ export async function historicoSaude(usuarioId) {
     return apiFetch(`/api/saude/historico?usuarioId=${usuarioId}`);
 }
 
+export async function historicoAssessment(usuarioId) {
+    return apiFetch(`/api/assessment/historico?usuarioId=${usuarioId}`);
+}
+
 export async function salvarLocalizacao(usuarioId, latitude, longitude) {
     return apiFetch(`/api/usuarios/${usuarioId}/localizacao`, {
         method: 'PUT',

@@ -24,4 +24,10 @@ public class AssessmentController {
         AssessmentDto.Response response = assessmentService.processar(request, usuarioId);
         return ResponseEntity.ok(StandardApiResponse.ok(response));
     }
+
+    @GetMapping("/assessment/historico")
+    public ResponseEntity<StandardApiResponse<java.util.List<AssessmentDto.HistoricoResponse>>> historico(
+            @RequestParam Long usuarioId) {
+        return ResponseEntity.ok(StandardApiResponse.ok(assessmentService.buscarHistorico(usuarioId)));
+    }
 }

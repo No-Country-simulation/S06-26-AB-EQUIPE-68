@@ -31,4 +31,20 @@ public class AssessmentDto {
         List<String> gaps,
         List<String> planoDesenvolvimento
     ) {}
+
+    /**
+     * RESPOSTA: Item do histórico de assessments de carreira
+     *
+     * Retornado por GET /api/assessment/historico
+     * Lista de avaliações anteriores do usuário, mais recente primeiro.
+     */
+    public record HistoricoResponse(
+        Long id,
+        Integer compatibilidade,
+        String nivel,
+        List<String> pontosFortes,
+        List<String> gaps,
+        List<String> planoDesenvolvimento,
+        java.time.LocalDateTime createdAt
+    ) {}
 }
