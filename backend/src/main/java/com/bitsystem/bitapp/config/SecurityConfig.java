@@ -80,6 +80,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/vagas/*/match").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/cursos/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/lazer/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/mentores/**").permitAll()
+                .requestMatchers("/api/mentorias/**").permitAll()
                 .requestMatchers("/api/sugestoes/**").permitAll()
                 .anyRequest().authenticated()
             )

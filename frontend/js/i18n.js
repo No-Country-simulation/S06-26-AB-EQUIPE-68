@@ -45,7 +45,7 @@ export async function setIdioma(lang) {
 const DICT = {
     pt: {
         nav: {
-            dashboard: 'Dashboard', vagas: 'Vagas', cursos: 'Cursos', lazer: 'Lazer',
+            dashboard: 'Dashboard', vagas: 'Vagas', cursos: 'Cursos', mentores: 'Mentoria', lazer: 'Lazer',
             saudeMental: 'Saúde Mental', meuPerfil: 'Meu Perfil', sair: 'Sair',
             login: 'Login', cadastro: 'Cadastro', meuPainel: 'Meu Painel',
             abrirMenu: 'Abrir menu', trilha: 'Trilha',
@@ -118,6 +118,24 @@ const DICT = {
             acessarPrograma: 'Acessar o programa',
             erroCarregar: 'Erro ao carregar cursos', indisponivel: 'Cursos indisponíveis no momento',
             verifiqueBackend: 'Verifique se o backend está rodando.',
+        },
+        mentores: {
+            categoria: 'Mentoria', titulo: 'Mentores Voluntários',
+            subtitulo: 'Peça orientação para profissionais voluntários da nossa equipe.',
+            carregando: 'Carregando mentores...', erroCarregar: 'Erro ao carregar mentores',
+            recomendado: '⭐ Recomendado para você', areasAtendidas: 'Áreas atendidas',
+            solicitarMentoria: 'Solicitar Mentoria', areaLabel: 'Área da mentoria',
+            mensagemLabel: 'Mensagem (opcional)',
+            mensagemPlaceholder: 'Conte um pouco sobre o que você gostaria de conversar...',
+            enviar: 'Enviar Solicitação', enviando: 'Enviando...',
+            facaLogin: 'Faça login para solicitar uma mentoria.',
+            solicitacaoEnviada: '✅ Solicitação enviada!', salaLabel: 'Sala da mentoria (Google Meet)',
+            fechar: 'Fechar', erroSolicitar: 'Erro ao enviar solicitação. Tente novamente.',
+            historicoTitulo: 'Meu Histórico de Mentorias',
+            historicoVazio: 'Você ainda não solicitou nenhuma mentoria.',
+            historicoFacaLogin: 'Faça login para ver seu histórico de mentorias.',
+            statusAguardandoConfirmacao: 'Aguardando confirmação', statusConfirmada: 'Confirmada',
+            statusConcluida: 'Concluída', solicitadoEm: 'Solicitado em {data}', com: 'com {mentor}',
         },
         lazer: {
             categoria: 'Lazer & Cultura', titulo: 'Pontos de Interesse',
@@ -233,7 +251,7 @@ const DICT = {
     },
     es: {
         nav: {
-            dashboard: 'Panel', vagas: 'Empleos', cursos: 'Cursos', lazer: 'Ocio',
+            dashboard: 'Panel', vagas: 'Empleos', cursos: 'Cursos', mentores: 'Mentoría', lazer: 'Ocio',
             saudeMental: 'Salud Mental', meuPerfil: 'Mi Perfil', sair: 'Salir',
             login: 'Iniciar sesión', cadastro: 'Registro', meuPainel: 'Mi Panel',
             abrirMenu: 'Abrir menú', trilha: 'Trayectoria',
@@ -306,6 +324,24 @@ const DICT = {
             acessarPrograma: 'Acceder al programa',
             erroCarregar: 'Error al cargar cursos', indisponivel: 'Cursos no disponibles en este momento',
             verifiqueBackend: 'Verifica que el backend esté funcionando.',
+        },
+        mentores: {
+            categoria: 'Mentoría', titulo: 'Mentores Voluntarios',
+            subtitulo: 'Pide orientación a profesionales voluntarios de nuestro equipo.',
+            carregando: 'Cargando mentores...', erroCarregar: 'Error al cargar mentores',
+            recomendado: '⭐ Recomendado para ti', areasAtendidas: 'Áreas atendidas',
+            solicitarMentoria: 'Solicitar Mentoría', areaLabel: 'Área de la mentoría',
+            mensagemLabel: 'Mensaje (opcional)',
+            mensagemPlaceholder: 'Cuéntanos un poco sobre lo que te gustaría conversar...',
+            enviar: 'Enviar Solicitud', enviando: 'Enviando...',
+            facaLogin: 'Inicia sesión para solicitar una mentoría.',
+            solicitacaoEnviada: '✅ ¡Solicitud enviada!', salaLabel: 'Sala de la mentoría (Google Meet)',
+            fechar: 'Cerrar', erroSolicitar: 'Error al enviar la solicitud. Inténtalo de nuevo.',
+            historicoTitulo: 'Mi Historial de Mentorías',
+            historicoVazio: 'Todavía no has solicitado ninguna mentoría.',
+            historicoFacaLogin: 'Inicia sesión para ver tu historial de mentorías.',
+            statusAguardandoConfirmacao: 'Esperando confirmación', statusConfirmada: 'Confirmada',
+            statusConcluida: 'Concluida', solicitadoEm: 'Solicitado el {data}', com: 'con {mentor}',
         },
         lazer: {
             categoria: 'Ocio & Cultura', titulo: 'Puntos de Interés',
