@@ -19,6 +19,8 @@
         }
     </script>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="favicon.ico">
 </head>
 
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
@@ -182,6 +184,13 @@
     <script type="module" src="js/i18n.js"></script>
     <script type="module" src="js/dashboard.js"></script>
     <script type="module" src="js/bit.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
+        }
+    </script>
 </body>
 
 </html>

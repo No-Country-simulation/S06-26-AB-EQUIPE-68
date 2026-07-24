@@ -45,7 +45,8 @@ public class AssessmentService {
                 request.softSkills(),
                 request.tecnologias(),
                 "orientacao",
-                request.idioma()
+                request.idioma(),
+                request.area()
             );
             AssessmentDto.Response response = n8nClient.process(enrichedRequest);
             salvarAssessment(usuarioId, response);

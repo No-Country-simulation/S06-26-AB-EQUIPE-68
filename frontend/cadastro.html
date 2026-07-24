@@ -19,6 +19,8 @@
         };
     </script>
     <link rel="stylesheet" href="style.css" />
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="favicon.ico">
 </head>
 
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
@@ -392,6 +394,13 @@
                 text.textContent = t('common.redeEstavel', { tec: '4G' });
             } catch (e) { text.textContent = t('common.redeEstavel', { tec: '4G' }); }
         })();
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
+        }
     </script>
 </body>
 

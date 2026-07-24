@@ -17,7 +17,9 @@ public class AssessmentDto {
         List<String> tecnologias,
         String tipo,
         /** Idioma da UI ("pt"|"es"), default "pt" — campo aditivo (lote i18n). */
-        String idioma
+        String idioma,
+        /** Área alvo do dropdown de perfil (Java, Web, Dados, ...) — campo aditivo (RAG de roadmaps). */
+        String area
     ) {
         public String idiomaOuPadrao() {
             return "es".equalsIgnoreCase(idioma) ? "es" : "pt";

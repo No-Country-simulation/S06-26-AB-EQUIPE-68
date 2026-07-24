@@ -74,6 +74,8 @@ tags:
     description: Avaliação de compatibilidade de carreira (Assessment Agent)
   - name: Cursos
     description: Catálogo de cursos e inscrições
+  - name: Roadmaps
+    description: Roadmaps de carreira curados (RAG do Assessment Agent)
   - name: Mentorias
     description: Catálogo de mentores voluntários e solicitações de mentoria
   - name: Vagas
@@ -426,6 +428,40 @@ paths:
                           total: { type: integer, format: int64 }
                           gratuitos: { type: integer, format: int64 }
                           regioes: { type: integer, format: int64 }
+
+  # ───────────────────────────── Roadmaps (RAG) ─────────────────────────────
+  /api/roadmaps/{area}:
+    get:
+      tags: [Roadmaps]
+      summary: Busca o roadmap de carreira curado para uma área
+      description: >-
+        Conteúdo curado (base_conhecimento.json), carregado em memória no
+        boot. Busca case-insensitive pelo valor do dropdown "Área Alvo"
+        (Java, Web, Dados, Mobile, DevOps, Ciberseguranca, IA, Games, UIUX,
+        Infraestrutura). Consumido pelo workflow n8n de orientação de
+        carreira (RAG) — ver n8n/bitapp-workflow-v2-producao.json.
+      security: []
+      parameters:
+        - name: area
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Roadmap encontrado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Roadmap'
+        '422':
+          description: >
+            Área sem roadmap correspondente. `BusinessException` com
+            `codigo=ROADMAP_NAO_ENCONTRADO`.
 
   # ───────────────────────────── Mentorias ─────────────────────────────
   /api/mentores:
@@ -1325,6 +1361,14 @@ components:
             Idioma da UI — campo aditivo (lote i18n). Define o idioma dos
             textos do fallback determinístico (pontos fortes, gaps, plano de
             desenvolvimento). Ausente ou inválido → "pt".
+        area:
+          type: string
+          nullable: true
+          description: >-
+            Área alvo do dropdown de perfil (Java, Web, Dados, Mobile,
+            DevOps, Ciberseguranca, IA, Games, UIUX, Infraestrutura) — campo
+            aditivo (RAG de roadmaps). Usada pelo n8n para injetar o roadmap
+            curado correspondente no prompt do agente de carreira.
 
     AssessmentResponse:
       type: object
@@ -1345,6 +1389,27 @@ components:
         gaps: { type: array, items: { type: string } }
         planoDesenvolvimento: { type: array, items: { type: string } }
         createdAt: { type: string, format: date-time }
+
+    Roadmap:
+      type: object
+      description: >-
+        Estrutura crua de um roadmap em base_conhecimento.json — grupos de
+        habilidades variam por área (fundamentos, frameworks, ferramentas,
+        plataforma, engine, cloud, ux, ...), por isso o schema é aberto.
+      properties:
+        titulo: { type: string }
+        descricao: { type: string }
+        habilidades:
+          type: object
+          description: >-
+            Mapa de grupo (nome varia por área) -> {obrigatorio, descricao?,
+            itens: [{nome, nivel_minimo}]}.
+          additionalProperties: true
+        cursos:
+          type: object
+          description: Mapa habilidade -> {nome, plataforma}.
+          additionalProperties: true
+      additionalProperties: true
 
     # ───────── Cursos ─────────
     CursoArea:

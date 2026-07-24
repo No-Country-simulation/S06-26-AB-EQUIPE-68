@@ -48,7 +48,7 @@ class AssessmentServiceTest {
         return new AssessmentDto.Request(
             "João", 25, "Superior", "2 anos",
             List.of("Java", "Spring"), List.of("Comunicação"),
-            List.of("Spring Boot"), "orientacao", "pt"
+            List.of("Spring Boot"), "orientacao", "pt", "Java"
         );
     }
 
@@ -72,7 +72,7 @@ class AssessmentServiceTest {
     @Test
     void shouldRejectEmptyNome() {
         var request = new AssessmentDto.Request(
-            "", 25, "", "", List.of(), List.of(), List.of(), "", "pt"
+            "", 25, "", "", List.of(), List.of(), List.of(), "", "pt", ""
         );
         assertThat(request.nome()).isEmpty();
     }
@@ -138,6 +138,21 @@ class AssessmentServiceTest {
         service.processar(request(), 5L);
 
         verify(fallbackStorage).saveAssessment(5L, respostaN8n);
+    }
+
+    // ── ÁREA (RAG de roadmaps): repassada ao n8n sem alterar tecnologias ─────
+    @Test
+    void processar_repassaAreaAoN8nSemAlterarTecnologias() {
+        when(n8nClient.process(any())).thenReturn(respostaCompleta());
+
+        service.processar(request(), 7L);
+
+        ArgumentCaptor<AssessmentDto.Request> captor = ArgumentCaptor.forClass(AssessmentDto.Request.class);
+        verify(n8nClient).process(captor.capture());
+        AssessmentDto.Request enviado = captor.getValue();
+
+        assertThat(enviado.area()).isEqualTo("Java");
+        assertThat(enviado.tecnologias()).containsExactly("Spring Boot");
     }
 
     // ── HISTÓRICO: banco disponível, campos deserializados corretamente ──────
