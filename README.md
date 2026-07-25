@@ -101,6 +101,7 @@ Content-Type: application/json
   "hardSkills": ["Java", "Spring Boot", "SQL"],
   "softSkills": ["Comunicação", "Trabalho em equipe"],
   "tecnologias": ["VS Code", "Git", "Docker"],
+  "area": "Java",
   "tipo": "assessment",
   "idioma": "pt"
 }
@@ -213,14 +214,59 @@ Fallback local (OrientacaoService / SaudeMentalService)
 Experiência preservada — e a regra de segurança do CVV,
 por ser local e determinística, nunca sai do ar
 ```
-> **Limitação conhecida:** o workflow n8n exportado em `n8n/` referencia a URL
-> do serviço via valor fixo no nó de catálogo. Ao importar em outra instância,
-> ajuste a URL do nó "Buscar Catálogo (RAG)" para o seu deploy.
+> **Limitações conhecidas:**
+> * O workflow n8n exportado em `n8n/` referencia a URL do serviço via valor fixo nos nós "Buscar Catálogo (RAG)" e "Buscar Roadmap" — ao importar em outra instância, ajuste a URL desses dois nós para o seu deploy.
+> * O **match de compatibilidade** do assessment é uma estimativa gerada pelo modelo (Gemini), informada pelo perfil do usuário, pelo catálogo de cursos e pelo roadmap da área — sem fórmula determinística. Validada como direcionalmente sensível ao perfil nos testes manuais. Evolução prevista: score via embeddings + similaridade de cosseno, com o LLM restrito à análise qualitativa (gaps e plano de desenvolvimento).
+> * A transição de status de mentoria (`aguardando` → `confirmada` → `concluída`) é feita via API (`PATCH /api/mentorias/{id}/status`), sem painel dedicado para o mentor nesta fase — operação realizada pela equipe.
+> * A família de endpoints de mentorias/histórico está em `permitAll`, sem validação de posse do `usuarioId` — débito de segurança registrado para evolução.
 ---
 
 ## 🎬 Modo Demonstração
 
 Com a variável `DEMO_SEED=true`, a aplicação sobe povoada com 6 perfis realistas, check-ins históricos e uma vaga-âncora com compatibilidade 100% — ideal para avaliação sem depender de cadastro manual. Por padrão (`false`), nada é semeado além dos catálogos.
+
+---
+
+# 🧩 Fase 2 — Novas Entregas
+
+Sprint concluída com 4 requisitos em produção, complementando as funcionalidades da Fase 1 acima.
+
+## 🗄️ Persistência PostgreSQL (Render)
+
+Os dados agora sobrevivem a restarts: em produção a aplicação roda sobre **PostgreSQL** (serviço gerenciado no Render), configurado pelas mesmas variáveis `DB_URL`/`DB_USERNAME`/`DB_PASSWORD` já usadas para MySQL. O **H2 em memória continua sendo o padrão local** e a base da suíte de testes automatizados — nada muda para quem só quer rodar o projeto na própria máquina. Para desenvolvimento local com Postgres, o repositório inclui um serviço `postgres` (imagem `postgres:16`) no `docker-compose.yml`.
+
+## 📈 Histórico de Orientações — "Minha Trilha"
+
+Cada avaliação profissional (`POST /api/assessment`) passa a ficar registrada, permitindo ao usuário acompanhar sua evolução ao longo do tempo na nova página **Minha Trilha**: compatibilidade, nível e gaps identificados em cada rodada, lado a lado.
+
+```http
+GET /api/assessment/historico?usuarioId=1
+```
+
+## 🧑‍🏫 Sistema de Mentorias
+
+Usuários podem solicitar mentoria com um dos **4 mentores voluntários da equipe**. Cada solicitação segue um fluxo de status simples — `aguardando` → `confirmada` → `concluída` — e, ao ser confirmada, ganha uma sala do **Google Meet** para a sessão.
+
+```http
+POST  /api/mentorias?usuarioId=1
+GET   /api/mentorias/historico?usuarioId=1
+PATCH /api/mentorias/{id}/status
+```
+
+## 🧭 RAG de Roadmaps + PWA Instalável
+
+O agente de orientação de carreira passou a consultar, além do catálogo de cursos, uma **base de trilhas curadas por área** (`base_conhecimento.json`, 10 áreas — Java, Web, Dados, Mobile, DevOps, Cibersegurança, IA, Games, UI/UX, Infraestrutura) via `GET /api/roadmaps/{area}`, enriquecendo o plano de desenvolvimento gerado pela IA com os fundamentos e frameworks esperados para a área de interesse do usuário. Em paralelo, o App BiT ganhou **manifest + service worker** (estratégia network-first) e passou a ser **instalável como PWA** em dispositivos móveis e desktop.
+
+### Endpoints novos da Fase 2
+
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| GET | `/api/assessment/historico` | Histórico de avaliações do usuário |
+| GET | `/api/mentores` | Listar mentores voluntários disponíveis |
+| POST | `/api/mentorias` | Solicitar mentoria |
+| GET | `/api/mentorias/historico` | Histórico de mentorias do usuário |
+| PATCH | `/api/mentorias/{id}/status` | Atualizar status da mentoria |
+| GET | `/api/roadmaps/{area}` | Roadmap curado por área (RAG do agente de carreira) |
 
 ---
 
@@ -233,7 +279,7 @@ UI[Frontend — HTML/JS/Tailwind/Leaflet<br/>servido pelo próprio backend]
 
 API[Spring Boot API — porta 8080]
 
-DB[(H2 em memória — padrão<br/>MySQL opcional via ambiente)]
+DB[(H2 em memória — padrão local<br/>PostgreSQL em produção via ambiente)]
 
 N8N[n8n Cloud — roteamento determinístico]
 
@@ -293,8 +339,8 @@ Backend valida, persiste e responde ao Frontend
 
 ## Banco de Dados
 
-* **H2 em memória (padrão)** — decisão deliberada para o hackathon: zero infraestrutura, sobe em qualquer máquina. Os dados são reiniciados a cada restart; o Modo Demonstração repovoa tudo automaticamente.
-* MySQL suportado via variáveis de ambiente (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`) — caminho planejado pós-hackathon.
+* **H2 em memória (padrão local)** — decisão deliberada para o hackathon: zero infraestrutura, sobe em qualquer máquina. Os dados são reiniciados a cada restart; o Modo Demonstração repovoa tudo automaticamente. Também é a base da suíte de testes automatizados.
+* **PostgreSQL em produção (Render)** — persistência real desde a Fase 2, configurada pelas mesmas variáveis de ambiente (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`). MySQL também suportado pelo mesmo mecanismo.
 
 ## Inteligência Artificial
 
@@ -362,7 +408,7 @@ docker run -p 8080:8080 -e GEMINI_API_KEY=sua_chave_gemini -e DEMO_SEED=true bit
 | `N8N_MENTAL_HEALTH_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de saúde mental |
 | `N8N_TIMEOUT` | `40000` | Timeout (ms) das chamadas ao n8n |
 | `JWT_SECRET` | *(valor de dev)* | **Defina um segredo forte em produção** |
-| `DB_URL` | H2 em memória | Aponte para MySQL se desejar persistência |
+| `DB_URL` | H2 em memória | Aponte para PostgreSQL (produção/Render) ou MySQL para persistência |
 | `DEMO_SEED` | `false` | `true` = povoar dados de demonstração |
 | `VISENT_ENABLED` | `true` | Ingestão do dataset Vísent na inicialização |
 
@@ -373,7 +419,7 @@ cd backend
 mvn test
 ```
 
-Suíte com **68 testes automatizados** cobrindo, entre outros, as regras determinísticas de derivação ao CVV, o match de vagas e os serviços de domínio.
+Suíte com **102 testes automatizados** cobrindo, entre outros, as regras determinísticas de derivação ao CVV, o match de vagas e os serviços de domínio.
 
 ---
 
@@ -389,11 +435,17 @@ O contrato completo (OpenAPI 3) acompanha o repositório na pasta `docs/`.
 | PUT | `/api/auth/profile` | Atualização de perfil | — |
 | POST | `/api/auth/logout` | Logout | — |
 | POST | `/api/assessment` | Avaliação profissional | n8n + Gemini |
+| GET | `/api/assessment/historico` | Histórico de avaliações do usuário | — |
 | POST | `/api/orientar` | Orientação de carreira | Gemini direto |
 | POST | `/api/saude` | Check-in diário de bem-estar | n8n + Gemini (linguagem) · derivação CVV local |
 | GET | `/api/saude/historico` | Histórico de check-ins | — |
 | GET | `/api/sugestoes/{usuarioId}` | Sugestões personalizadas | Gemini direto |
+| GET | `/api/roadmaps/{area}` | Roadmap curado por área (RAG do agente de carreira) | — |
 | GET | `/api/network-status/{usuarioId}` | Conectividade na região (Vísent) | — |
+| GET | `/api/mentores` | Listar mentores voluntários | — |
+| POST | `/api/mentorias` | Solicitar mentoria | — |
+| GET | `/api/mentorias/historico` | Histórico de mentorias do usuário | — |
+| PATCH | `/api/mentorias/{id}/status` | Atualizar status da mentoria | — |
 | GET | `/api/usuarios` | Listar usuários | — |
 | PUT | `/api/usuarios/{id}/localizacao` | Atualizar localização | — |
 | GET | `/api/vagas` | Listar vagas | — |
@@ -429,10 +481,8 @@ O contrato completo (OpenAPI 3) acompanha o repositório na pasta `docs/`.
 
 # 🔮 Evoluções Futuras
 
-* Aplicativo Mobile
-* Banco de dados persistente (MySQL) e deploy em nuvem definitiva
+* Aplicativo mobile nativo (PWA já disponível)
 * Dashboard Analítico Avançado
-* Sistema de Mentorias
 * Gamificação
 * Integração com LinkedIn
 * Recomendação Preditiva de Carreira
