@@ -2,7 +2,6 @@ package com.bitsystem.bitapp.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.locationtech.jts.geom.Point;
 
 /**
  * ============================================================================
@@ -39,6 +38,7 @@ public class InfraestruturaRede {
     @Column(name = "densidade_populacional")
     private Double densidadePopulacional;
 
-    @Column(columnDefinition = "GEOMETRY") // Define explicitamente o tipo para o Hibernate e MySQL
-    private Point posicao;
+    private Double latitude;
+
+    private Double longitude;
 }

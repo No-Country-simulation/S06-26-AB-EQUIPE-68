@@ -74,6 +74,10 @@ tags:
     description: Avaliação de compatibilidade de carreira (Assessment Agent)
   - name: Cursos
     description: Catálogo de cursos e inscrições
+  - name: Roadmaps
+    description: Roadmaps de carreira curados (RAG do Assessment Agent)
+  - name: Mentorias
+    description: Catálogo de mentores voluntários e solicitações de mentoria
   - name: Vagas
     description: Catálogo de vagas e candidaturas
   - name: Rede
@@ -217,6 +221,33 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/AssessmentResponse'
+
+  /api/assessment/historico:
+    get:
+      tags: [Assessment]
+      summary: Lista o histórico de assessments de carreira de um usuário
+      security: []
+      parameters:
+        - name: usuarioId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Histórico do usuário, mais recente primeiro
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AssessmentHistoricoItem'
 
   # ───────────────────────────── Cursos ─────────────────────────────
   /api/cursos:
@@ -397,6 +428,164 @@ paths:
                           total: { type: integer, format: int64 }
                           gratuitos: { type: integer, format: int64 }
                           regioes: { type: integer, format: int64 }
+
+  # ───────────────────────────── Roadmaps (RAG) ─────────────────────────────
+  /api/roadmaps/{area}:
+    get:
+      tags: [Roadmaps]
+      summary: Busca o roadmap de carreira curado para uma área
+      description: >-
+        Conteúdo curado (base_conhecimento.json), carregado em memória no
+        boot. Busca case-insensitive pelo valor do dropdown "Área Alvo"
+        (Java, Web, Dados, Mobile, DevOps, Ciberseguranca, IA, Games, UIUX,
+        Infraestrutura). Consumido pelo workflow n8n de orientação de
+        carreira (RAG) — ver n8n/bitapp-workflow-v2-producao.json.
+      security: []
+      parameters:
+        - name: area
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Roadmap encontrado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Roadmap'
+        '422':
+          description: >
+            Área sem roadmap correspondente. `BusinessException` com
+            `codigo=ROADMAP_NAO_ENCONTRADO`.
+
+  # ───────────────────────────── Mentorias ─────────────────────────────
+  /api/mentores:
+    get:
+      tags: [Mentorias]
+      summary: Lista os mentores voluntários ativos
+      security: []
+      responses:
+        '200':
+          description: Lista de mentores
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Mentor'
+
+  /api/mentorias:
+    post:
+      tags: [Mentorias]
+      summary: Cria uma solicitação de mentoria
+      description: >-
+        Tenta persistir no banco primeiro; se indisponível, cai no
+        FallbackStorage em memória (mesmo padrão de
+        `AssessmentService.salvarAssessment`). Nasce sempre com status
+        `AGUARDANDO_CONFIRMACAO`.
+      security: []
+      parameters:
+        - name: usuarioId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolicitacaoMentoriaRequest'
+      responses:
+        '200':
+          description: Solicitação criada
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SolicitacaoMentoriaResponse'
+        '422':
+          $ref: '#/components/responses/BusinessError'
+
+  /api/mentorias/historico:
+    get:
+      tags: [Mentorias]
+      summary: Lista o histórico de solicitações de mentoria de um usuário
+      security: []
+      parameters:
+        - name: usuarioId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Histórico do usuário, mais recente primeiro
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SolicitacaoMentoriaHistoricoItem'
+
+  /api/mentorias/{id}/status:
+    patch:
+      tags: [Mentorias]
+      summary: Avança o status de uma solicitação de mentoria
+      description: >-
+        Transição sequencial única: AGUARDANDO_CONFIRMACAO → CONFIRMADA →
+        CONCLUIDA (uma casa por vez, sem pular, sem voltar). Status
+        desconhecido ou fora de ordem retorna 422 via `BusinessException`
+        (padrão do sistema; nenhum endpoint desta API responde 400 para
+        regra de negócio — só bean validation usa 400).
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AtualizarStatusMentoriaRequest'
+      responses:
+        '200':
+          description: Status atualizado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SolicitacaoMentoriaResponse'
+        '422':
+          $ref: '#/components/responses/BusinessError'
 
   # ───────────────────────────── Vagas ─────────────────────────────
   /api/vagas:
@@ -1028,6 +1217,10 @@ components:
         - USUARIO_NAO_IDENTIFICADO
         - CURSO_NAO_ENCONTRADO
         - VAGA_NAO_ENCONTRADA
+        - MENTOR_NAO_ENCONTRADO
+        - SOLICITACAO_NAO_ENCONTRADA
+        - STATUS_INVALIDO
+        - TRANSICAO_INVALIDA
         - EMAIL_EXISTS
         - INVALID_CREDENTIALS
         - USER_NOT_FOUND
@@ -1168,6 +1361,14 @@ components:
             Idioma da UI — campo aditivo (lote i18n). Define o idioma dos
             textos do fallback determinístico (pontos fortes, gaps, plano de
             desenvolvimento). Ausente ou inválido → "pt".
+        area:
+          type: string
+          nullable: true
+          description: >-
+            Área alvo do dropdown de perfil (Java, Web, Dados, Mobile,
+            DevOps, Ciberseguranca, IA, Games, UIUX, Infraestrutura) — campo
+            aditivo (RAG de roadmaps). Usada pelo n8n para injetar o roadmap
+            curado correspondente no prompt do agente de carreira.
 
     AssessmentResponse:
       type: object
@@ -1177,6 +1378,38 @@ components:
         pontosFortes: { type: array, items: { type: string } }
         gaps: { type: array, items: { type: string } }
         planoDesenvolvimento: { type: array, items: { type: string } }
+
+    AssessmentHistoricoItem:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        compatibilidade: { type: integer, minimum: 0, maximum: 100 }
+        nivel: { type: string }
+        pontosFortes: { type: array, items: { type: string } }
+        gaps: { type: array, items: { type: string } }
+        planoDesenvolvimento: { type: array, items: { type: string } }
+        createdAt: { type: string, format: date-time }
+
+    Roadmap:
+      type: object
+      description: >-
+        Estrutura crua de um roadmap em base_conhecimento.json — grupos de
+        habilidades variam por área (fundamentos, frameworks, ferramentas,
+        plataforma, engine, cloud, ux, ...), por isso o schema é aberto.
+      properties:
+        titulo: { type: string }
+        descricao: { type: string }
+        habilidades:
+          type: object
+          description: >-
+            Mapa de grupo (nome varia por área) -> {obrigatorio, descricao?,
+            itens: [{nome, nivel_minimo}]}.
+          additionalProperties: true
+        cursos:
+          type: object
+          description: Mapa habilidade -> {nome, plataforma}.
+          additionalProperties: true
+      additionalProperties: true
 
     # ───────── Cursos ─────────
     CursoArea:
@@ -1239,6 +1472,64 @@ components:
         dataInscricao: { type: string, format: date-time }
         status: { type: string, example: INSCRITO }
         jaInscrito: { type: boolean, description: "true se já existia inscrição prévia (idempotência)" }
+
+    # ───────── Mentorias ─────────
+    StatusMentoria:
+      type: string
+      description: Transição sequencial única, sem pular nem voltar.
+      enum: [AGUARDANDO_CONFIRMACAO, CONFIRMADA, CONCLUIDA]
+
+    Mentor:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        nome: { type: string }
+        papel: { type: string, example: Backend }
+        areasAtendidas:
+          type: array
+          items: { $ref: '#/components/schemas/CursoArea' }
+          description: Áreas do dropdown "Área Alvo" atendidas por este mentor.
+        linkSala:
+          type: string
+          format: uri
+          description: Sala única (Google Meet) compartilhada pelos 4 mentores do seed atual.
+
+    SolicitacaoMentoriaRequest:
+      type: object
+      required: [mentorId, areaSolicitada]
+      properties:
+        mentorId: { type: integer, format: int64 }
+        areaSolicitada: { $ref: '#/components/schemas/CursoArea' }
+        mensagem: { type: string, nullable: true }
+
+    SolicitacaoMentoriaResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        usuarioId: { type: integer, format: int64 }
+        mentorId: { type: integer, format: int64 }
+        mentorNome: { type: string }
+        areaSolicitada: { type: string }
+        mensagem: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/StatusMentoria' }
+        createdAt: { type: string, format: date-time }
+
+    SolicitacaoMentoriaHistoricoItem:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        mentorId: { type: integer, format: int64 }
+        mentorNome: { type: string }
+        areaSolicitada: { type: string }
+        mensagem: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/StatusMentoria' }
+        createdAt: { type: string, format: date-time }
+
+    AtualizarStatusMentoriaRequest:
+      type: object
+      required: [status]
+      properties:
+        status: { $ref: '#/components/schemas/StatusMentoria' }
 
     # ───────── Vagas ─────────
     VagaNivel:

@@ -11,9 +11,6 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -25,8 +22,6 @@ class LazerServiceTest {
 
     @Mock
     private InfraestruturaRedeRepository infraestruturaRedeRepository;
-
-    private final GeometryFactory geometryFactory = new GeometryFactory();
 
     // Coordenadas dos 16 pontos de Lazer (LazerService.PONTOS, ids 1-16, na
     // mesma ordem) — copiadas aqui para poder colocar uma antena exatamente
@@ -52,13 +47,10 @@ class LazerServiceTest {
         {-27.726084, -48.507971}, // 16
     };
 
-    private Point pontoDe(double lat, double lng) {
-        return geometryFactory.createPoint(new Coordinate(lng, lat));
-    }
-
     private InfraestruturaRede antena(double lat, double lng, double densidade) {
         return InfraestruturaRede.builder()
-                .posicao(pontoDe(lat, lng))
+                .latitude(lat)
+                .longitude(lng)
                 .densidadePopulacional(densidade)
                 .tipoTecnologia("4G")
                 .build();

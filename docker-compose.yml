@@ -1,6 +1,24 @@
 version: "3.9"
 
 services:
+  postgres:
+    image: postgres:16
+    container_name: bitapp-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: db_bitapp
+      POSTGRES_USER: bitapp
+      POSTGRES_PASSWORD: bitapp123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bitapp -d db_bitapp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   mysql:
     image: mysql:8.4
     container_name: bitapp-mysql
@@ -71,5 +89,6 @@ services:
       - ./n8n/bitapp-agent-workflow.json:/home/node/.n8n/import/workflows/bitapp-agent-workflow.json:ro
 
 volumes:
+  postgres_data:
   mysql_data:
   n8n_data:

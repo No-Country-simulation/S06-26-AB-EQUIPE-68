@@ -23,9 +23,9 @@ public interface VagaRepository extends JpaRepository<Vaga, Long> {
     List<Vaga> buscarPorTexto(@Param("q") String query);
 
     @Query("SELECT v FROM Vaga v WHERE v.ativa = true AND " +
-           "(:q IS NULL OR LOWER(v.titulo) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
-           "LOWER(v.empresa) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
-           "LOWER(v.tecnologias) LIKE LOWER(CONCAT('%', :q, '%'))) AND " +
+           "(:q IS NULL OR LOWER(v.titulo) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%')) OR " +
+           "LOWER(v.empresa) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%')) OR " +
+           "LOWER(v.tecnologias) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%'))) AND " +
            "(:regiao IS NULL OR v.regiao = :regiao) AND " +
            "(:nivel IS NULL OR v.nivel = :nivel) AND " +
            "(:area IS NULL OR v.area = :area) AND " +

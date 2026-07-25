@@ -5,8 +5,11 @@ import com.bitsystem.bitapp.exception.BusinessException;
 import com.bitsystem.bitapp.integration.N8NAssessmentClient;
 import com.bitsystem.bitapp.domain.CareerAssessment;
 import com.bitsystem.bitapp.repository.CareerAssessmentRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +23,14 @@ public class AssessmentService {
     private final N8NAssessmentClient n8nClient;
     private final CareerAssessmentRepository repository;
     private final FallbackStorage fallbackStorage;
+    private final ObjectMapper objectMapper;
 
     public AssessmentService(N8NAssessmentClient n8nClient, CareerAssessmentRepository repository,
-            FallbackStorage fallbackStorage) {
+            FallbackStorage fallbackStorage, ObjectMapper objectMapper) {
         this.n8nClient = n8nClient;
         this.repository = repository;
         this.fallbackStorage = fallbackStorage;
+        this.objectMapper = objectMapper;
     }
 
     public AssessmentDto.Response processar(AssessmentDto.Request request, Long usuarioId) {
@@ -40,22 +45,11 @@ public class AssessmentService {
                 request.softSkills(),
                 request.tecnologias(),
                 "orientacao",
-                request.idioma()
+                request.idioma(),
+                request.area()
             );
             AssessmentDto.Response response = n8nClient.process(enrichedRequest);
-
-            // Salvar no banco
-            try {
-                CareerAssessment assessment = CareerAssessment.builder()
-                        .usuarioId(usuarioId)
-                        .compatibilidade(response.compatibilidade())
-                        .nivel(response.nivel())
-                        .build();
-                repository.save(assessment);
-            } catch (Exception dbEx) {
-                log.warn("[AssessmentService] Banco indisponível, salvando assessment em memória");
-                fallbackStorage.saveAssessment(usuarioId, response);
-            }
+            salvarAssessment(usuarioId, response);
 
             log.info("[AssessmentService] Assessment processado via N8N: usuarioId={}", usuarioId);
             return response;
@@ -64,14 +58,88 @@ public class AssessmentService {
             // ── Fallback: resposta local baseada no perfil ─────────────────
             log.warn("[AssessmentService] N8N indisponível, usando resposta local: {}", ex.getMessage());
             AssessmentDto.Response fallbackResponse = buildFallbackAssessment(request);
-
-            try {
-                fallbackStorage.saveAssessment(usuarioId, fallbackResponse);
-            } catch (Exception storageEx) {
-                log.warn("[AssessmentService] Falha ao salvar fallback: {}", storageEx.getMessage());
-            }
-
+            salvarAssessment(usuarioId, fallbackResponse);
             return fallbackResponse;
+        }
+    }
+
+    /**
+     * Salva o assessment completo no banco (mesmo padrão de
+     * SaudeMentalService.avaliarEstadoMental: tenta o banco primeiro, só cai
+     * para o FallbackStorage em memória se o banco estiver indisponível).
+     * Usado tanto no caminho feliz (n8n ok) quanto no fallback (n8n fora) —
+     * nos dois casos o assessment precisa sobreviver a um restart.
+     */
+    private void salvarAssessment(Long usuarioId, AssessmentDto.Response response) {
+        try {
+            CareerAssessment assessment = CareerAssessment.builder()
+                    .usuarioId(usuarioId)
+                    .compatibilidade(response.compatibilidade())
+                    .nivel(response.nivel())
+                    .pontosFortes(paraJson(response.pontosFortes()))
+                    .gaps(paraJson(response.gaps()))
+                    .planoDesenvolvimento(paraJson(response.planoDesenvolvimento()))
+                    .build();
+            repository.save(assessment);
+            log.info("[AssessmentService] Assessment salvo no banco: usuarioId={}", usuarioId);
+        } catch (Exception dbEx) {
+            log.warn("[AssessmentService] Banco indisponível, salvando assessment em memória: {}", dbEx.getMessage());
+            fallbackStorage.saveAssessment(usuarioId, response);
+        }
+    }
+
+    public List<AssessmentDto.HistoricoResponse> buscarHistorico(Long usuarioId) {
+        List<AssessmentDto.HistoricoResponse> resultado = new ArrayList<>();
+
+        try {
+            List<CareerAssessment> registros = repository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId);
+            for (CareerAssessment a : registros) {
+                resultado.add(new AssessmentDto.HistoricoResponse(
+                        a.getId(),
+                        a.getCompatibilidade(),
+                        a.getNivel(),
+                        deJson(a.getPontosFortes()),
+                        deJson(a.getGaps()),
+                        deJson(a.getPlanoDesenvolvimento()),
+                        a.getCreatedAt()
+                ));
+            }
+        } catch (Exception ex) {
+            log.warn("[AssessmentService] DB indisponivel, buscando historico em memoria: {}", ex.getMessage());
+            List<FallbackStorage.AssessmentRecord> fallbackRecords = fallbackStorage.findAssessmentsByUserId(usuarioId);
+            for (FallbackStorage.AssessmentRecord r : fallbackRecords) {
+                resultado.add(new AssessmentDto.HistoricoResponse(
+                        r.id(),
+                        r.compatibilidade(),
+                        r.nivel(),
+                        r.pontosFortes(),
+                        r.gaps(),
+                        r.planoDesenvolvimento(),
+                        r.createdAt()
+                ));
+            }
+        }
+
+        return resultado;
+    }
+
+    private String paraJson(List<String> valores) {
+        try {
+            return objectMapper.writeValueAsString(valores != null ? valores : List.of());
+        } catch (Exception ex) {
+            throw new RuntimeException("Falha ao serializar campo do assessment", ex);
+        }
+    }
+
+    private List<String> deJson(String json) {
+        if (json == null || json.isBlank()) {
+            return Collections.emptyList();
+        }
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
+        } catch (Exception ex) {
+            log.warn("[AssessmentService] Falha ao desserializar campo do assessment: {}", ex.getMessage());
+            return Collections.emptyList();
         }
     }
 

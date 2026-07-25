@@ -59,6 +59,7 @@ async function carregarAssessment() {
                 softSkills: [],
                 tecnologias: usuario.areaTecnologia ? [usuario.areaTecnologia] : [],
                 idioma: getIdioma(),
+                area: usuario.areaTecnologia || '',
             }, usuario.id);
             setAssessmentCache(usuario.id, data);
         }

@@ -176,6 +176,10 @@ export async function historicoSaude(usuarioId) {
     return apiFetch(`/api/saude/historico?usuarioId=${usuarioId}`);
 }
 
+export async function historicoAssessment(usuarioId) {
+    return apiFetch(`/api/assessment/historico?usuarioId=${usuarioId}`);
+}
+
 export async function salvarLocalizacao(usuarioId, latitude, longitude) {
     return apiFetch(`/api/usuarios/${usuarioId}/localizacao`, {
         method: 'PUT',
@@ -189,4 +193,26 @@ export async function listarPontosLazer() {
 
 export async function buscarSugestoes(usuarioId, idioma = 'pt') {
     return apiFetch(`/api/sugestoes/${usuarioId}?idioma=${idioma}`);
+}
+
+export async function listarMentores() {
+    return apiFetch('/api/mentores');
+}
+
+export async function solicitarMentoria(dados, usuarioId = 0) {
+    return apiFetch(`/api/mentorias?usuarioId=${usuarioId}`, {
+        method: 'POST',
+        body: JSON.stringify(dados),
+    });
+}
+
+export async function historicoMentorias(usuarioId) {
+    return apiFetch(`/api/mentorias/historico?usuarioId=${usuarioId}`);
+}
+
+export async function atualizarStatusMentoria(id, status) {
+    return apiFetch(`/api/mentorias/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+    });
 }

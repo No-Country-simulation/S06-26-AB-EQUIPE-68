@@ -1,7 +1,6 @@
 package com.bitsystem.bitapp.service;
 
 import com.bitsystem.bitapp.dto.NetworkStatusDto;
-import org.locationtech.jts.geom.Point;
 
 public interface GeolocationService {
     /**
@@ -12,12 +11,4 @@ public interface GeolocationService {
      * @return Um objeto NetworkStatusDto contendo o status da rede (Estável/Instável) e a tecnologia predominante.
      */
     NetworkStatusDto getNetworkStatus(Long usuarioId, double raioMetros);
-
-    /**
-     * Cria um objeto Point a partir de latitude e longitude.
-     * @param latitude Latitude do ponto.
-     * @param longitude Longitude do ponto.
-     * @return Objeto Point com SRID 4326.
-     */
-    Point createPoint(double latitude, double longitude);
 }

@@ -8,27 +8,27 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "1f3f3e2f-f44d-41e5-830a-f460ff4770f3",
+      "id": "a5d4b359-e5b9-4478-8374-672ba25a2754",
       "name": "Webhook Entrada",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        -816,
-        -528
+        -416,
+        -128
       ],
       "webhookId": "19a95a2f-7ea9-4d6a-ab4f-a96ec3de3553"
     },
     {
       "parameters": {
-        "jsCode": "// Normaliza a entrada vinda do backend App BiT.\n// Roteamento é DETERMINÍSTICO pelo campo 'tipo' — sem LLM classificador.\nconst body = $input.first().json.body || $input.first().json;\nconst tipo = (body.tipo || '').toString().toLowerCase();\nconst idioma = (body.idioma === 'es') ? 'es' : 'pt';\nconst conectividade = (body.conectividade || '').toString().toLowerCase();\n\nreturn [{ json: {\n  tipo: tipo === 'mental-health' ? 'mental-health' : 'orientacao',\n  idioma,\n  conectividade,\n  // Campos de carreira (AssessmentDto.Request)\n  nome: body.nome || '',\n  idade: body.idade ?? null,\n  escolaridade: body.escolaridade || '',\n  experiencia: body.experiencia || '',\n  hardSkills: body.hardSkills || [],\n  softSkills: body.softSkills || [],\n  tecnologias: body.tecnologias || [],\n  // Campos de saúde mental\n  userId: body.userId ?? body.usuarioId ?? null,\n  humor: body.humor || '',\n  contexto: body.contexto || body.message || ''\n}}];"
+        "jsCode": "// Normaliza a entrada vinda do backend App BiT.\n// Roteamento é DETERMINÍSTICO pelo campo 'tipo' — sem LLM classificador.\nconst body = $input.first().json.body || $input.first().json;\nconst tipo = (body.tipo || '').toString().toLowerCase();\nconst idioma = (body.idioma === 'es') ? 'es' : 'pt';\nconst conectividade = (body.conectividade || '').toString().toLowerCase();\n\nreturn [{ json: {\n  tipo: tipo === 'mental-health' ? 'mental-health' : 'orientacao',\n  idioma,\n  conectividade,\n  // Campos de carreira (AssessmentDto.Request)\n  nome: body.nome || '',\n  idade: body.idade ?? null,\n  escolaridade: body.escolaridade || '',\n  experiencia: body.experiencia || '',\n  hardSkills: body.hardSkills || [],\n  softSkills: body.softSkills || [],\n  tecnologias: body.tecnologias || [],\n  area: body.area || '',\n  // Campos de saúde mental\n  userId: body.userId ?? body.usuarioId ?? null,\n  humor: body.humor || '',\n  contexto: body.contexto || body.message || ''\n}}];"
       },
-      "id": "9b689e89-78fb-4c87-a47a-719c659e83e3",
+      "id": "3a28ab6c-54bb-4b4f-b708-893c4cba6787",
       "name": "Normalizar Entrada",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -592,
-        -528
+        -192,
+        -128
       ]
     },
     {
@@ -44,26 +44,26 @@
         },
         "fallbackOutput": 1
       },
-      "id": "7719716e-b188-4cfc-8893-dab4911b2958",
+      "id": "daedb277-4fab-40ce-a3ad-4d53652457d6",
       "name": "Router (determinístico)",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
       "position": [
-        -368,
-        -560
+        32,
+        -160
       ]
     },
     {
       "parameters": {
         "jsCode": "// Prompt do agente de ACOLHIMENTO (saúde mental).\n// Regras invioláveis do App BiT: o agente só gera TEXTO de acolhimento.\n// Ele NUNCA decide/menciona derivação ao CVV e NUNCA cita nota numérica.\nconst d = $('Normalizar Entrada').first().json;\nconst lang = d.idioma === 'es' ? 'espanhol (neutro latino-americano, tuteo: te/ti/tu)' : 'português do Brasil';\nconst offline = d.conectividade === 'fraca'\n  ? '\\n- A conexão do usuário está fraca: priorize ações OFFLINE (caminhada, respiração, escrita, leitura em papel).'\n  : '';\n\nconst prompt = `Você é o Bit, agente de acolhimento emocional do App BiT.\\n` +\n`Estado emocional declarado pelo usuário: ${d.humor || 'não informado'}.\\n` +\n`O que a pessoa escreveu (opcional): \"${d.contexto || ''}\"\\n\\n` +\n`Sua tarefa: escrever uma resposta de acolhimento breve e humana, no espírito de escutar sem julgar.\\n\\n` +\n`REGRAS OBRIGATÓRIAS:\\n` +\n`- Responda SOMENTE com JSON válido, sem markdown, sem cercas de código.\\n` +\n`- Shape exato: {\"mensagem\": string, \"acaoSugerida\": string}\\n` +\n`- mensagem: 2 a 4 frases, empática, específica ao que a pessoa disse. NUNCA cite notas ou números de avaliação.\\n` +\n`- acaoSugerida: UMA ação concreta e imediata (ex.: um capítulo de livro, um episódio de podcast, caminhar, respiração 4-4-6).\\n` +\n`- NUNCA mencione encaminhamentos, CVV, telefones de apoio ou decisões de crise — isso é responsabilidade de outro sistema.\\n` +\n`- Não faça diagnósticos nem use rótulos clínicos.\\n` +\n`- Escreva em ${lang}.${offline}`;\n\nreturn [{ json: { prompt } }];"
       },
-      "id": "b6e61471-9b78-4fe0-9978-b91ea3b68116",
+      "id": "f3d31642-2cb8-49d3-b37f-da44c46a85ce",
       "name": "Montar Prompt Acolhimento",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        80,
-        -624
+        688,
+        -224
       ]
     },
     {
@@ -73,28 +73,28 @@
           "timeout": 15000
         }
       },
-      "id": "57276f74-da24-42a1-a81a-588b679ebf63",
+      "id": "3cef58ac-18ef-41d5-969e-2e0686c5ba68",
       "name": "Buscar Catálogo (RAG)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -144,
-        -432
+        256,
+        -32
       ],
       "retryOnFail": true,
       "waitBetweenTries": 5000
     },
     {
       "parameters": {
-        "jsCode": "// Prompt do agente de CARREIRA (assessment) com RAG do catálogo real.\nconst d = $('Normalizar Entrada').first().json;\nconst lang = d.idioma === 'es' ? 'espanhol (neutro latino-americano, tuteo)' : 'português do Brasil';\n\n// Catálogo vivo vindo de GET /api/cursos (StandardApiResponse{success,data})\nlet catalogo = [];\ntry {\n  const resp = $('Buscar Catálogo (RAG)').first().json;\n  const data = resp.data || resp;\n  catalogo = (Array.isArray(data) ? data : []).map(c => `- ${c.titulo || c.nome} (${c.instituicao || ''} | área: ${c.area || ''} | ${c.gratuito ? 'gratuito' : 'pago'})`);\n} catch (e) { catalogo = []; }\nconst catalogoTxt = catalogo.length ? catalogo.slice(0, 25).join('\\n') : '(catálogo indisponível — recomende trilhas gratuitas conhecidas: Oracle ONE, DIO, Santander Open Academy)';\n\nconst prompt = `Você é o agente de Avaliação Profissional do App BiT.\\n\\n` +\n`PERFIL DO USUÁRIO:\\n` +\n`Nome: ${d.nome} | Idade: ${d.idade ?? 'n/i'} | Escolaridade: ${d.escolaridade}\\n` +\n`Experiência: ${d.experiencia}\\n` +\n`Hard skills: ${(d.hardSkills||[]).join(', ') || 'nenhuma informada'}\\n` +\n`Soft skills: ${(d.softSkills||[]).join(', ') || 'nenhuma informada'}\\n` +\n`Tecnologias: ${(d.tecnologias||[]).join(', ') || 'nenhuma informada'}\\n\\n` +\n`CATÁLOGO DE CURSOS DISPONÍVEIS NO APP (use APENAS estes ao recomendar cursos):\\n${catalogoTxt}\\n\\n` +\n`REGRAS OBRIGATÓRIAS:\\n` +\n`- Responda SOMENTE com JSON válido, sem markdown, sem cercas de código.\\n` +\n`- Shape exato: {\"compatibilidade\": inteiro 0-100, \"nivel\": string, \"pontosFortes\": [strings], \"gaps\": [strings], \"planoDesenvolvimento\": [strings]}\\n` +\n  `- As CHAVES do JSON sao identificadores tecnicos FIXOS: compatibilidade, nivel, pontosFortes, gaps, planoDesenvolvimento — NUNCA as traduza; traduza APENAS os valores/textos.\\n` +\n`- gaps: 2 a 4 lacunas específicas derivadas do perfil real.\\n` +\n`- planoDesenvolvimento: 2 a 4 passos concretos; cite pelo NOME cursos do catálogo acima quando fizerem sentido para os gaps.\\n` +\n`- nivel: um de \"Júnior Trainee\", \"Júnior\", \"Júnior Pleno\".\\n` +\n`- Nunca invente cursos fora do catálogo. Nunca cite notas ou avaliações numéricas do usuário.\\n` +\n`- Todos os textos em ${lang}.`;\n\nreturn [{ json: { prompt } }];"
+        "jsCode": "// Prompt do agente de CARREIRA (assessment) com RAG do catálogo real + roadmap da área.\nconst d = $('Normalizar Entrada').first().json;\nconst lang = d.idioma === 'es' ? 'espanhol (neutro latino-americano, tuteo)' : 'português do Brasil';\n\n// Catálogo vivo vindo de GET /api/cursos (StandardApiResponse{success,data})\nlet catalogo = [];\ntry {\n  const resp = $('Buscar Catálogo (RAG)').first().json;\n  const data = resp.data || resp;\n  catalogo = (Array.isArray(data) ? data : []).map(c => `- ${c.titulo || c.nome} (${c.instituicao || ''} | área: ${c.area || ''} | ${c.gratuito ? 'gratuito' : 'pago'})`);\n} catch (e) { catalogo = []; }\nconst catalogoTxt = catalogo.length ? catalogo.slice(0, 25).join('\\n') : '(catálogo indisponível — recomende trilhas gratuitas conhecidas: Oracle ONE, DIO, Santander Open Academy)';\n\n// Roadmap vivo vindo de GET /api/roadmaps/{area} (StandardApiResponse{success,data}).\n// Leitura DEFENSIVA: erro HTTP, success:false, data ausente, área sem roadmap (422) ou\n// qualquer exceção de parsing caem no MESMO fallback textual — nunca quebram o prompt.\nlet roadmapTxt = '(roadmap indisponível para esta área — baseie o plano de desenvolvimento apenas no perfil e no catálogo acima)';\ntry {\n  const rr = $('Buscar Roadmap').first().json;\n  const rdata = rr && rr.success !== false ? (rr.data || null) : null;\n  if (rdata) {\n    const fundamentos = (rdata.habilidades?.fundamentos?.itens || []).map(i => i.nome).filter(Boolean);\n    const frameworks = (rdata.habilidades?.frameworks?.itens || []).map(i => i.nome).filter(Boolean);\n    const complementares = (rdata.habilidades?.complementares?.itens || []).map(i => i.nome).filter(Boolean);\n    const linhas = [];\n    if (rdata.titulo) linhas.push(`Trilha de referência: ${rdata.titulo}`);\n    if (fundamentos.length) linhas.push(`Fundamentos esperados: ${fundamentos.join(', ')}`);\n    if (frameworks.length) linhas.push(`Frameworks/ferramentas esperados: ${frameworks.join(', ')}`);\n    if (complementares.length) linhas.push(`Complementares desejáveis: ${complementares.join(', ')}`);\n    if (linhas.length) roadmapTxt = linhas.join('\\n');\n  }\n} catch (e) { /* mantém fallback textual */ }\n\nconst prompt = `Você é o agente de Avaliação Profissional do App BiT.\\n\\n` +\n`PERFIL DO USUÁRIO:\\n` +\n`Nome: ${d.nome} | Idade: ${d.idade ?? 'n/i'} | Escolaridade: ${d.escolaridade}\\n` +\n`Experiência: ${d.experiencia}\\n` +\n`Hard skills: ${(d.hardSkills||[]).join(', ') || 'nenhuma informada'}\\n` +\n`Soft skills: ${(d.softSkills||[]).join(', ') || 'nenhuma informada'}\\n` +\n`Tecnologias: ${(d.tecnologias||[]).join(', ') || 'nenhuma informada'}\\n\\n` +\n`ROADMAP DE REFERÊNCIA PARA A ÁREA DE INTERESSE (${d.area || 'não informada'}):\\n${roadmapTxt}\\n\\n` +\n`CATÁLOGO DE CURSOS DISPONÍVEIS NO APP (use APENAS estes ao recomendar cursos):\\n${catalogoTxt}\\n\\n` +\n`REGRAS OBRIGATÓRIAS:\\n` +\n`- Responda SOMENTE com JSON válido, sem markdown, sem cercas de código.\\n` +\n`- Shape exato: {\"compatibilidade\": inteiro 0-100, \"nivel\": string, \"pontosFortes\": [strings], \"gaps\": [strings], \"planoDesenvolvimento\": [strings]}\\n` +\n  `- As CHAVES do JSON sao identificadores tecnicos FIXOS: compatibilidade, nivel, pontosFortes, gaps, planoDesenvolvimento — NUNCA as traduza; traduza APENAS os valores/textos.\\n` +\n`- gaps: 2 a 4 lacunas específicas derivadas do perfil real.\\n` +\n`- planoDesenvolvimento: 2 a 4 passos concretos; cite pelo NOME cursos do catálogo acima quando fizerem sentido para os gaps.\\n` +\n`- nivel: um de \"Júnior Trainee\", \"Júnior\", \"Júnior Pleno\".\\n` +\n`- Nunca invente cursos fora do catálogo. Nunca cite notas ou avaliações numéricas do usuário.\\n` +\n`- Todos os textos em ${lang}.`;\n\nreturn [{ json: { prompt } }];"
       },
-      "id": "18b2ecfb-f4e2-462a-90fd-19674bbf6920",
+      "id": "cf7893c8-a154-413f-a35d-788d7e6276d9",
       "name": "Montar Prompt Carreira",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        80,
-        -432
+        688,
+        -32
       ]
     },
     {
@@ -110,17 +110,17 @@
           "timeout": 30000
         }
       },
-      "id": "84724e8c-f1b9-4225-a963-a2605bac5b35",
+      "id": "54443706-7274-444b-99dd-af40bbd58adb",
       "name": "Gemini Acolhimento",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        304,
-        -624
+        912,
+        -224
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "GKmVN2dNsM1TBPxw",
+          "id": "LXo4aRIWlXgy2TI1",
           "name": "Header Auth account"
         }
       }
@@ -138,17 +138,17 @@
           "timeout": 30000
         }
       },
-      "id": "bad08367-715b-480c-9805-9826495b8d1f",
+      "id": "7d2867f8-4f73-4620-813f-79cdc475d667",
       "name": "Gemini Carreira",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        304,
-        -432
+        912,
+        -32
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "GKmVN2dNsM1TBPxw",
+          "id": "LXo4aRIWlXgy2TI1",
           "name": "Header Auth account"
         }
       }
@@ -157,13 +157,13 @@
       "parameters": {
         "jsCode": "// Extrai o texto do Gemini, remove cercas markdown e parseia o JSON.\n// Nunca inventa derivarCvv/decisões — devolve exatamente o que o agente gerou.\nconst r = $input.first().json;\nlet texto = '';\ntry {\n  texto = r.candidates?.[0]?.content?.parts?.[0]?.text || '';\n} catch (e) { texto = ''; }\n\nconst limpo = texto.replace(/```json/gi, '').replace(/```/g, '').trim();\n\ntry {\n  const obj = JSON.parse(limpo);\n  if (obj.compatibilidad !== undefined && obj.compatibilidade === undefined) { obj.compatibilidade = obj.compatibilidad; delete obj.compatibilidad; }\n  return [{ json: obj }];\n} catch (e) {\n  // Parse falhou: devolve raw para o backend cair no fallback com diagnóstico.\n  return [{ json: { error: 'PARSE_FALHOU', raw: limpo.slice(0, 500) } }];\n}"
       },
-      "id": "9e86bbc7-6e4e-4c65-80b8-ebd9e467c6d8",
+      "id": "891acc0b-82e9-4f70-af46-e2dcef6509be",
       "name": "Parse Resposta",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        528,
-        -528
+        1136,
+        -128
       ]
     },
     {
@@ -171,14 +171,33 @@
         "respondWith": "allIncomingItems",
         "options": {}
       },
-      "id": "674336e6-6630-4d6e-b79d-0bdd98e96aab",
+      "id": "9b74dd8a-0e39-4863-9f69-3142ad414cfc",
       "name": "Responder",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        752,
-        -528
+        1360,
+        -128
       ]
+    },
+    {
+      "parameters": {
+        "url": "=https://s06-26-appbit-demo.onrender.com/api/roadmaps/{{ $('Normalizar Entrada').first().json.area\n}}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        464,
+        -32
+      ],
+      "id": "ed428dd5-c750-47ac-8eb1-41350648777c",
+      "name": "Buscar Roadmap",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
     }
   ],
   "pinData": {
@@ -227,13 +246,11 @@
             "tecnologias": [
               "Docker",
               "Git"
-            ]
+            ],
+            "area": "Java"
           },
           "webhookUrl": "https://teixeiraandre51.app.n8n.cloud/webhook-test/bit/agent",
           "executionMode": "test"
-        },
-        "pairedItem": {
-          "item": 0
         }
       }
     ]
@@ -294,7 +311,7 @@
       "main": [
         [
           {
-            "node": "Montar Prompt Carreira",
+            "node": "Buscar Roadmap",
             "type": "main",
             "index": 0
           }
@@ -344,6 +361,17 @@
           }
         ]
       ]
+    },
+    "Buscar Roadmap": {
+      "main": [
+        [
+          {
+            "node": "Montar Prompt Carreira",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -352,11 +380,11 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "0b7cd880-25b3-440d-802c-4f83728a1f80",
+  "versionId": "81ed0681-35b3-4f2c-b69d-288726ea815b",
   "meta": {
-    "instanceId": "60bcf3478cc258aa0348e2ed9786fb088b579a13a661f3cd373200acb69a957a"
+    "instanceId": "01ad7c15956886e2cd9d4a98437f3d9b2961fdaf3680718dfcad1a6b5b6f6a92"
   },
   "nodeGroups": [],
-  "id": "G86mdDahTULdXc59",
+  "id": "owbflnE8mT6dp7WZ",
   "tags": []
 }

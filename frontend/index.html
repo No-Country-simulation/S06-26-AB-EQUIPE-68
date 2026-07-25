@@ -20,6 +20,8 @@
         };
     </script>
     <link rel="stylesheet" href="style.css" />
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="favicon.ico">
     <style>
         @keyframes gradientShift {
             0%, 100% { background-position: 0% 50%; }
@@ -276,6 +278,13 @@
                 text.textContent = t('common.redeEstavel', { tec: '4G' });
             }
         })();
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
+        }
     </script>
 </body>
 

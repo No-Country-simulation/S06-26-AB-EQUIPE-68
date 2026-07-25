@@ -21,15 +21,17 @@ public class CareerAssessment {
 
     private String nivel;
 
-    @Lob
-    @Column(name = "pontos_fortes")
+    // Sem @Lob: em Postgres, @Lob numa String vira Large Object (oid), que só
+    // pode ser lido dentro da MESMA transação em que foi gravado ("Unable to
+    // access lob stream" ao ler depois). columnDefinition TEXT é o mesmo
+    // padrão já usado em HistoricoSaude.contexto, compatível com H2+Postgres.
+    @Column(name = "pontos_fortes", columnDefinition = "TEXT")
     private String pontosFortes;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String gaps;
 
-    @Lob
-    @Column(name = "plano_desenvolvimento")
+    @Column(name = "plano_desenvolvimento", columnDefinition = "TEXT")
     private String planoDesenvolvimento;
 
     @Column(name = "created_at", nullable = false, updatable = false)

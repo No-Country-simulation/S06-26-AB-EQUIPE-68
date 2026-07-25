@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import org.locationtech.jts.geom.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -135,8 +134,8 @@ public class LazerService {
 
     private Optional<InfraestruturaRede> antenaMaisProxima(PontoLazerDto.Seed ponto, List<InfraestruturaRede> antenas) {
         return antenas.stream()
-            .filter(a -> a.getPosicao() != null && a.getDensidadePopulacional() != null)
-            .min(Comparator.comparingDouble(a -> distanciaAtePonto(ponto, a.getPosicao())));
+            .filter(a -> a.getLatitude() != null && a.getLongitude() != null && a.getDensidadePopulacional() != null)
+            .min(Comparator.comparingDouble(a -> distanciaAtePonto(ponto, a)));
     }
 
     private String calcularZona(Optional<InfraestruturaRede> maisProxima, double[] cortes) {
@@ -154,8 +153,8 @@ public class LazerService {
         return ZONA_MOVIMENTADA;
     }
 
-    private double distanciaAtePonto(PontoLazerDto.Seed ponto, Point antena) {
-        return GeoUtils.distanciaMetros(ponto.lat(), ponto.lng(), antena.getY(), antena.getX());
+    private double distanciaAtePonto(PontoLazerDto.Seed ponto, InfraestruturaRede antena) {
+        return GeoUtils.distanciaMetros(ponto.lat(), ponto.lng(), antena.getLatitude(), antena.getLongitude());
     }
 
     /**

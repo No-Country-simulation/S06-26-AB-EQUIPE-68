@@ -33,6 +33,9 @@ public class FallbackStorage {
     // ── Assessments de Carreira ───────────────────────────────────────────
     private final Map<Long, List<AssessmentRecord>> assessments = new ConcurrentHashMap<>();
 
+    // ── Solicitações de Mentoria ──────────────────────────────────────────
+    private final Map<Long, List<MentoriaRecord>> mentoriaSolicitacoes = new ConcurrentHashMap<>();
+
     // ════════════════════════════════════════════════════════════════════════
     //  RECORDS internos
     // ════════════════════════════════════════════════════════════════════════
@@ -58,6 +61,11 @@ public class FallbackStorage {
         Long id, Long usuarioId, Integer compatibilidade, String nivel,
         List<String> pontosFortes, List<String> gaps,
         List<String> planoDesenvolvimento, LocalDateTime createdAt
+    ) {}
+
+    public record MentoriaRecord(
+        Long id, Long usuarioId, Long mentorId, String areaSolicitada,
+        String mensagem, String status, LocalDateTime createdAt
     ) {}
 
     // ════════════════════════════════════════════════════════════════════════
@@ -190,6 +198,49 @@ public class FallbackStorage {
 
     public List<AssessmentRecord> findAssessmentsByUserId(Long usuarioId) {
         return assessments.getOrDefault(usuarioId, Collections.emptyList());
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    //  MENTORIA operations
+    // ════════════════════════════════════════════════════════════════════════
+
+    public MentoriaRecord saveMentoria(Long usuarioId, Long mentorId, String areaSolicitada, String mensagem) {
+        long id = mentoriaSolicitacoes.values().stream().mapToLong(List::size).sum() + 1;
+        MentoriaRecord record = new MentoriaRecord(
+            id, usuarioId, mentorId, areaSolicitada, mensagem,
+            com.bitsystem.bitapp.domain.SolicitacaoMentoria.AGUARDANDO_CONFIRMACAO, LocalDateTime.now()
+        );
+        mentoriaSolicitacoes.computeIfAbsent(usuarioId, k -> new ArrayList<>()).add(record);
+        log.info("[FallbackStorage] Solicitação de mentoria salva: usuarioId={}, mentorId={}", usuarioId, mentorId);
+        return record;
+    }
+
+    public List<MentoriaRecord> findMentoriasByUserId(Long usuarioId) {
+        return mentoriaSolicitacoes.getOrDefault(usuarioId, Collections.emptyList());
+    }
+
+    public Optional<MentoriaRecord> findMentoriaById(Long id) {
+        return mentoriaSolicitacoes.values().stream()
+                .flatMap(List::stream)
+                .filter(r -> r.id().equals(id))
+                .findFirst();
+    }
+
+    public MentoriaRecord updateMentoriaStatus(Long id, String novoStatus) {
+        for (List<MentoriaRecord> registros : mentoriaSolicitacoes.values()) {
+            for (int i = 0; i < registros.size(); i++) {
+                MentoriaRecord r = registros.get(i);
+                if (r.id().equals(id)) {
+                    MentoriaRecord atualizado = new MentoriaRecord(
+                        r.id(), r.usuarioId(), r.mentorId(), r.areaSolicitada(),
+                        r.mensagem(), novoStatus, r.createdAt()
+                    );
+                    registros.set(i, atualizado);
+                    return atualizado;
+                }
+            }
+        }
+        return null;
     }
 
     // ════════════════════════════════════════════════════════════════════════

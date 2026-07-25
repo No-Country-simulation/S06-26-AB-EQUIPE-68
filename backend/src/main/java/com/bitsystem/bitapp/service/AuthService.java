@@ -26,17 +26,14 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final FallbackStorage fallbackStorage;
-    private final GeolocationService geolocationService;
 
     public AuthService(UserRepository userRepository, UserSessionRepository sessionRepository,
-            PasswordEncoder passwordEncoder, JwtUtil jwtUtil, FallbackStorage fallbackStorage,
-            GeolocationService geolocationService) {
+            PasswordEncoder passwordEncoder, JwtUtil jwtUtil, FallbackStorage fallbackStorage) {
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.fallbackStorage = fallbackStorage;
-        this.geolocationService = geolocationService;
     }
 
     // ════════════════════════════════════════════════════════════════════════
@@ -205,7 +202,8 @@ public class AuthService {
             throw new BusinessException("ACESSO_NEGADO", "Você só pode atualizar a sua própria localização");
         }
 
-        user.setLocalizacao(geolocationService.createPoint(latitude, longitude));
+        user.setLatitude(latitude);
+        user.setLongitude(longitude);
         userRepository.save(user);
 
         return new UsuarioDto.LocalizacaoResponse(latitude, longitude);

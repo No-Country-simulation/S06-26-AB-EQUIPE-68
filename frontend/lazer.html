@@ -22,6 +22,8 @@
         };
     </script>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="favicon.ico">
 </head>
 
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
@@ -45,12 +47,15 @@
                         <a href="cadastro.html" data-i18n="nav.cadastro" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cadastro</a>
                         <a href="vagas.html" data-i18n="nav.vagas" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
                         <a href="cursos.html" data-i18n="nav.cursos" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
+                        <a href="mentores.html" data-i18n="nav.mentores" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Mentoria</a>
                         <a href="lazer.html" data-i18n="nav.lazer" class="text-sm font-medium text-amber-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Lazer</a>
                     </div>
                     <div id="navLoggedIn" class="hidden">
                         <a href="dashboard.html" data-i18n="nav.dashboard" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Dashboard</a>
+                        <a href="trilha.html" data-i18n="nav.trilha" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Trilha</a>
                         <a href="vagas.html" data-i18n="nav.vagas" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Vagas</a>
                         <a href="cursos.html" data-i18n="nav.cursos" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Cursos</a>
+                        <a href="mentores.html" data-i18n="nav.mentores" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Mentoria</a>
                         <a href="lazer.html" data-i18n="nav.lazer" class="text-sm font-medium text-amber-400 transition py-2 px-3 bg-slate-800 rounded-full border border-slate-700">Lazer</a>
                         <a href="saude-mental.html" data-i18n="nav.saudeMental" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Saúde Mental</a>
                         <a href="perfil.html" data-i18n="nav.meuPerfil" class="text-sm font-medium text-slate-300 hover:text-white transition py-2 px-3">Meu Perfil</a>
@@ -66,12 +71,15 @@
                     <a href="cadastro.html" data-i18n="nav.cadastro" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cadastro</a>
                     <a href="vagas.html" data-i18n="nav.vagas" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
                     <a href="cursos.html" data-i18n="nav.cursos" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
+                    <a href="mentores.html" data-i18n="nav.mentores" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Mentoria</a>
                     <a href="lazer.html" data-i18n="nav.lazer" class="block text-sm font-medium text-amber-400 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
                 </div>
                 <div id="mobileNavLoggedIn" class="hidden">
                     <a href="dashboard.html" data-i18n="nav.dashboard" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Dashboard</a>
+                    <a href="trilha.html" data-i18n="nav.trilha" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Trilha</a>
                     <a href="vagas.html" data-i18n="nav.vagas" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Vagas</a>
                     <a href="cursos.html" data-i18n="nav.cursos" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Cursos</a>
+                    <a href="mentores.html" data-i18n="nav.mentores" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Mentoria</a>
                     <a href="lazer.html" data-i18n="nav.lazer" class="block text-sm font-medium text-amber-400 py-2 px-3 rounded-lg border border-slate-800">Lazer</a>
                     <a href="saude-mental.html" data-i18n="nav.saudeMental" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Saúde Mental</a>
                     <a href="perfil.html" data-i18n="nav.meuPerfil" class="block text-sm font-medium text-slate-300 py-2 px-3 rounded-lg border border-slate-800">Meu Perfil</a>
@@ -246,6 +254,13 @@
         })();
     </script>
     <script type="module" src="js/lazer.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
+        }
+    </script>
 </body>
 
 </html>

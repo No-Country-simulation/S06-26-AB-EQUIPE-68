@@ -12,9 +12,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -37,7 +34,6 @@ public class GeolocationServiceImpl implements GeolocationService {
 
     private final UserRepository userRepository;
     private final InfraestruturaRedeRepository infraestruturaRedeRepository;
-    private final GeometryFactory geometryFactory;
 
     public GeolocationServiceImpl(
         UserRepository userRepository,
@@ -45,7 +41,6 @@ public class GeolocationServiceImpl implements GeolocationService {
     ) {
         this.userRepository = userRepository;
         this.infraestruturaRedeRepository = infraestruturaRedeRepository;
-        this.geometryFactory = new GeometryFactory();
     }
 
     /**
@@ -73,9 +68,10 @@ public class GeolocationServiceImpl implements GeolocationService {
         }
 
         User user = userOptional.get();
-        Point pontoAluno = user.getLocalizacao();
+        Double latAluno = user.getLatitude();
+        Double lngAluno = user.getLongitude();
 
-        if (pontoAluno == null) {
+        if (latAluno == null || lngAluno == null) {
             return NetworkStatusDto.builder()
                 .status("Localização do Usuário Não Definida")
                 .tecnologiaPredominante("N/A")
@@ -92,11 +88,12 @@ public class GeolocationServiceImpl implements GeolocationService {
         }
         List<InfraestruturaRede> torresProximas = new java.util.ArrayList<>();
         for (InfraestruturaRede t : allTorres) {
-            Point pos = t.getPosicao();
-            if (pos != null) {
+            Double latTorre = t.getLatitude();
+            Double lngTorre = t.getLongitude();
+            if (latTorre != null && lngTorre != null) {
                 double dist = GeoUtils.distanciaMetros(
-                    pontoAluno.getY(), pontoAluno.getX(),
-                    pos.getY(), pos.getX()
+                    latAluno, lngAluno,
+                    latTorre, lngTorre
                 );
                 if (dist <= raioMetros) {
                     torresProximas.add(t);
@@ -270,15 +267,6 @@ public class GeolocationServiceImpl implements GeolocationService {
         }
 
         return list;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Point createPoint(double latitude, double longitude) {
-        // SRID 4326 é para coordenadas geográficas (latitude/longitude)
-        return geometryFactory.createPoint(new Coordinate(longitude, latitude));
     }
 
     /**
