@@ -16,6 +16,9 @@ public abstract class N8NBaseClient {
 
     private static final Logger log = LoggerFactory.getLogger(N8NBaseClient.class);
 
+    /** Cabeçalho que o nó "Webhook Entrada" do n8n confere (Header Auth). */
+    public static final String HEADER_TOKEN = "X-Webhook-Token";
+
     // Só para medir o tamanho do payload no log: o conteúdo nunca é registrado.
     private static final ObjectMapper MEDIDOR = new ObjectMapper();
 
@@ -25,9 +28,12 @@ public abstract class N8NBaseClient {
     protected final String webhookUrl;
     protected final int timeout;
     protected final int maxRetries;
+    /** Valor de N8N_WEBHOOK_TOKEN; vazio = o webhook do n8n não exige cabeçalho. */
+    private final String webhookToken;
 
-    public N8NBaseClient(String tipo, String webhookUrl, int timeout, int maxRetries) {
+    public N8NBaseClient(String tipo, String webhookUrl, int timeout, int maxRetries, String webhookToken) {
         this.tipo = tipo;
+        this.webhookToken = webhookToken;
         this.webhookUrl = webhookUrl;
         this.timeout = timeout;
         this.maxRetries = maxRetries;
@@ -45,6 +51,10 @@ public abstract class N8NBaseClient {
             try {
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
+                if (webhookToken != null && !webhookToken.isBlank()) {
+                    // Autenticação por cabeçalho do nó "Webhook Entrada"; o valor nunca vai para o log.
+                    headers.set(HEADER_TOKEN, webhookToken);
+                }
 
                 HttpEntity<T> entity = new HttpEntity<>(request, headers);
 

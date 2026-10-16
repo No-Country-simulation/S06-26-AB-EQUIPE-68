@@ -45,6 +45,17 @@ class N8nWorkflowTest {
     }
 
     @Test
+    void webhookEntrada_exigeAutenticacaoPorCabecalho_semSegredoNoArquivo() {
+        JsonNode webhook = no("Webhook Entrada");
+
+        assertThat(webhook.path("parameters").path("authentication").asText()).isEqualTo("headerAuth");
+        // Só a referência à credencial: o valor do token é criado no n8n e vive em N8N_WEBHOOK_TOKEN.
+        assertThat(webhook.path("credentials").path("httpHeaderAuth").path("name").asText()).isEqualTo("BiT Webhook Token");
+        assertThat(webhook.path("credentials").path("httpHeaderAuth").has("value")).isFalse();
+        assertThat(workflow.toString()).doesNotContain("X-Webhook-Token");
+    }
+
+    @Test
     void todasAsConexoesApontamParaNosQueExistem() {
         Set<String> nomes = new HashSet<>();
         workflow.path("nodes").forEach(n -> nomes.add(n.path("name").asText()));

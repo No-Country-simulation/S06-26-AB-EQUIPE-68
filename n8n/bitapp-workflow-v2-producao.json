@@ -5,6 +5,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "bit/agent",
+        "authentication": "headerAuth",
         "responseMode": "responseNode",
         "options": {}
       },
@@ -16,7 +17,13 @@
         -416,
         -128
       ],
-      "webhookId": "19a95a2f-7ea9-4d6a-ab4f-a96ec3de3553"
+      "webhookId": "19a95a2f-7ea9-4d6a-ab4f-a96ec3de3553",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CRIAR_NO_N8N",
+          "name": "BiT Webhook Token"
+        }
+      }
     },
     {
       "parameters": {
