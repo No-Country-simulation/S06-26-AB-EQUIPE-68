@@ -85,7 +85,7 @@ class UsuarioControllerTest {
                 "/api/usuarios/" + usuarioB.userId() + "/localizacao",
                 HttpMethod.PUT, entity, StandardApiResponse.class);
 
-        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertNotNull(response.getBody());
         assertFalse(response.getBody().success());
         assertEquals("ACESSO_NEGADO", response.getBody().codigo());

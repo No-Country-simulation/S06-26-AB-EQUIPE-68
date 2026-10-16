@@ -22,6 +22,13 @@ public class GlobalExceptionHandler {
                 .body(StandardApiResponse.error(ex.getMessage(), ex.getCode()));
     }
 
+    @ExceptionHandler(AutorizacaoException.class)
+    public ResponseEntity<StandardApiResponse<Void>> handleAutorizacao(AutorizacaoException ex) {
+        log.warn("Authorization exception: {} - {}", ex.getCodigo(), ex.getMessage());
+        return ResponseEntity.status(ex.getStatus())
+                .body(StandardApiResponse.error(ex.getMessage(), ex.getCodigo()));
+    }
+
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<StandardApiResponse<List<String>>> handleValidation(ValidationException ex) {
         log.warn("Validation exception: {}", ex.getErrors());

@@ -5,6 +5,7 @@ import com.bitsystem.bitapp.domain.User;
 import com.bitsystem.bitapp.domain.UserSession;
 import com.bitsystem.bitapp.dto.AuthDto;
 import com.bitsystem.bitapp.dto.UsuarioDto;
+import com.bitsystem.bitapp.exception.AutorizacaoException;
 import com.bitsystem.bitapp.exception.BusinessException;
 import com.bitsystem.bitapp.repository.UserRepository;
 import com.bitsystem.bitapp.repository.UserSessionRepository;
@@ -198,7 +199,7 @@ public class AuthService {
                 .orElseThrow(() -> new BusinessException("USER_NOT_FOUND", "Usuário não encontrado"));
 
         if (!user.getId().equals(pathId)) {
-            throw new BusinessException("ACESSO_NEGADO", "Você só pode atualizar a sua própria localização");
+            throw AutorizacaoException.acessoNegado("Você só pode atualizar a sua própria localização");
         }
 
         user.setLatitude(latitude);

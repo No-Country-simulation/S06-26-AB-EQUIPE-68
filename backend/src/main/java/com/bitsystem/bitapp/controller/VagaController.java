@@ -1,5 +1,6 @@
 package com.bitsystem.bitapp.controller;
 
+import com.bitsystem.bitapp.config.UsuarioDoToken;
 import com.bitsystem.bitapp.dto.CandidaturaVagaDto;
 import com.bitsystem.bitapp.dto.StandardApiResponse;
 import com.bitsystem.bitapp.dto.VagaDto;
@@ -50,9 +51,11 @@ public class VagaController {
     @GetMapping("/{id}/match")
     public ResponseEntity<StandardApiResponse<VagaMatchDto.Detalhe>> match(
             @PathVariable Long id,
-            @RequestParam Long usuarioId,
-            @RequestParam(defaultValue = "pt") String idioma) {
-        VagaMatchDto.Resultado resultado = vagaMatchService.calcularMatchPorId(id, usuarioId);
+            @RequestParam(required = false) Long usuarioId,
+            @RequestParam(defaultValue = "pt") String idioma,
+            Authentication authentication) {
+        Long donoId = UsuarioDoToken.resolver(authentication, usuarioId);
+        VagaMatchDto.Resultado resultado = vagaMatchService.calcularMatchPorId(id, donoId);
         String comoResolver = comoResolverService.gerar(resultado.matchPercentual(), resultado.skillsFaltantes(), idioma);
         return ResponseEntity.ok(StandardApiResponse.ok(VagaMatchDto.Detalhe.from(resultado, comoResolver)));
     }
@@ -60,18 +63,23 @@ public class VagaController {
     // Match em lote (só o percentual, sem IA) — usado nos badges da listagem.
     @GetMapping("/match-lote")
     public ResponseEntity<StandardApiResponse<List<VagaMatchDto.LoteItem>>> matchLote(
-            @RequestParam Long usuarioId) {
-        List<VagaMatchDto.LoteItem> lista = vagaMatchService.calcularMatchLote(usuarioId);
+            @RequestParam(required = false) Long usuarioId,
+            Authentication authentication) {
+        Long donoId = UsuarioDoToken.resolver(authentication, usuarioId);
+        List<VagaMatchDto.LoteItem> lista = vagaMatchService.calcularMatchLote(donoId);
         return ResponseEntity.ok(StandardApiResponse.ok(lista));
     }
 
     // Ação de usuário logado — cai em anyRequest().authenticated() (POST não é liberado).
+    // O usuarioId do corpo só vale se for o do dono do token.
     @PostMapping("/enviar-curriculo")
     public ResponseEntity<StandardApiResponse<CandidaturaVagaDto.Response>> enviarCurriculo(
             @RequestBody @Valid CandidaturaVagaDto.Request request,
             Authentication authentication) {
-        String email = authentication != null ? authentication.getName() : null;
-        CandidaturaVagaDto.Response response = vagaService.enviarCurriculo(request, email);
+        Long donoId = UsuarioDoToken.resolver(authentication, request.usuarioId());
+        CandidaturaVagaDto.Request doDono = new CandidaturaVagaDto.Request(
+                request.vagaId(), donoId, request.nome(), request.email(), request.mensagem());
+        CandidaturaVagaDto.Response response = vagaService.enviarCurriculo(doDono, authentication.getName());
         return ResponseEntity.ok(StandardApiResponse.ok(response));
     }
 

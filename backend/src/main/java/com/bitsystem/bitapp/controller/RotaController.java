@@ -41,6 +41,13 @@ public class RotaController {
                 .body(Map.of("erro", "Informe origem e destino."));
         }
 
+        // Sem chave não há o que pedir à ORS: responde direto, sem chamada externa.
+        if ("NAO_CONFIGURADA".equals(orsApiKey)) {
+            return ResponseEntity.status(503)
+                .body(Map.of("erro", "ROTA_INDISPONIVEL",
+                             "mensagem", "Servico de rotas temporariamente indisponivel."));
+        }
+
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);

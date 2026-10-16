@@ -12,6 +12,7 @@ import com.bitsystem.bitapp.domain.Mentor;
 import com.bitsystem.bitapp.domain.SolicitacaoMentoria;
 import com.bitsystem.bitapp.dto.MentorDto;
 import com.bitsystem.bitapp.dto.SolicitacaoMentoriaDto;
+import com.bitsystem.bitapp.exception.AutorizacaoException;
 import com.bitsystem.bitapp.exception.BusinessException;
 import com.bitsystem.bitapp.repository.MentorRepository;
 import com.bitsystem.bitapp.repository.SolicitacaoMentoriaRepository;
@@ -152,7 +153,7 @@ class MentoriaServiceTest {
         when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(mentorRepository.findById(1L)).thenReturn(Optional.of(mentor(1L)));
 
-        SolicitacaoMentoriaDto.Response resposta = service.atualizarStatus(10L, SolicitacaoMentoria.CONFIRMADA);
+        SolicitacaoMentoriaDto.Response resposta = service.atualizarStatus(10L, SolicitacaoMentoria.CONFIRMADA, 1L);
 
         assertThat(resposta.status()).isEqualTo(SolicitacaoMentoria.CONFIRMADA);
     }
@@ -165,7 +166,7 @@ class MentoriaServiceTest {
         existente.setId(11L);
         when(repository.findById(11L)).thenReturn(Optional.of(existente));
 
-        assertThatThrownBy(() -> service.atualizarStatus(11L, SolicitacaoMentoria.CONCLUIDA))
+        assertThatThrownBy(() -> service.atualizarStatus(11L, SolicitacaoMentoria.CONCLUIDA, 1L))
                 .isInstanceOf(BusinessException.class);
         verify(repository, never()).save(any());
     }
@@ -178,7 +179,7 @@ class MentoriaServiceTest {
         existente.setId(12L);
         when(repository.findById(12L)).thenReturn(Optional.of(existente));
 
-        assertThatThrownBy(() -> service.atualizarStatus(12L, "STATUS_QUE_NAO_EXISTE"))
+        assertThatThrownBy(() -> service.atualizarStatus(12L, "STATUS_QUE_NAO_EXISTE", 1L))
                 .isInstanceOf(BusinessException.class);
     }
 
@@ -187,7 +188,33 @@ class MentoriaServiceTest {
         when(repository.findById(999L)).thenReturn(Optional.empty());
         when(fallbackStorage.findMentoriaById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.atualizarStatus(999L, SolicitacaoMentoria.CONFIRMADA))
+        assertThatThrownBy(() -> service.atualizarStatus(999L, SolicitacaoMentoria.CONFIRMADA, 1L))
                 .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    void atualizarStatus_deOutroUsuario_lancaAcessoNegadoENaoGrava() {
+        SolicitacaoMentoria existente = SolicitacaoMentoria.builder()
+                .usuarioId(1L).mentorId(1L).areaSolicitada("Java")
+                .status(SolicitacaoMentoria.AGUARDANDO_CONFIRMACAO).build();
+        existente.setId(13L);
+        when(repository.findById(13L)).thenReturn(Optional.of(existente));
+
+        assertThatThrownBy(() -> service.atualizarStatus(13L, SolicitacaoMentoria.CONFIRMADA, 2L))
+                .isInstanceOf(AutorizacaoException.class)
+                .extracting(e -> ((AutorizacaoException) e).getCodigo()).isEqualTo("ACESSO_NEGADO");
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void atualizarStatus_naMemoria_deOutroUsuario_lancaAcessoNegado() {
+        when(repository.findById(14L)).thenReturn(Optional.empty());
+        when(fallbackStorage.findMentoriaById(14L)).thenReturn(Optional.of(
+                new FallbackStorage.MentoriaRecord(14L, 1L, 1L, "Java", "msg",
+                        SolicitacaoMentoria.AGUARDANDO_CONFIRMACAO, LocalDateTime.now())));
+
+        assertThatThrownBy(() -> service.atualizarStatus(14L, SolicitacaoMentoria.CONFIRMADA, 2L))
+                .isInstanceOf(AutorizacaoException.class);
+        verify(fallbackStorage, never()).updateMentoriaStatus(any(), any());
     }
 }

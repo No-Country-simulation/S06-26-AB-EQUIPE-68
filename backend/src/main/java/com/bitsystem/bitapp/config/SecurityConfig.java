@@ -71,25 +71,23 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Estáticos do frontend.
                 .requestMatchers(HttpMethod.GET, "/", "/index.html", "/*.html", "/*.css", "/css/**", "/js/**", "/img/**", "/assets/**", "/favicon.ico", "/manifest.json", "/sw.js").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // Cadastro e sessão.
                 .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
-                .requestMatchers("/api/orientar").permitAll()
-                .requestMatchers("/api/saude/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/rota").permitAll()
-                .requestMatchers("/api/network-status/**").permitAll()
-                .requestMatchers("/api/assessment/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/vagas/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/vagas/*/match").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/cursos/**").permitAll()
+                // O match depende do perfil de quem está logado: precisa vir antes do catálogo público.
+                .requestMatchers(HttpMethod.GET, "/api/vagas/match-lote", "/api/vagas/*/match").authenticated()
+                // Catálogo público: vagas e cursos (lista, detalhe, regiões, stats), roadmaps, lazer e mentores.
+                .requestMatchers(HttpMethod.GET, "/api/vagas", "/api/vagas/regioes", "/api/vagas/stats", "/api/vagas/{id:\\d+}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/cursos", "/api/cursos/regioes", "/api/cursos/gratuitos", "/api/cursos/beneficentes", "/api/cursos/stats", "/api/cursos/{id:\\d+}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/roadmaps/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/lazer/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/mentores/**").permitAll()
-                .requestMatchers("/api/mentorias/**").permitAll()
-                .requestMatchers("/api/sugestoes/**").permitAll()
+                // Todo o resto (saúde, assessment, mentorias, sugestões, rede, orientar, rota...) exige token.
                 .anyRequest().authenticated()
             )
             // Sem entry point o Spring responde 403 a quem não mandou token; o certo é 401,
@@ -123,10 +121,11 @@ public class SecurityConfig {
                         if (!jwtUtil.isTokenExpired(token)) {
                             var session = sessionRepository.findByToken(token);
                             if (session.isPresent() && !session.get().getRevoked()) {
+                                var dono = new UsuarioAutenticado(
+                                        jwtUtil.getUserIdFromToken(token), jwtUtil.getEmailFromToken(token));
                                 var auth = new org.springframework.security.authentication
                                     .UsernamePasswordAuthenticationToken(
-                                        jwtUtil.getEmailFromToken(token), null,
-                                        java.util.Collections.emptyList());
+                                        dono, null, java.util.Collections.emptyList());
                                 org.springframework.security.core.context.SecurityContextHolder
                                     .getContext().setAuthentication(auth);
                             }
