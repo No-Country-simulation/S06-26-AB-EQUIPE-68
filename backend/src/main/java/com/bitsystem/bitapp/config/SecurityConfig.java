@@ -78,7 +78,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
-                .requestMatchers("/h2-console/**").permitAll()
                 // O match depende do perfil de quem está logado: precisa vir antes do catálogo público.
                 .requestMatchers(HttpMethod.GET, "/api/vagas/match-lote", "/api/vagas/*/match").authenticated()
                 // Catálogo público: vagas e cursos (lista, detalhe, regiões, stats), roadmaps, lazer e mentores.
@@ -99,7 +98,6 @@ public class SecurityConfig {
                 response.getWriter().write(objectMapper.writeValueAsString(
                         StandardApiResponse.error("Autenticação necessária.", "NAO_AUTENTICADO")));
             }))
-            .headers(headers -> headers.frameOptions(fo -> fo.disable()))
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
