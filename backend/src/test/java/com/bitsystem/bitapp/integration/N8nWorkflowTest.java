@@ -56,6 +56,17 @@ class N8nWorkflowTest {
     }
 
     @Test
+    void urlsDoAppVemDeUmaVariavelDeAmbienteDoN8n_naoDeUmHostFixo() {
+        for (String nome : new String[] {"Buscar Catálogo (RAG)", "Buscar Roadmap"}) {
+            String url = no(nome).path("parameters").path("url").asText();
+            assertThat(url).as(nome).startsWith("=").contains("$env.BITAPP_BASE_URL");
+        }
+        assertThat(no("Buscar Catálogo (RAG)").path("parameters").path("url").asText()).endsWith("/api/cursos");
+        assertThat(no("Buscar Roadmap").path("parameters").path("url").asText()).contains("/api/roadmaps/");
+        assertThat(workflow.toString()).doesNotContain("onrender.com");
+    }
+
+    @Test
     void todasAsConexoesApontamParaNosQueExistem() {
         Set<String> nomes = new HashSet<>();
         workflow.path("nodes").forEach(n -> nomes.add(n.path("name").asText()));

@@ -75,7 +75,7 @@
     },
     {
       "parameters": {
-        "url": "https://s06-26-appbit-demo.onrender.com/api/cursos",
+        "url": "={{ $env.BITAPP_BASE_URL.replace(/\\/+$/, '') }}/api/cursos",
         "options": {
           "timeout": 15000
         }
@@ -189,7 +189,7 @@
     },
     {
       "parameters": {
-        "url": "=https://s06-26-appbit-demo.onrender.com/api/roadmaps/{{ $('Normalizar Entrada').first().json.area\n}}",
+        "url": "={{ $env.BITAPP_BASE_URL.replace(/\\/+$/, '') }}/api/roadmaps/{{ $('Normalizar Entrada').first().json.area }}",
         "options": {
           "timeout": 15000
         }
