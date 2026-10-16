@@ -4,6 +4,10 @@
 
 $ErrorActionPreference = "Stop"
 
+# Os caminhos abaixo são relativos à raiz do repositório: vai para lá,
+# de onde quer que o script seja chamado (ele fica em scripts/).
+Set-Location (Join-Path $PSScriptRoot "..")
+
 Write-Host ""
 Write-Host "==============================================="
 Write-Host "🚀 BIIT APP - FULL AUTO DEPLOY"
