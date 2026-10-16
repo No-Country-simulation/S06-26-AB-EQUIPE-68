@@ -170,16 +170,19 @@ public class SaudeMentalService {
      * IMPORTANTE: o agente só fornece TEXTO. Ele nunca decide/aciona/cancela o CVV.
      */
     private SaudeDto.RawResponse obterAcolhimento(SaudeDto.Request request) {
-        try {
-            MentalHealthDto.Response agente = mentalHealthClient.process(montarPayloadAgente(request));
-            SaudeDto.RawResponse mapeada = mapearAgente(agente);
-            if (mapeada != null) {
-                log.info("[SaudeMentalService] Acolhimento via Mental Health Agent (n8n) usuarioId={}", request.usuarioId());
-                return mapeada;
+        // URL do n8n vazia = n8n desligado: vai direto para o Gemini / respostas curadas.
+        if (mentalHealthClient.isConfigured()) {
+            try {
+                MentalHealthDto.Response agente = mentalHealthClient.process(montarPayloadAgente(request));
+                SaudeDto.RawResponse mapeada = mapearAgente(agente);
+                if (mapeada != null) {
+                    log.info("[SaudeMentalService] Acolhimento via Mental Health Agent (n8n) usuarioId={}", request.usuarioId());
+                    return mapeada;
+                }
+                log.warn("[SaudeMentalService] Agente retornou vazio, usando fallback local");
+            } catch (Exception ex) {
+                log.warn("[SaudeMentalService] Mental Health Agent indisponivel, usando fallback local: {}", ex.getMessage());
             }
-            log.warn("[SaudeMentalService] Agente retornou vazio, usando fallback local");
-        } catch (Exception ex) {
-            log.warn("[SaudeMentalService] Mental Health Agent indisponivel, usando fallback local: {}", ex.getMessage());
         }
         return acolhimentoFallback(request);
     }

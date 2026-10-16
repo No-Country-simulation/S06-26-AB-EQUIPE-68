@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,6 +43,7 @@ class AssessmentServiceTest {
     void setUp() {
         // ObjectMapper real (não mockado) — os testes exercitam a serialização
         // JSON de verdade, não só o wiring.
+        lenient().when(n8nClient.isConfigured()).thenReturn(true);
         service = new AssessmentService(n8nClient, repository, fallbackStorage, new ObjectMapper());
     }
 
@@ -255,6 +257,16 @@ class AssessmentServiceTest {
         ArgumentCaptor<CareerAssessment> captor = ArgumentCaptor.forClass(CareerAssessment.class);
         verify(repository).save(captor.capture());
         assertThat(captor.getValue().getCompatibilidade()).isNotNull();
+    }
+
+    @Test
+    void processar_n8nNaoConfigurado_naoChamaOAgenteEUsaOFallbackLocal() {
+        when(n8nClient.isConfigured()).thenReturn(false);
+
+        AssessmentDto.Response resposta = service.processar(request(), 7L);
+
+        assertThat(resposta.compatibilidade()).isNotNull();
+        verify(n8nClient, never()).process(any());
     }
 
     @Test

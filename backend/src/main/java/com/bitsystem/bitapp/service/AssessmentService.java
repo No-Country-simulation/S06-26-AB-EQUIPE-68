@@ -34,8 +34,11 @@ public class AssessmentService {
     }
 
     public AssessmentDto.Response processar(AssessmentDto.Request request, Long usuarioId) {
-        // ── Tentar N8N primeiro ────────────────────────────────────────────
+        // ── Tentar N8N primeiro (URL vazia = n8n desligado, vai ao fallback local) ──
         try {
+            if (!n8nClient.isConfigured()) {
+                throw new BusinessException("N8N_UNAVAILABLE", "Webhook do n8n não configurado.");
+            }
             AssessmentDto.Request enrichedRequest = new AssessmentDto.Request(
                 request.nome(),
                 request.idade(),

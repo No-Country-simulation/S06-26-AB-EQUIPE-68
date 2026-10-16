@@ -105,6 +105,20 @@ class N8NBaseClientTest {
         org.junit.jupiter.api.Assertions.assertThrows(Exception.class, () -> cliente.process(checkin("qualquer")));
     }
 
+    // ── URL vazia: o n8n é pulado ───────────────────────────────────────
+
+    @Test
+    void urlVazia_naoEstaConfiguradoENaoFazNenhumaChamada() {
+        N8NMentalHealthClient cliente = new N8NMentalHealthClient("", 2000, 3, "");
+
+        assertThat(cliente.isConfigured()).isFalse();
+        org.junit.jupiter.api.Assertions.assertThrows(com.bitsystem.bitapp.exception.BusinessException.class,
+                () -> cliente.process(checkin("qualquer")));
+        assertThat(chamadas.get()).isZero();
+        assertThat(new N8NAssessmentClient("   ", 2000, 3, "").isConfigured()).isFalse();
+        assertThat(new N8NMentalHealthClient(url(), 2000, 1, "").isConfigured()).isTrue();
+    }
+
     // ── autenticação por cabeçalho ──────────────────────────────────────
 
     @Test

@@ -44,7 +44,15 @@ public abstract class N8NBaseClient {
         this.restTemplate = new RestTemplate(factory);
     }
 
+    /** false quando a URL do webhook está vazia: o chamador pula o n8n e usa o fallback local. */
+    public boolean isConfigured() {
+        return webhookUrl != null && !webhookUrl.isBlank();
+    }
+
     protected <T, R> R callWebhook(T request, Class<R> responseType) {
+        if (!isConfigured()) {
+            throw new BusinessException("N8N_UNAVAILABLE", "Webhook do n8n não configurado.");
+        }
         Exception lastException = null;
 
         for (int attempt = 1; attempt <= maxRetries; attempt++) {

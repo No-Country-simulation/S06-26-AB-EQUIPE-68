@@ -5,6 +5,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.bitsystem.bitapp.dto.MentalHealthDto;
@@ -67,6 +69,7 @@ class SaudeMentalServiceTest {
     @BeforeEach
     void neutralizarAcolhimento() {
         // Força o fallback local e evita qualquer chamada de IA real.
+        when(mentalHealthClient.isConfigured()).thenReturn(true);
         when(mentalHealthClient.process(any())).thenThrow(new RuntimeException("n8n off"));
         when(geminiClient.isConfigured()).thenReturn(false);
         when(emotionResponseProvider.resolve(nullable(Integer.class), anyString()))
@@ -339,6 +342,16 @@ class SaudeMentalServiceTest {
 
         assertThat(r.mensagem()).isEqualTo("Estamos com você.");
         assertThat(r.acaoSugerida()).isEqualTo("Respire fundo.");
+    }
+
+    @Test
+    void n8nNaoConfigurado_naoChamaOAgenteEVaiDiretoParaOAcolhimentoLocal() {
+        when(mentalHealthClient.isConfigured()).thenReturn(false);
+
+        SaudeDto.Response r = checkin(5, "ctx");
+
+        assertThat(r.mensagem()).isEqualTo("Estamos com você.");
+        verify(mentalHealthClient, never()).process(any());
     }
 
     @Test
