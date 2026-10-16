@@ -14,6 +14,10 @@ export class ApiError extends Error {
     }
 }
 
+// Toda chamada à API é abortada depois deste tempo (AbortController), para a tela
+// nunca ficar esperando o servidor, o n8n ou o Gemini sem resposta.
+const TIMEOUT_MS = 15000;
+
 // 401 = sem token, token vencido ou sessão revogada: limpa o que ficou guardado
 // e leva ao login. Na própria página de login não redireciona (evita loop).
 function sessaoExpirou() {
@@ -36,19 +40,37 @@ async function apiFetch(path, options = {}) {
         headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-        ...fetchOptions,
-        headers: { ...headers, ...(fetchOptions.headers || {}) },
-    });
-
-    if (response.status === 401 && redirecionarEm401) {
-        sessaoExpirou();
-    }
-
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    let response;
     let json;
     try {
-        json = await response.json();
-    } catch {
+        response = await fetch(`${API_BASE_URL}${path}`, {
+            ...fetchOptions,
+            headers: { ...headers, ...(fetchOptions.headers || {}) },
+            signal: controller.signal,
+        });
+
+        if (response.status === 401 && redirecionarEm401) {
+            sessaoExpirou();
+        }
+
+        try {
+            json = await response.json();
+        } catch (e) {
+            if (e?.name === 'AbortError') throw e;
+            json = undefined; // corpo ausente ou que não é JSON
+        }
+    } catch (e) {
+        if (e?.name === 'AbortError') {
+            throw new ApiError('Tempo esgotado ao falar com o servidor.', 0, 'TIMEOUT');
+        }
+        throw e;
+    } finally {
+        clearTimeout(timer);
+    }
+
+    if (json === undefined) {
         throw new ApiError(`API Error ${response.status}`, response.status);
     }
 
