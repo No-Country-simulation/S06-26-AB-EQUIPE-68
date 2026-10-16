@@ -19,7 +19,7 @@ public class AssessmentDto {
         String tipo,
         /** Idioma da UI ("pt"|"es"), default "pt" — campo aditivo (lote i18n). */
         String idioma,
-        /** Área alvo do dropdown de perfil (Java, Web, Dados, ...) — campo aditivo (RAG de roadmaps). */
+        /** Área alvo do dropdown de perfil (Java, Web, Dados, ...) — campo aditivo (consulta à base curada de roadmaps). */
         String area
     ) {
         public String idiomaOuPadrao() {

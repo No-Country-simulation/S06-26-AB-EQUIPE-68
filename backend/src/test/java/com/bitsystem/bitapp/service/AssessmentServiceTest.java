@@ -143,7 +143,7 @@ class AssessmentServiceTest {
         verify(fallbackStorage).saveAssessment(5L, respostaN8n);
     }
 
-    // ── ÁREA (RAG de roadmaps): repassada ao n8n sem alterar tecnologias ─────
+    // ── ÁREA (base curada de roadmaps): repassada ao n8n sem alterar tecnologias ─────
     @Test
     void processar_repassaAreaAoN8nSemAlterarTecnologias() {
         when(n8nClient.process(any())).thenReturn(respostaCompleta());

@@ -75,7 +75,7 @@ tags:
   - name: Cursos
     description: Catálogo de cursos e inscrições
   - name: Roadmaps
-    description: Roadmaps de carreira curados (RAG do Assessment Agent)
+    description: Roadmaps de carreira curados (consulta à base curada pelo Assessment Agent)
   - name: Mentorias
     description: Catálogo de mentores voluntários e solicitações de mentoria
   - name: Vagas
@@ -429,7 +429,7 @@ paths:
                           gratuitos: { type: integer, format: int64 }
                           regioes: { type: integer, format: int64 }
 
-  # ───────────────────────────── Roadmaps (RAG) ─────────────────────────────
+  # ─────────────────────── Roadmaps (base curada) ───────────────────────
   /api/roadmaps/{area}:
     get:
       tags: [Roadmaps]
@@ -439,7 +439,8 @@ paths:
         boot. Busca case-insensitive pelo valor do dropdown "Área Alvo"
         (Java, Web, Dados, Mobile, DevOps, Ciberseguranca, IA, Games, UIUX,
         Infraestrutura). Consumido pelo workflow n8n de orientação de
-        carreira (RAG) — ver n8n/bitapp-workflow-v2-producao.json.
+        carreira, que consulta esta base direto pela API (sem busca por
+        similaridade) — ver n8n/bitapp-workflow-v2-producao.json.
       security: []
       parameters:
         - name: area
@@ -1367,7 +1368,7 @@ components:
           description: >-
             Área alvo do dropdown de perfil (Java, Web, Dados, Mobile,
             DevOps, Ciberseguranca, IA, Games, UIUX, Infraestrutura) — campo
-            aditivo (RAG de roadmaps). Usada pelo n8n para injetar o roadmap
+            aditivo (consulta à base curada de roadmaps). Usada pelo n8n para injetar o roadmap
             curado correspondente no prompt do agente de carreira.
 
     AssessmentResponse:

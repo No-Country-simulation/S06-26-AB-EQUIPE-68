@@ -85,7 +85,7 @@ G --> H[Evolução Contínua]
 
 ## 🧠 Orientação de Carreira com IA
 
-O sistema analisa hard skills, soft skills, experiências e objetivos do usuário, gerando mapeamento de lacunas técnicas, recomendações de estudo e plano de desenvolvimento personalizado. A análise é feita pelo agente de orientação (Gemini 2.5-flash via n8n), enriquecida em tempo real com o catálogo de cursos da própria plataforma (RAG).
+O sistema analisa hard skills, soft skills, experiências e objetivos do usuário, gerando mapeamento de lacunas técnicas, recomendações de estudo e plano de desenvolvimento personalizado. A análise é feita pelo agente de orientação (Gemini 2.5-flash via n8n), enriquecida em tempo real com o catálogo de cursos da própria plataforma, consultado direto na API (sem busca por similaridade).
 
 ### Endpoint
 
@@ -215,7 +215,7 @@ Experiência preservada — e a regra de segurança do CVV,
 por ser local e determinística, nunca sai do ar
 ```
 > **Limitações conhecidas:**
-> * O workflow n8n exportado em `n8n/` referencia a URL do serviço via valor fixo nos nós "Buscar Catálogo (RAG)" e "Buscar Roadmap" — ao importar em outra instância, ajuste a URL desses dois nós para o seu deploy.
+> * O workflow n8n exportado em `n8n/` lê a URL do app da variável de ambiente `BITAPP_BASE_URL` do n8n, nos nós "Buscar Catálogo" e "Buscar Roadmap" — ao importar em outra instância, defina essa variável (e, se o n8n bloquear `$env` em expressões, `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`).
 > * O **match de compatibilidade** do assessment é uma estimativa gerada pelo modelo (Gemini), informada pelo perfil do usuário, pelo catálogo de cursos e pelo roadmap da área — sem fórmula determinística. Validada como direcionalmente sensível ao perfil nos testes manuais. Evolução prevista: score via embeddings + similaridade de cosseno, com o LLM restrito à análise qualitativa (gaps e plano de desenvolvimento).
 > * A transição de status de mentoria (`aguardando` → `confirmada` → `concluída`) é feita via API (`PATCH /api/mentorias/{id}/status`), sem painel dedicado para o mentor nesta fase — operação realizada pela equipe.
 > * A família de endpoints de mentorias/histórico está em `permitAll`, sem validação de posse do `usuarioId` — débito de segurança registrado para evolução.
@@ -253,7 +253,7 @@ GET   /api/mentorias/historico?usuarioId=1
 PATCH /api/mentorias/{id}/status
 ```
 
-## 🧭 RAG de Roadmaps + PWA Instalável
+## 🧭 Roadmaps Curados + PWA Instalável
 
 O agente de orientação de carreira passou a consultar, além do catálogo de cursos, uma **base de trilhas curadas por área** (`base_conhecimento.json`, 10 áreas — Java, Web, Dados, Mobile, DevOps, Cibersegurança, IA, Games, UI/UX, Infraestrutura) via `GET /api/roadmaps/{area}`, enriquecendo o plano de desenvolvimento gerado pela IA com os fundamentos e frameworks esperados para a área de interesse do usuário. Em paralelo, o App BiT ganhou **manifest + service worker** (estratégia network-first) e passou a ser **instalável como PWA** em dispositivos móveis e desktop.
 
@@ -266,7 +266,7 @@ O agente de orientação de carreira passou a consultar, além do catálogo de c
 | POST | `/api/mentorias` | Solicitar mentoria |
 | GET | `/api/mentorias/historico` | Histórico de mentorias do usuário |
 | PATCH | `/api/mentorias/{id}/status` | Atualizar status da mentoria |
-| GET | `/api/roadmaps/{area}` | Roadmap curado por área (RAG do agente de carreira) |
+| GET | `/api/roadmaps/{area}` | Roadmap curado por área (consulta à base curada, usada pelo agente de carreira) |
 
 ---
 
@@ -285,7 +285,7 @@ N8N[n8n Cloud — roteamento determinístico]
 
 AI[Google Gemini 2.5-flash]
 
-RAG[Catálogo de cursos — RAG]
+CAT[Catálogo de cursos e roadmaps — consulta direta à API]
 
 VISENT[Dataset Vísent — ANATEL/Florianópolis]
 
@@ -293,7 +293,7 @@ UI -->|HTTP| API
 API --> DB
 API -->|Webhook| N8N
 N8N -->|Switch por 'tipo'| AI
-N8N --> RAG
+N8N --> CAT
 API -->|GeminiClient direto| AI
 API --> VISENT
 ```
@@ -309,7 +309,7 @@ Backend Spring Boot (8080)
    │  envia payload estruturado (hardSkills, humor, contexto, tipo, idioma)
    v
 n8n Cloud — Switch determinístico pelo campo "tipo"
-   ├── agente de orientação  → Gemini 2.5-flash (+ RAG no catálogo de cursos)
+   ├── agente de orientação  → Gemini 2.5-flash (+ consulta ao catálogo de cursos e aos roadmaps)
    └── agente de saúde mental → Gemini 2.5-flash (linguagem de acolhimento)
    v
 Backend valida, persiste e responde ao Frontend
@@ -346,7 +346,7 @@ Backend valida, persiste e responde ao Frontend
 ## Inteligência Artificial
 
 * Google Gemini 2.5-flash
-* n8n Cloud como orquestrador dos agentes (roteamento determinístico + RAG no catálogo)
+* n8n Cloud como orquestrador dos agentes (roteamento determinístico + consulta ao catálogo)
 * Integração direta Java → Gemini (`GeminiClient`) para orientação e sugestões
 
 ## Frontend
@@ -441,7 +441,7 @@ O contrato completo (OpenAPI 3) acompanha o repositório na pasta `docs/`.
 | POST | `/api/saude` | Check-in diário de bem-estar | n8n + Gemini (linguagem) · derivação CVV local |
 | GET | `/api/saude/historico` | Histórico de check-ins | — |
 | GET | `/api/sugestoes/{usuarioId}` | Sugestões personalizadas | Gemini direto |
-| GET | `/api/roadmaps/{area}` | Roadmap curado por área (RAG do agente de carreira) | — |
+| GET | `/api/roadmaps/{area}` | Roadmap curado por área (consulta à base curada, usada pelo agente de carreira) | — |
 | GET | `/api/network-status/{usuarioId}` | Conectividade na região (Vísent) | — |
 | GET | `/api/mentores` | Listar mentores voluntários | — |
 | POST | `/api/mentorias` | Solicitar mentoria | — |
