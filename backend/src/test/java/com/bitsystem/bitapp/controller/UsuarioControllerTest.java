@@ -85,9 +85,33 @@ class UsuarioControllerTest {
                 "/api/usuarios/" + usuarioB.userId() + "/localizacao",
                 HttpMethod.PUT, entity, StandardApiResponse.class);
 
-        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertNotNull(response.getBody());
         assertFalse(response.getBody().success());
         assertEquals("ACESSO_NEGADO", response.getBody().codigo());
+    }
+
+    @Test
+    void listaPublicaDeUsuariosFoiRemovida() {
+        // Sem token a rota cai em anyRequest().authenticated(): nenhum dado de pessoa sai.
+        ResponseEntity<String> response = restTemplate.getForEntity("/api/usuarios", String.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertFalse(String.valueOf(response.getBody()).contains("@"));
+    }
+
+    @Test
+    void listaDeUsuariosNaoExisteNemParaQuemTemToken() {
+        AuthDto.Response usuario = registrarUsuario("lista_removida");
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/api/usuarios", HttpMethod.GET,
+                new HttpEntity<>(headersComToken(usuario.token())), String.class);
+
+        // Nenhum controller atende GET /api/usuarios: nunca devolve success:true nem e-mail de ninguém.
+        // (Hoje o handler genérico responde 200 com ERRO_INTERNO; o teste não depende disso.)
+        String corpo = String.valueOf(response.getBody());
+        assertFalse(corpo.contains("\"success\":true"));
+        assertFalse(corpo.contains("@"));
     }
 }

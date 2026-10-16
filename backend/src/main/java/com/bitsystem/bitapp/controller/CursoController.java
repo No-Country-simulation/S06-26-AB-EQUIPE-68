@@ -1,5 +1,6 @@
 package com.bitsystem.bitapp.controller;
 
+import com.bitsystem.bitapp.config.UsuarioDoToken;
 import com.bitsystem.bitapp.dto.StandardApiResponse;
 import com.bitsystem.bitapp.dto.CursoDto;
 import com.bitsystem.bitapp.dto.InscricaoCursoDto;
@@ -40,12 +41,14 @@ public class CursoController {
     }
 
     // Ação de usuário logado — cai em anyRequest().authenticated() (POST não é liberado).
+    // O usuarioId do corpo só vale se for o do dono do token.
     @PostMapping("/inscrever")
     public ResponseEntity<StandardApiResponse<InscricaoCursoDto.Response>> inscrever(
             @RequestBody @Valid InscricaoCursoDto.Request request,
             Authentication authentication) {
-        String email = authentication != null ? authentication.getName() : null;
-        InscricaoCursoDto.Response response = cursoService.inscrever(request, email);
+        Long donoId = UsuarioDoToken.resolver(authentication, request.usuarioId());
+        InscricaoCursoDto.Request doDono = new InscricaoCursoDto.Request(request.cursoId(), donoId);
+        InscricaoCursoDto.Response response = cursoService.inscrever(doDono, authentication.getName());
         return ResponseEntity.ok(StandardApiResponse.ok(response));
     }
 

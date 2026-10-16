@@ -1,3 +1,7 @@
+# Os caminhos abaixo são relativos à raiz do repositório: vai para lá,
+# de onde quer que o script seja chamado (ele fica em scripts/).
+Set-Location (Join-Path $PSScriptRoot "..")
+
 Write-Host "╔══════════════════════════════════════════╗" -ForegroundColor Cyan
 Write-Host "║      BiT App - Setup do Projeto         ║" -ForegroundColor Cyan
 Write-Host "╚══════════════════════════════════════════╝" -ForegroundColor Cyan

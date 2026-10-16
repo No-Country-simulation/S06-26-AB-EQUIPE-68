@@ -17,6 +17,38 @@
 
 ---
 
+# 🔧 Depois do hackathon
+
+A tag `fim-hackathon-2026-07-25` marca o estado entregue ao fim do hackathon (Demo Day + Fase 2). O que foi corrigido depois, por grupo e com o motivo:
+
+**Segurança e dados pessoais** — a revisão técnica mostrou que o servidor confiava no `usuarioId` enviado pelo navegador e que saúde mental, assessments, mentorias e a lista de usuários estavam abertos, sem login.
+
+* `GET /api/usuarios` foi removida: devolvia nome, e-mail, cidade e WhatsApp de todos os cadastros, e nenhuma tela a usava.
+* Saúde, assessment, mentorias, sugestões, rede, match de vagas, orientação e rota passaram a exigir login. O usuário vem do token; um `usuarioId` de outra pessoa responde 403 e, sem token, 401. Catálogo (vagas, cursos, roadmaps, lazer, mentores) e estáticos seguem públicos.
+* `JWT_SECRET` não tem mais valor padrão (a aplicação não sobe sem ele); o CORS ficou numa só configuração, com origens vindas de `APP_CORS_ALLOWED_ORIGINS` e sem curinga; o console H2 vem desligado e fora das rotas públicas; o `X-Frame-Options` voltou.
+* Texto digitado pelo usuário e texto devolvido pelos agentes (n8n/Gemini) passam por escape antes de ir para HTML; o log do n8n não registra mais o relato do check-in; o service worker deixou de guardar respostas de `/api/`.
+
+**CVV** — o painel só aparecia depois da resposta do backend, que espera o n8n e o Gemini: a decisão sempre foi determinística, mas a entrega dependia dessa espera.
+
+* Com nota 1 ou 3 o painel do CVV aparece na hora, calculado no navegador com os mesmos limites do backend, antes e independente da resposta. A resposta só atualiza a mensagem de acolhimento e a tendência da semana.
+* Falha, timeout ou sessão vencida não tiram o painel da tela; o modal da nota 1 já traz o 188; fechar o Bit não descarta o painel.
+* Toda chamada do frontend à API tem timeout de 15 s. A regra de derivação no backend não mudou.
+
+**Integração com o n8n** — o workflow respondia com uma lista e o backend esperava outro formato, então descartava a resposta do agente e caía no Gemini direto.
+
+* Contrato alinhado (`{mensagem, acaoSugerida}` no acolhimento), com exemplos em `backend/src/test/resources/contracts/n8n/` e testes de contrato.
+* Webhook com autenticação por cabeçalho (`X-Webhook-Token`, enviado se `N8N_WEBHOOK_TOKEN` existir); URL do app lida da variável `BITAPP_BASE_URL` do n8n; timeout de 15 s e 1 tentativa por padrão; URL do n8n vazia pula o n8n e vai direto ao Gemini.
+* O teste ponta a ponta contra o n8n real ainda não foi feito.
+
+**PWA e mapa**
+
+* `icon-192.png` e `icon-512.png` agora respondem sem token, que é o que o manifest precisa para o app ser instalável.
+* O botão de rota do mapa chamava uma variável que não existia no módulo e sempre caía no Google Maps. Agora passa por `POST /api/rota` com o token; sem login ou sem `ORS_API_KEY`, abre o Google Maps.
+
+**Organização e documentação** — scripts movidos para `scripts/`, guia antigo para `docs/`, contrato OpenAPI com a coluna de acesso corrigida e o termo "RAG" trocado por "consulta à base curada", já que roadmaps e catálogo são consultas diretas, sem busca por similaridade.
+
+---
+
 # 📖 Sobre o Projeto
 
 O **BiT App** é uma plataforma digital desenvolvida para promover inclusão, desenvolvimento profissional e qualidade de vida através de uma abordagem integrada e inteligente.
@@ -85,12 +117,13 @@ G --> H[Evolução Contínua]
 
 ## 🧠 Orientação de Carreira com IA
 
-O sistema analisa hard skills, soft skills, experiências e objetivos do usuário, gerando mapeamento de lacunas técnicas, recomendações de estudo e plano de desenvolvimento personalizado. A análise é feita pelo agente de orientação (Gemini 2.5-flash via n8n), enriquecida em tempo real com o catálogo de cursos da própria plataforma (RAG).
+O sistema analisa hard skills, soft skills, experiências e objetivos do usuário, gerando mapeamento de lacunas técnicas, recomendações de estudo e plano de desenvolvimento personalizado. A análise é feita pelo agente de orientação (Gemini 2.5-flash via n8n), enriquecida em tempo real com o catálogo de cursos da própria plataforma, consultado direto na API (sem busca por similaridade).
 
 ### Endpoint
 
 ```http
-POST /api/assessment?usuarioId=1
+POST /api/assessment
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
@@ -132,24 +165,24 @@ O BiT App conecta usuários a vagas compatíveis com seu perfil por **correspond
 
 ## ❤️ Saúde Mental com protocolo CVV
 
-A plataforma acompanha o bem-estar do usuário com **check-ins diários por nota** (escala ordinal: 9, 7, 5, 3, 1), acolhimento humanizado gerado pelo agente de saúde mental (Gemini via n8n) e encaminhamento aos canais oficiais de apoio — **CVV, Disque 188** — presente em todas as páginas da aplicação.
+A plataforma acompanha o bem-estar do usuário com **check-ins diários por nota** (escala ordinal: 9, 7, 5, 3, 1), acolhimento humanizado gerado pelo agente de saúde mental (Gemini via n8n; com o n8n desligado ou fora do ar, pelo Gemini direto ou por mensagens locais) e encaminhamento aos canais oficiais de apoio — **CVV, Disque 188** — presente em todas as páginas da aplicação.
 
 ### 🛡️ Invariante de segurança
 
 **A decisão de encaminhar ao CVV é 100% determinística e acontece exclusivamente no backend Java — a IA nunca participa dessa decisão.** As regras são código auditável:
 
-* Notas mais baixas da escala disparam acolhimento e derivação **imediatos**;
-* O sistema agrega a **pior nota de cada dia** e monitora a **tendência da semana** (padrão persistente de notas baixas em 3 dos últimos 5 dias também gera derivação);
-* A IA atua apenas na camada de linguagem (mensagem de acolhimento e leitura emocional), nunca na regra de segurança — se a IA estiver indisponível, a proteção continua funcionando.
+* As duas notas mais baixas da escala (1 e 3) disparam a derivação. Na interface o painel do CVV aparece na hora, calculado no navegador pela nota, sem esperar a resposta do servidor;
+* O sistema agrega a **pior nota de cada dia** e monitora a **tendência da semana**: se, entre os até 5 dias mais recentes com check-in com nota, dentro dos últimos 7 dias corridos, 3 ou mais tiveram pior nota ≤ 3, a resposta traz `tendenciaSemana=true` e a interface exibe o painel com o CVV;
+* A IA atua apenas na camada de linguagem (mensagem de acolhimento e leitura emocional), nunca na regra. Se a IA falhar rápido, a resposta sai com a derivação e um texto local; se ficar lenta, só a mensagem de acolhimento demora (o painel do CVV já está na tela).
 
 ### Endpoints
 
 ```http
 POST /api/saude
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "usuarioId": 1,
   "nota": 9,
   "contexto": "Consegui terminar meu projeto hoje",
   "idioma": "pt"
@@ -166,7 +199,7 @@ Content-Type: application/json
     "acaoSugerida": "Anote o que funcionou hoje para repetir amanhã.",
     "derivarCvv": false,
     "nota": 9,
-    "alerta": null,
+    "alerta": "ESTAVEL",
     "nivelDerivacao": null,
     "leituraEmocional": "Dia produtivo e ânimo elevado.",
     "tendenciaSemana": false
@@ -174,7 +207,7 @@ Content-Type: application/json
 }
 ```
 
-Quando há sinal de risco, `nivelDerivacao` é preenchido pelo backend e `derivarCvv` passa a `true`, acionando o fluxo de apoio. O histórico de check-ins fica disponível em `GET /api/saude/historico?usuarioId=1`.
+Quando há sinal de risco, `nivelDerivacao` é preenchido pelo backend e `derivarCvv` passa a `true`, acionando o fluxo de apoio. O histórico de check-ins do próprio usuário fica disponível em `GET /api/saude/historico`. As rotas de dados pessoais exigem o token no cabeçalho `Authorization`; o `usuarioId` é opcional e, se enviado, precisa ser o do dono do token (veja a tabela de endpoints).
 
 ---
 
@@ -186,13 +219,13 @@ O sistema ingere o **dataset Vísent** — medições reais de antenas homologad
 
 ## 🗺️ Mapa de Lazer e Bem-Estar
 
-Mapa interativo (Leaflet) com pontos reais de lazer em Florianópolis, geolocalização do usuário e **cálculo de rota** até o destino escolhido (roteamento via OpenRouteService, chamado com segurança pelo backend em `POST /api/rota` — a chave nunca vai ao navegador).
+Mapa interativo (Leaflet) com pontos reais de lazer em Florianópolis, geolocalização do usuário e **cálculo de rota** até o destino escolhido (roteamento via OpenRouteService, chamado pelo backend em `POST /api/rota` — exige login e a chave `ORS_API_KEY` nunca vai ao navegador; sem login ou sem a chave configurada, o botão abre o trajeto no Google Maps).
 
 ---
 
 ## 🎓 Cursos com Geolocalização e Inscrição
 
-Catálogo de cursos com filtros por região, gratuidade e instituições beneficentes, incluindo unidades **presenciais reais de Florianópolis com coordenadas** — integradas ao mapa — e fluxo de inscrição (`POST /api/cursos/inscrever`).
+Catálogo de cursos com filtros por região, gratuidade e instituições beneficentes, incluindo 7 unidades **presenciais de Florianópolis com endereço e link oficial** — e fluxo de inscrição (`POST /api/cursos/inscrever`).
 
 ---
 
@@ -211,14 +244,11 @@ IA indisponível (n8n / Gemini)
           ↓
 Fallback local (OrientacaoService / SaudeMentalService)
           ↓
-Experiência preservada — e a regra de segurança do CVV,
-por ser local e determinística, nunca sai do ar
+Experiência preservada — a regra do CVV é local e
+determinística: a IA só escreve a mensagem
 ```
-> **Limitações conhecidas:**
-> * O workflow n8n exportado em `n8n/` referencia a URL do serviço via valor fixo nos nós "Buscar Catálogo (RAG)" e "Buscar Roadmap" — ao importar em outra instância, ajuste a URL desses dois nós para o seu deploy.
-> * O **match de compatibilidade** do assessment é uma estimativa gerada pelo modelo (Gemini), informada pelo perfil do usuário, pelo catálogo de cursos e pelo roadmap da área — sem fórmula determinística. Validada como direcionalmente sensível ao perfil nos testes manuais. Evolução prevista: score via embeddings + similaridade de cosseno, com o LLM restrito à análise qualitativa (gaps e plano de desenvolvimento).
-> * A transição de status de mentoria (`aguardando` → `confirmada` → `concluída`) é feita via API (`PATCH /api/mentorias/{id}/status`), sem painel dedicado para o mentor nesta fase — operação realizada pela equipe.
-> * A família de endpoints de mentorias/histórico está em `permitAll`, sem validação de posse do `usuarioId` — débito de segurança registrado para evolução.
+Limitações conhecidas: ver a seção [Limitações Conhecidas](#limitações-conhecidas).
+
 ---
 
 ## 🎬 Modo Demonstração
@@ -240,20 +270,20 @@ Os dados agora sobrevivem a restarts: em produção a aplicação roda sobre **P
 Cada avaliação profissional (`POST /api/assessment`) passa a ficar registrada, permitindo ao usuário acompanhar sua evolução ao longo do tempo na nova página **Minha Trilha**: compatibilidade, nível e gaps identificados em cada rodada, lado a lado.
 
 ```http
-GET /api/assessment/historico?usuarioId=1
+GET /api/assessment/historico
 ```
 
 ## 🧑‍🏫 Sistema de Mentorias
 
-Usuários podem solicitar mentoria com um dos **4 mentores voluntários da equipe**. Cada solicitação segue um fluxo de status simples — `aguardando` → `confirmada` → `concluída` — e, ao ser confirmada, ganha uma sala do **Google Meet** para a sessão.
+Usuários podem solicitar mentoria com um dos **4 mentores voluntários da equipe**. Cada solicitação segue um fluxo de status simples — `aguardando` → `confirmada` → `concluída` — e cada mentor atende numa sala fixa do **Google Meet**, exibida ao solicitar a mentoria.
 
 ```http
-POST  /api/mentorias?usuarioId=1
-GET   /api/mentorias/historico?usuarioId=1
-PATCH /api/mentorias/{id}/status
+POST  /api/mentorias
+GET   /api/mentorias/historico
+PATCH /api/mentorias/{id}/status     # só o autor da solicitação
 ```
 
-## 🧭 RAG de Roadmaps + PWA Instalável
+## 🧭 Roadmaps Curados + PWA Instalável
 
 O agente de orientação de carreira passou a consultar, além do catálogo de cursos, uma **base de trilhas curadas por área** (`base_conhecimento.json`, 10 áreas — Java, Web, Dados, Mobile, DevOps, Cibersegurança, IA, Games, UI/UX, Infraestrutura) via `GET /api/roadmaps/{area}`, enriquecendo o plano de desenvolvimento gerado pela IA com os fundamentos e frameworks esperados para a área de interesse do usuário. Em paralelo, o App BiT ganhou **manifest + service worker** (estratégia network-first) e passou a ser **instalável como PWA** em dispositivos móveis e desktop.
 
@@ -266,7 +296,7 @@ O agente de orientação de carreira passou a consultar, além do catálogo de c
 | POST | `/api/mentorias` | Solicitar mentoria |
 | GET | `/api/mentorias/historico` | Histórico de mentorias do usuário |
 | PATCH | `/api/mentorias/{id}/status` | Atualizar status da mentoria |
-| GET | `/api/roadmaps/{area}` | Roadmap curado por área (RAG do agente de carreira) |
+| GET | `/api/roadmaps/{area}` | Roadmap curado por área (consulta à base curada, usada pelo agente de carreira) |
 
 ---
 
@@ -285,7 +315,7 @@ N8N[n8n Cloud — roteamento determinístico]
 
 AI[Google Gemini 2.5-flash]
 
-RAG[Catálogo de cursos — RAG]
+CAT[Catálogo de cursos e roadmaps — consulta direta à API]
 
 VISENT[Dataset Vísent — ANATEL/Florianópolis]
 
@@ -293,7 +323,7 @@ UI -->|HTTP| API
 API --> DB
 API -->|Webhook| N8N
 N8N -->|Switch por 'tipo'| AI
-N8N --> RAG
+N8N --> CAT
 API -->|GeminiClient direto| AI
 API --> VISENT
 ```
@@ -309,7 +339,7 @@ Backend Spring Boot (8080)
    │  envia payload estruturado (hardSkills, humor, contexto, tipo, idioma)
    v
 n8n Cloud — Switch determinístico pelo campo "tipo"
-   ├── agente de orientação  → Gemini 2.5-flash (+ RAG no catálogo de cursos)
+   ├── agente de orientação  → Gemini 2.5-flash (+ consulta ao catálogo de cursos e aos roadmaps)
    └── agente de saúde mental → Gemini 2.5-flash (linguagem de acolhimento)
    v
 Backend valida, persiste e responde ao Frontend
@@ -321,8 +351,9 @@ Backend valida, persiste e responde ao Frontend
 ```text
 /backend    → API Spring Boot (Java 21) + recursos e dados
 /frontend   → páginas HTML/JS servidas pelo backend no build
-/docs       → contrato OpenAPI 3 da API
+/docs       → contrato OpenAPI 3 da API, plano de testes e o GUIA_EXECUCAO.txt (guia antigo, desatualizado: vale este README)
 /n8n        → export do workflow de produção dos agentes de IA
+/scripts    → scripts PowerShell de apoio (setup-project.ps1 e deploy-full.ps1; rodam a partir da raiz do repositório)
 ```
 
 ---
@@ -345,7 +376,7 @@ Backend valida, persiste e responde ao Frontend
 ## Inteligência Artificial
 
 * Google Gemini 2.5-flash
-* n8n Cloud como orquestrador dos agentes (roteamento determinístico + RAG no catálogo)
+* n8n Cloud como orquestrador dos agentes (roteamento determinístico + consulta ao catálogo)
 * Integração direta Java → Gemini (`GeminiClient`) para orientação e sugestões
 
 ## Frontend
@@ -378,16 +409,18 @@ cd S06-26-AB-EQUIPE-68
 ## Caminho 1 — Maven (recomendado)
 
 ```bash
+export JWT_SECRET="$(openssl rand -base64 48)"   # obrigatório: sem ele a aplicação não sobe
 cd backend
 mvn spring-boot:run
 ```
 
-Pronto: aplicação completa em `http://localhost:8080` (frontend incluído), com H2 em memória e contingência local. Para habilitar recursos, exporte variáveis antes de rodar:
+Pronto: aplicação completa em `http://localhost:8080` (frontend incluído), com H2 em memória e contingência local. `JWT_SECRET` é obrigatório e precisa ter pelo menos 32 bytes; não há valor padrão. Para habilitar recursos, exporte variáveis antes de rodar:
 
 ```bash
 export GEMINI_API_KEY=sua_chave_gemini      # IA direta (orientação/sugestões)
 export N8N_ASSESSMENT_URL=https://SEU-N8N/webhook/bit/agent
 export N8N_MENTAL_HEALTH_URL=https://SEU-N8N/webhook/bit/agent
+export N8N_WEBHOOK_TOKEN=valor_da_credencial # se o webhook do n8n exigir o cabeçalho X-Webhook-Token
 export DEMO_SEED=true                        # povoar dados de demonstração
 ```
 
@@ -395,22 +428,31 @@ export DEMO_SEED=true                        # povoar dados de demonstração
 
 ```bash
 docker build -t bitapp .
-docker run -p 8080:8080 -e GEMINI_API_KEY=sua_chave_gemini -e DEMO_SEED=true bitapp
+docker run -p 8080:8080 -e JWT_SECRET="$(openssl rand -base64 48)" -e GEMINI_API_KEY=sua_chave_gemini -e DEMO_SEED=true bitapp
 ```
 
 ## Variáveis de ambiente principais
 
 | Variável | Padrão | Função |
 | --- | --- | --- |
+| `JWT_SECRET` | *(sem padrão)* | **Obrigatória.** Segredo de assinatura dos tokens, com no mínimo 32 bytes; a aplicação não sobe sem ele. Gere com `openssl rand -base64 48` |
+| `APP_CORS_ALLOWED_ORIGINS` | `http://localhost:8080` | Origens autorizadas a chamar a API pelo navegador, separadas por vírgula, sem curinga. **Obrigatória em produção atrás de proxy TLS (Render)**: o servidor vê a requisição como `http` e o navegador manda `Origin: https://…`, que o Spring trata como outra origem; sem a URL pública do app aqui, os POST do navegador (inclusive o login) recebem 403 "Invalid CORS request" |
+| `H2_CONSOLE_ENABLED` | `false` | Liga o console do H2; mesmo ligado, `/h2-console` exige token |
 | `GEMINI_API_KEY` | *(vazio)* | Habilita a IA direta; vazio = modo contingência |
 | `GEMINI_MODEL` | `gemini-2.5-flash` | Modelo Gemini utilizado |
-| `N8N_ASSESSMENT_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de orientação |
-| `N8N_MENTAL_HEALTH_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de saúde mental |
-| `N8N_TIMEOUT` | `40000` | Timeout (ms) das chamadas ao n8n |
-| `JWT_SECRET` | *(valor de dev)* | **Defina um segredo forte em produção** |
+| `N8N_ASSESSMENT_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de orientação; **vazio desliga o n8n** e o backend segue direto para o Gemini |
+| `N8N_MENTAL_HEALTH_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de saúde mental; vazio desliga o n8n |
+| `N8N_WEBHOOK_TOKEN` | *(vazio)* | Valor do cabeçalho `X-Webhook-Token`; só é enviado se estiver definido |
+| `N8N_TIMEOUT` | `15000` | Timeout (ms) das chamadas ao n8n (era 40000) |
+| `N8N_MAX_RETRIES` | `1` | Tentativas por chamada ao n8n (era 3) |
+| `ORS_API_KEY` | *(não configurada)* | Chave do OpenRouteService para a rota no mapa; sem ela o botão abre o Google Maps |
 | `DB_URL` | H2 em memória | Aponte para PostgreSQL (produção/Render) ou MySQL para persistência |
 | `DEMO_SEED` | `false` | `true` = povoar dados de demonstração |
 | `VISENT_ENABLED` | `true` | Ingestão do dataset Vísent na inicialização |
+
+No `docker-compose.yml` o frontend sai de um nginx em `http://localhost:3000` e chama o backend em `http://localhost:8080`, que é outra origem: defina `APP_CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080` e `JWT_SECRET` no `.env.production` do serviço `backend`.
+
+Variável do **n8n** (não do backend): `BITAPP_BASE_URL`, a URL pública do app, lida pelos nós "Buscar Catálogo" e "Buscar Roadmap" do workflow. Se o n8n bloquear `$env` em expressões, defina também `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` no container do n8n.
 
 ## Testes
 
@@ -419,7 +461,7 @@ cd backend
 mvn test
 ```
 
-Suíte com **102 testes automatizados** cobrindo, entre outros, as regras determinísticas de derivação ao CVV, o match de vagas e os serviços de domínio.
+Suíte com **211 execuções de teste** (contando os casos parametrizados), em H2, cobrindo, entre outros, as regras determinísticas de derivação ao CVV, o match de vagas, os serviços de domínio, a matriz de autorização por rota (sem token 401, token de outro usuário 403, dono 200), o contrato com o n8n e o JSON do workflow versionado. Os testes não rodam no build Docker (`-DskipTests`) e usam H2, não PostgreSQL.
 
 ---
 
@@ -427,43 +469,85 @@ Suíte com **102 testes automatizados** cobrindo, entre outros, as regras determ
 
 O contrato completo (OpenAPI 3) acompanha o repositório na pasta `docs/`.
 
-| Método | Endpoint | Descrição | IA |
-| --- | --- | --- | --- |
-| POST | `/api/auth/register` | Cadastro de usuário | — |
-| POST | `/api/auth/login` | Login (JWT) | — |
-| GET | `/api/auth/me` | Dados do usuário logado | — |
-| PUT | `/api/auth/profile` | Atualização de perfil | — |
-| POST | `/api/auth/logout` | Logout | — |
-| POST | `/api/assessment` | Avaliação profissional | n8n + Gemini |
-| GET | `/api/assessment/historico` | Histórico de avaliações do usuário | — |
-| POST | `/api/orientar` | Orientação de carreira | Gemini direto |
-| POST | `/api/saude` | Check-in diário de bem-estar | n8n + Gemini (linguagem) · derivação CVV local |
-| GET | `/api/saude/historico` | Histórico de check-ins | — |
-| GET | `/api/sugestoes/{usuarioId}` | Sugestões personalizadas | Gemini direto |
-| GET | `/api/roadmaps/{area}` | Roadmap curado por área (RAG do agente de carreira) | — |
-| GET | `/api/network-status/{usuarioId}` | Conectividade na região (Vísent) | — |
-| GET | `/api/mentores` | Listar mentores voluntários | — |
-| POST | `/api/mentorias` | Solicitar mentoria | — |
-| GET | `/api/mentorias/historico` | Histórico de mentorias do usuário | — |
-| PATCH | `/api/mentorias/{id}/status` | Atualizar status da mentoria | — |
-| GET | `/api/usuarios` | Listar usuários | — |
-| PUT | `/api/usuarios/{id}/localizacao` | Atualizar localização | — |
-| GET | `/api/vagas` | Listar vagas | — |
-| GET | `/api/vagas/{id}` | Detalhe da vaga | — |
-| GET | `/api/vagas/{id}/match` | Compatibilidade perfil × vaga | — |
-| GET | `/api/vagas/match-lote` | Match de todas as vagas | — |
-| POST | `/api/vagas/enviar-curriculo` | Envio de currículo | — |
-| GET | `/api/vagas/regioes` | Vagas por região | — |
-| GET | `/api/vagas/stats` | Estatísticas de vagas | — |
-| GET | `/api/cursos` | Listar cursos | — |
-| GET | `/api/cursos/{id}` | Detalhe do curso | — |
-| POST | `/api/cursos/inscrever` | Inscrição em curso | — |
-| GET | `/api/cursos/regioes` | Cursos por região | — |
-| GET | `/api/cursos/gratuitos` | Cursos gratuitos | — |
-| GET | `/api/cursos/beneficentes` | Cursos beneficentes | — |
-| GET | `/api/cursos/stats` | Estatísticas de cursos | — |
-| GET | `/api/lazer/pontos` | Pontos de lazer no mapa | — |
-| POST | `/api/rota` | Cálculo de rota até o destino | — |
+Rotas marcadas como **login** exigem `Authorization: Bearer <token>`; sem token a resposta é 401. O usuário é sempre o dono do token: um `usuarioId` informado por parâmetro, caminho ou corpo só vale se for o dele, e o de outra pessoa responde 403. As rotas **públicas** são os estáticos, `register`/`login`/`logout` e o catálogo (vagas, cursos, roadmaps, lazer e mentores).
+
+| Método | Endpoint | Acesso | Descrição | IA |
+| --- | --- | --- | --- | --- |
+| POST | `/api/auth/register` | público | Cadastro de usuário | — |
+| POST | `/api/auth/login` | público | Login (JWT) | — |
+| GET | `/api/auth/me` | login | Dados do usuário logado | — |
+| PUT | `/api/auth/profile` | login | Atualização de perfil | — |
+| POST | `/api/auth/logout` | público | Logout | — |
+| POST | `/api/assessment` | login | Avaliação profissional | n8n + Gemini |
+| GET | `/api/assessment/historico` | login | Histórico de avaliações do usuário | — |
+| POST | `/api/orientar` | login | Orientação de carreira | Gemini direto |
+| POST | `/api/saude` | login | Check-in diário de bem-estar | n8n + Gemini (linguagem) · derivação CVV local |
+| GET | `/api/saude/historico` | login | Histórico de check-ins | — |
+| GET | `/api/sugestoes/{usuarioId}` | login | Sugestões personalizadas | Gemini direto |
+| GET | `/api/roadmaps/{area}` | público | Roadmap curado por área (consulta à base curada, usada pelo agente de carreira) | — |
+| GET | `/api/network-status/{usuarioId}` | login | Conectividade na região (Vísent) | — |
+| GET | `/api/mentores` | público | Listar mentores voluntários | — |
+| POST | `/api/mentorias` | login | Solicitar mentoria | — |
+| GET | `/api/mentorias/historico` | login | Histórico de mentorias do usuário | — |
+| PATCH | `/api/mentorias/{id}/status` | login | Atualizar status da mentoria | — |
+| PUT | `/api/usuarios/{id}/localizacao` | login | Atualizar a própria localização | — |
+| GET | `/api/vagas` | público | Listar vagas | — |
+| GET | `/api/vagas/{id}` | público | Detalhe da vaga | — |
+| GET | `/api/vagas/{id}/match` | login | Compatibilidade perfil × vaga | — |
+| GET | `/api/vagas/match-lote` | login | Match de todas as vagas | — |
+| POST | `/api/vagas/enviar-curriculo` | login | Envio de currículo | — |
+| GET | `/api/vagas/regioes` | público | Vagas por região | — |
+| GET | `/api/vagas/stats` | público | Estatísticas de vagas | — |
+| GET | `/api/cursos` | público | Listar cursos | — |
+| GET | `/api/cursos/{id}` | público | Detalhe do curso | — |
+| POST | `/api/cursos/inscrever` | login | Inscrição em curso | — |
+| GET | `/api/cursos/regioes` | público | Cursos por região | — |
+| GET | `/api/cursos/gratuitos` | público | Cursos gratuitos | — |
+| GET | `/api/cursos/beneficentes` | público | Cursos beneficentes | — |
+| GET | `/api/cursos/stats` | público | Estatísticas de cursos | — |
+| GET | `/api/lazer/pontos` | público | Pontos de lazer no mapa | — |
+| POST | `/api/rota` | login | Cálculo de rota até o destino | — |
+
+---
+
+# Limitações Conhecidas
+
+Registradas para não parecerem mais do que são. Algumas já vinham do hackathon; outras surgiram ou ficaram visíveis na revisão posterior.
+
+**Do que já estava registrado**
+
+* O workflow n8n exportado em `n8n/` lê a URL do app da variável `BITAPP_BASE_URL` do n8n. A documentação do n8n 2.0 indica que o acesso a variáveis de ambiente passa a vir bloqueado por padrão (`N8N_BLOCK_ENV_ACCESS_IN_NODE=true`), sem deixar claro se isso vale também para `$env` em expressões; ao importar em outra instância, defina `BITAPP_BASE_URL` e, se preciso, `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`. Não foi testado contra um n8n real.
+* O **match de compatibilidade** do assessment é uma estimativa gerada pelo modelo (Gemini), informada pelo perfil do usuário, pelo catálogo de cursos e pelo roadmap da área — sem fórmula determinística. Validada como direcionalmente sensível ao perfil nos testes manuais. Evolução prevista: score via embeddings + similaridade de cosseno, com o LLM restrito à análise qualitativa (gaps e plano de desenvolvimento).
+* A transição de status de mentoria (`aguardando` → `confirmada` → `concluída`) é feita via API (`PATCH /api/mentorias/{id}/status`), sem painel dedicado para o mentor. Como ainda não existe conta de mentor, só quem fez a solicitação (dono do token) consegue alterar o status.
+* As mentorias passaram a validar a posse pelo token; a revisão do restante do modelo de autorização (perfis, restrição por papel) segue como evolução.
+
+**Servidor e dados**
+
+* `spring.jpa.open-in-view` está no padrão do Spring (ligado): a conexão do pool fica presa durante toda a requisição, inclusive enquanto o backend espera o n8n ou o Gemini. Com várias chamadas lentas ao mesmo tempo, o pool pode esgotar.
+* O agrupamento diário dos check-ins (e a tendência semanal) usa o fuso do servidor (no Render costuma ser UTC; não verificado); se for UTC, perto da meia-noite do horário de Brasília o "dia" vira antes.
+* Não há limite de requisições (rate limiting) em nenhuma rota, inclusive as que chamam IA.
+* Quando o banco cai, parte dos serviços grava em memória (`FallbackStorage`); esses dados somem no restart e não são sincronizados quando o banco volta.
+* Erros inesperados do servidor respondem HTTP 200 com `success: false` e código `ERRO_INTERNO` (`GlobalExceptionHandler`), o que esconde falhas de quem só olha o status.
+* A candidatura enviada por `POST /api/vagas/enviar-curriculo` usa o `usuarioId` do token, mas ainda aceita `nome` e `e-mail` do corpo da requisição.
+* O timeout de 15 s do frontend pode ser menor que o tempo do backend (o n8n sozinho já pode usar 15 s, e depois entra o Gemini). Num check-in sem derivação (notas 5, 7 e 9) isso mostra erro embora o servidor termine e grave: reenviar duplica o registro e, se a pessoa estiver com a tendência da semana ativa, o painel da tendência (que só vem do backend) não aparece. Com nota 1 ou 3 o painel do CVV já está na tela e não é afetado. O mesmo corte vale para a avaliação de carreira.
+
+**Privacidade e LGPD**
+
+* O aviso de privacidade existe, mas faltam o consentimento registrado, a política de retenção e a exclusão de conta e de dados: check-ins e avaliações ficam sem prazo, e o texto livre do check-in é enviado ao n8n e ao Gemini.
+* As contas do Modo Demonstração (`DEMO_SEED=true`) usam uma senha fixa e pública no código; ligue o modo só em ambiente de demonstração.
+
+**Frontend**
+
+* Sem Content-Security-Policy, e o Tailwind vem do Play CDN (`cdn.tailwindcss.com`), que a própria ferramenta não recomenda para produção e que depende de um serviço externo.
+* O indicador de rede mostra "4G" como texto fixo quando não há dado de conectividade, e as vagas da demonstração são geradas por seed, não vêm de uma fonte real.
+* Acessibilidade e internacionalização ficaram incompletas: placeholders, rótulos acessíveis e mensagens de erro do backend seguem em português.
+* Em `localhost` o `api.js` chama sempre `http://localhost:8080`; rodar o backend em outra porta exige abrir o app por outro host.
+
+**Testes e processo**
+
+* A suíte roda em H2, nunca em PostgreSQL real, e o `Dockerfile` usa `-DskipTests`. O n8n só é simulado nos testes do cliente e do contrato (servidor HTTP local e exemplos JSON); o workflow real não é executado, e o Gemini não é simulado.
+* O histórico do git tem autores com nomes e e-mails diferentes para a mesma pessoa; um `.mailmap` resolveria.
+* O projeto está no Spring Boot 3.3.4; a atualização para uma linha mais nova não foi feita e deve ser planejada (vale a versão declarada no `pom.xml`).
 
 ---
 

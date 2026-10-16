@@ -1,5 +1,6 @@
 import { historicoAssessment } from './api.js';
 import { t, getIdioma } from './i18n.js';
+import { escapeHtml } from './escape.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -24,7 +25,7 @@ function listaHtml(itens, corTexto, icone) {
     if (!itens || itens.length === 0) return '';
     return `<ul class="mt-2 space-y-1.5">${itens.map(item =>
         `<li class="flex items-start gap-2 text-sm text-slate-300">
-            <span class="${corTexto} shrink-0">${icone}</span> <span>${item}</span>
+            <span class="${corTexto} shrink-0">${icone}</span> <span>${escapeHtml(item)}</span>
         </li>`
     ).join('')}</ul>`;
 }
@@ -44,7 +45,7 @@ function cardHtml(item, index) {
                     <span class="text-xs text-slate-500">${t('trilha.compatibilidade')}</span>
                 </div>
             </div>
-            ${item.nivel ? `<p class="mt-1 text-base font-bold text-white">${t('trilha.nivelLabel')}: ${item.nivel}</p>` : ''}
+            ${item.nivel ? `<p class="mt-1 text-base font-bold text-white">${t('trilha.nivelLabel')}: ${escapeHtml(item.nivel)}</p>` : ''}
 
             <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-slate-800 pt-4">
                 <div>

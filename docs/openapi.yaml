@@ -75,7 +75,7 @@ tags:
   - name: Cursos
     description: Catálogo de cursos e inscrições
   - name: Roadmaps
-    description: Roadmaps de carreira curados (RAG do Assessment Agent)
+    description: Roadmaps de carreira curados (consulta à base curada pelo Assessment Agent)
   - name: Mentorias
     description: Catálogo de mentores voluntários e solicitações de mentoria
   - name: Vagas
@@ -87,7 +87,7 @@ tags:
   - name: Autenticação
     description: Registro, login e perfil do usuário
   - name: Usuários
-    description: Listagem administrativa de usuários e localização geográfica
+    description: Localização geográfica do usuário autenticado
   - name: Lazer
     description: Pontos de interesse (Lazer & Cultura) com selo de zona de movimento (Vísent-c)
   - name: Sugestões
@@ -106,7 +106,6 @@ paths:
         Processa o perfil do usuário via Gemini; sem `GEMINI_API_KEY`
         configurada, cai automaticamente no fallback determinístico
         (heurística local, sem chamada de IA).
-      security: []
       requestBody:
         required: true
         content:
@@ -142,7 +141,6 @@ paths:
         a pergunta semanal é respondida. A resposta sempre inclui
         `leituraEmocional`, uma frase curta descrevendo o estado emocional
         percebido (nunca cita a nota numérica).
-      security: []
       requestBody:
         required: true
         content:
@@ -166,11 +164,13 @@ paths:
     get:
       tags: [Saúde Mental]
       summary: Lista o histórico de check-ins de um usuário
-      security: []
       parameters:
         - name: usuarioId
           in: query
-          required: true
+          required: false
+          description: >-
+            Opcional. O usuário é sempre o dono do token; se informado, precisa ser
+            o dele, senão a resposta é 403 ACESSO_NEGADO.
           schema:
             type: integer
             format: int64
@@ -194,15 +194,16 @@ paths:
     post:
       tags: [Assessment]
       summary: Avalia compatibilidade de carreira do usuário
-      security: []
       parameters:
         - name: usuarioId
           in: query
           required: false
+          description: >-
+            Opcional. O usuário é sempre o dono do token; se informado, precisa ser
+            o dele, senão a resposta é 403 ACESSO_NEGADO.
           schema:
             type: integer
             format: int64
-            default: 0
       requestBody:
         required: true
         content:
@@ -226,11 +227,13 @@ paths:
     get:
       tags: [Assessment]
       summary: Lista o histórico de assessments de carreira de um usuário
-      security: []
       parameters:
         - name: usuarioId
           in: query
-          required: true
+          required: false
+          description: >-
+            Opcional. O usuário é sempre o dono do token; se informado, precisa ser
+            o dele, senão a resposta é 403 ACESSO_NEGADO.
           schema:
             type: integer
             format: int64
@@ -429,7 +432,7 @@ paths:
                           gratuitos: { type: integer, format: int64 }
                           regioes: { type: integer, format: int64 }
 
-  # ───────────────────────────── Roadmaps (RAG) ─────────────────────────────
+  # ─────────────────────── Roadmaps (base curada) ───────────────────────
   /api/roadmaps/{area}:
     get:
       tags: [Roadmaps]
@@ -439,7 +442,8 @@ paths:
         boot. Busca case-insensitive pelo valor do dropdown "Área Alvo"
         (Java, Web, Dados, Mobile, DevOps, Ciberseguranca, IA, Games, UIUX,
         Infraestrutura). Consumido pelo workflow n8n de orientação de
-        carreira (RAG) — ver n8n/bitapp-workflow-v2-producao.json.
+        carreira, que consulta esta base direto pela API (sem busca por
+        similaridade) — ver n8n/bitapp-workflow-v2-producao.json.
       security: []
       parameters:
         - name: area
@@ -493,15 +497,16 @@ paths:
         FallbackStorage em memória (mesmo padrão de
         `AssessmentService.salvarAssessment`). Nasce sempre com status
         `AGUARDANDO_CONFIRMACAO`.
-      security: []
       parameters:
         - name: usuarioId
           in: query
           required: false
+          description: >-
+            Opcional. O usuário é sempre o dono do token; se informado, precisa ser
+            o dele, senão a resposta é 403 ACESSO_NEGADO.
           schema:
             type: integer
             format: int64
-            default: 0
       requestBody:
         required: true
         content:
@@ -527,11 +532,13 @@ paths:
     get:
       tags: [Mentorias]
       summary: Lista o histórico de solicitações de mentoria de um usuário
-      security: []
       parameters:
         - name: usuarioId
           in: query
-          required: true
+          required: false
+          description: >-
+            Opcional. O usuário é sempre o dono do token; se informado, precisa ser
+            o dele, senão a resposta é 403 ACESSO_NEGADO.
           schema:
             type: integer
             format: int64
@@ -560,7 +567,6 @@ paths:
         desconhecido ou fora de ordem retorna 422 via `BusinessException`
         (padrão do sistema; nenhum endpoint desta API responde 400 para
         regra de negócio — só bean validation usa 400).
-      security: []
       parameters:
         - name: id
           in: path
@@ -654,7 +660,6 @@ paths:
         determinístico em Java (interseção de skills). comoResolver é gerado
         pelo Gemini (fallback determinístico se a IA não estiver configurada
         ou falhar). Usado no modal de detalhe da vaga, nunca na listagem.
-      security: []
       parameters:
         - name: id
           in: path
@@ -662,7 +667,10 @@ paths:
           schema: { type: integer, format: int64 }
         - name: usuarioId
           in: query
-          required: true
+          required: false
+          description: >-
+            Opcional. O usuário é sempre o dono do token; se informado, precisa ser
+            o dele, senão a resposta é 403 ACESSO_NEGADO.
           schema: { type: integer, format: int64 }
         - name: idioma
           in: query
@@ -711,11 +719,13 @@ paths:
       description: >
         Usado nos badges da listagem — uma única chamada em vez de N por card.
         Não gera comoResolver (isso fica só no endpoint de detalhe).
-      security: []
       parameters:
         - name: usuarioId
           in: query
-          required: true
+          required: false
+          description: >-
+            Opcional. O usuário é sempre o dono do token; se informado, precisa ser
+            o dele, senão a resposta é 403 ACESSO_NEGADO.
           schema: { type: integer, format: int64 }
       responses:
         '200':
@@ -813,7 +823,6 @@ paths:
         (dashboard.js captura `navigator.geolocation` silenciosamente após o
         login e envia para lá). Enquanto o usuário não tiver localização
         salva, a resposta é `"Localização do Usuário Não Definida"`.
-      security: []
       parameters:
         - name: usuarioId
           in: path
@@ -848,7 +857,6 @@ paths:
         (`ors.api.key`). **Não usa o envelope `StandardApiResponse`** — em
         caso de sucesso repassa o GeoJSON bruto do provedor; em caso de
         erro retorna um objeto simples `{erro, mensagem}`.
-      security: []
       requestBody:
         required: true
         content:
@@ -1008,6 +1016,7 @@ paths:
     post:
       tags: [Autenticação]
       summary: Revoga a sessão (token) atual
+      security: []
       responses:
         '200':
           description: Logout efetuado (sempre 200, mesmo com header ausente/malformado)
@@ -1017,25 +1026,6 @@ paths:
                 $ref: '#/components/schemas/ApiResponseBase'
 
   # ───────────────────────────── Usuários ─────────────────────────────
-  /api/usuarios:
-    get:
-      tags: [Usuários]
-      summary: Lista todos os usuários cadastrados
-      security: []
-      responses:
-        '200':
-          description: Lista de usuários
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/ApiResponseBase'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items: { $ref: '#/components/schemas/UsuarioResponse' }
-
   /api/usuarios/{id}/localizacao:
     put:
       tags: [Usuários]
@@ -1128,7 +1118,6 @@ paths:
         cai em um fallback determinístico obrigatório: mapa fixo
         humor→categoria, priorizando dicas que não dependem de internet
         quando a conectividade do usuário está fraca.
-      security: []
       parameters:
         - name: usuarioId
           in: path
@@ -1158,9 +1147,12 @@ components:
       bearerFormat: JWT
       description: >
         Token emitido por /api/auth/register ou /api/auth/login. Endpoints
-        marcados com `security: []` neste documento são públicos
-        (permitAll no SecurityConfig); os demais exigem
-        `Authorization: Bearer <token>`.
+        marcados com `security: []` neste documento são públicos (estáticos,
+        register/login/logout e o catálogo: vagas, cursos, roadmaps, lazer e
+        mentores); os demais exigem `Authorization: Bearer <token>`, e sem
+        token a resposta é 401 NAO_AUTENTICADO. O usuário é sempre o dono do
+        token: um `usuarioId` informado por parâmetro, caminho ou corpo só é
+        aceito se for o dele; de outra pessoa, a resposta é 403 ACESSO_NEGADO.
 
   responses:
     Unauthorized:
@@ -1367,7 +1359,7 @@ components:
           description: >-
             Área alvo do dropdown de perfil (Java, Web, Dados, Mobile,
             DevOps, Ciberseguranca, IA, Games, UIUX, Infraestrutura) — campo
-            aditivo (RAG de roadmaps). Usada pelo n8n para injetar o roadmap
+            aditivo (consulta à base curada de roadmaps). Usada pelo n8n para injetar o roadmap
             curado correspondente no prompt do agente de carreira.
 
     AssessmentResponse:

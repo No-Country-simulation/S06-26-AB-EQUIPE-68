@@ -42,4 +42,14 @@ class AuthControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody().success());
     }
+
+    @Test
+    void shouldReturn401WhenTokenIsMissingOnAuthenticatedRoute() {
+        ResponseEntity<StandardApiResponse> response = restTemplate
+                .getForEntity("/api/auth/me", StandardApiResponse.class);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().success());
+        assertEquals("NAO_AUTENTICADO", response.getBody().codigo());
+    }
 }

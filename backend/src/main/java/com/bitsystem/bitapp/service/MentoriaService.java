@@ -4,6 +4,7 @@ import com.bitsystem.bitapp.domain.Mentor;
 import com.bitsystem.bitapp.domain.SolicitacaoMentoria;
 import com.bitsystem.bitapp.dto.MentorDto;
 import com.bitsystem.bitapp.dto.SolicitacaoMentoriaDto;
+import com.bitsystem.bitapp.exception.AutorizacaoException;
 import com.bitsystem.bitapp.exception.BusinessException;
 import com.bitsystem.bitapp.repository.MentorRepository;
 import com.bitsystem.bitapp.repository.SolicitacaoMentoriaRepository;
@@ -97,19 +98,23 @@ public class MentoriaService {
      * Avança o status em uma casa (AGUARDANDO_CONFIRMACAO -> CONFIRMADA ->
      * CONCLUIDA), sem pular nem voltar. Status desconhecido ou transição fora
      * de ordem viram BusinessException -> 422 (padrão do sistema, não 400).
+     * Só o usuário que fez a solicitação (dono do token) pode mexer no status;
+     * outro usuário recebe AutorizacaoException -> 403. Ainda não existe conta
+     * de mentor, então não há um segundo perfil autorizado a confirmar.
      */
-    public SolicitacaoMentoriaDto.Response atualizarStatus(Long id, String novoStatus) {
+    public SolicitacaoMentoriaDto.Response atualizarStatus(Long id, String novoStatus, Long usuarioId) {
         try {
             Optional<SolicitacaoMentoria> encontrada = repository.findById(id);
             if (encontrada.isPresent()) {
                 SolicitacaoMentoria solicitacao = encontrada.get();
+                exigirDono(solicitacao.getUsuarioId(), usuarioId);
                 validarTransicao(solicitacao.getStatus(), novoStatus);
                 solicitacao.setStatus(novoStatus);
                 solicitacao = repository.save(solicitacao);
                 return toResponse(solicitacao, mentorNome(solicitacao.getMentorId()));
             }
-        } catch (BusinessException be) {
-            throw be;
+        } catch (BusinessException | AutorizacaoException ex) {
+            throw ex;
         } catch (Exception dbEx) {
             log.warn("[MentoriaService] Banco indisponível ao atualizar status, tentando memória: {}", dbEx.getMessage());
         }
@@ -117,11 +122,18 @@ public class MentoriaService {
         FallbackStorage.MentoriaRecord existente = fallbackStorage.findMentoriaById(id)
                 .orElseThrow(() -> new BusinessException("SOLICITACAO_NAO_ENCONTRADA",
                         "Solicitação de mentoria não encontrada: " + id));
+        exigirDono(existente.usuarioId(), usuarioId);
         validarTransicao(existente.status(), novoStatus);
         FallbackStorage.MentoriaRecord atualizado = fallbackStorage.updateMentoriaStatus(id, novoStatus);
         return new SolicitacaoMentoriaDto.Response(
                 atualizado.id(), atualizado.usuarioId(), atualizado.mentorId(), mentorNome(atualizado.mentorId()),
                 atualizado.areaSolicitada(), atualizado.mensagem(), atualizado.status(), atualizado.createdAt());
+    }
+
+    private void exigirDono(Long donoDaSolicitacao, Long usuarioId) {
+        if (donoDaSolicitacao == null || !donoDaSolicitacao.equals(usuarioId)) {
+            throw AutorizacaoException.acessoNegado("Você só pode alterar as suas próprias solicitações de mentoria.");
+        }
     }
 
     private void validarTransicao(String atual, String novo) {

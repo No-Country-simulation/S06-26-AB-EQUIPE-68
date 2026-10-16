@@ -5,6 +5,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "bit/agent",
+        "authentication": "headerAuth",
         "responseMode": "responseNode",
         "options": {}
       },
@@ -16,7 +17,13 @@
         -416,
         -128
       ],
-      "webhookId": "19a95a2f-7ea9-4d6a-ab4f-a96ec3de3553"
+      "webhookId": "19a95a2f-7ea9-4d6a-ab4f-a96ec3de3553",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CRIAR_NO_N8N",
+          "name": "BiT Webhook Token"
+        }
+      }
     },
     {
       "parameters": {
@@ -68,13 +75,13 @@
     },
     {
       "parameters": {
-        "url": "https://s06-26-appbit-demo.onrender.com/api/cursos",
+        "url": "={{ $env.BITAPP_BASE_URL.replace(/\\/+$/, '') }}/api/cursos",
         "options": {
           "timeout": 15000
         }
       },
       "id": "3cef58ac-18ef-41d5-969e-2e0686c5ba68",
-      "name": "Buscar Catálogo (RAG)",
+      "name": "Buscar Catálogo",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -86,7 +93,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Prompt do agente de CARREIRA (assessment) com RAG do catálogo real + roadmap da área.\nconst d = $('Normalizar Entrada').first().json;\nconst lang = d.idioma === 'es' ? 'espanhol (neutro latino-americano, tuteo)' : 'português do Brasil';\n\n// Catálogo vivo vindo de GET /api/cursos (StandardApiResponse{success,data})\nlet catalogo = [];\ntry {\n  const resp = $('Buscar Catálogo (RAG)').first().json;\n  const data = resp.data || resp;\n  catalogo = (Array.isArray(data) ? data : []).map(c => `- ${c.titulo || c.nome} (${c.instituicao || ''} | área: ${c.area || ''} | ${c.gratuito ? 'gratuito' : 'pago'})`);\n} catch (e) { catalogo = []; }\nconst catalogoTxt = catalogo.length ? catalogo.slice(0, 25).join('\\n') : '(catálogo indisponível — recomende trilhas gratuitas conhecidas: Oracle ONE, DIO, Santander Open Academy)';\n\n// Roadmap vivo vindo de GET /api/roadmaps/{area} (StandardApiResponse{success,data}).\n// Leitura DEFENSIVA: erro HTTP, success:false, data ausente, área sem roadmap (422) ou\n// qualquer exceção de parsing caem no MESMO fallback textual — nunca quebram o prompt.\nlet roadmapTxt = '(roadmap indisponível para esta área — baseie o plano de desenvolvimento apenas no perfil e no catálogo acima)';\ntry {\n  const rr = $('Buscar Roadmap').first().json;\n  const rdata = rr && rr.success !== false ? (rr.data || null) : null;\n  if (rdata) {\n    const fundamentos = (rdata.habilidades?.fundamentos?.itens || []).map(i => i.nome).filter(Boolean);\n    const frameworks = (rdata.habilidades?.frameworks?.itens || []).map(i => i.nome).filter(Boolean);\n    const complementares = (rdata.habilidades?.complementares?.itens || []).map(i => i.nome).filter(Boolean);\n    const linhas = [];\n    if (rdata.titulo) linhas.push(`Trilha de referência: ${rdata.titulo}`);\n    if (fundamentos.length) linhas.push(`Fundamentos esperados: ${fundamentos.join(', ')}`);\n    if (frameworks.length) linhas.push(`Frameworks/ferramentas esperados: ${frameworks.join(', ')}`);\n    if (complementares.length) linhas.push(`Complementares desejáveis: ${complementares.join(', ')}`);\n    if (linhas.length) roadmapTxt = linhas.join('\\n');\n  }\n} catch (e) { /* mantém fallback textual */ }\n\nconst prompt = `Você é o agente de Avaliação Profissional do App BiT.\\n\\n` +\n`PERFIL DO USUÁRIO:\\n` +\n`Nome: ${d.nome} | Idade: ${d.idade ?? 'n/i'} | Escolaridade: ${d.escolaridade}\\n` +\n`Experiência: ${d.experiencia}\\n` +\n`Hard skills: ${(d.hardSkills||[]).join(', ') || 'nenhuma informada'}\\n` +\n`Soft skills: ${(d.softSkills||[]).join(', ') || 'nenhuma informada'}\\n` +\n`Tecnologias: ${(d.tecnologias||[]).join(', ') || 'nenhuma informada'}\\n\\n` +\n`ROADMAP DE REFERÊNCIA PARA A ÁREA DE INTERESSE (${d.area || 'não informada'}):\\n${roadmapTxt}\\n\\n` +\n`CATÁLOGO DE CURSOS DISPONÍVEIS NO APP (use APENAS estes ao recomendar cursos):\\n${catalogoTxt}\\n\\n` +\n`REGRAS OBRIGATÓRIAS:\\n` +\n`- Responda SOMENTE com JSON válido, sem markdown, sem cercas de código.\\n` +\n`- Shape exato: {\"compatibilidade\": inteiro 0-100, \"nivel\": string, \"pontosFortes\": [strings], \"gaps\": [strings], \"planoDesenvolvimento\": [strings]}\\n` +\n  `- As CHAVES do JSON sao identificadores tecnicos FIXOS: compatibilidade, nivel, pontosFortes, gaps, planoDesenvolvimento — NUNCA as traduza; traduza APENAS os valores/textos.\\n` +\n`- gaps: 2 a 4 lacunas específicas derivadas do perfil real.\\n` +\n`- planoDesenvolvimento: 2 a 4 passos concretos; cite pelo NOME cursos do catálogo acima quando fizerem sentido para os gaps.\\n` +\n`- nivel: um de \"Júnior Trainee\", \"Júnior\", \"Júnior Pleno\".\\n` +\n`- Nunca invente cursos fora do catálogo. Nunca cite notas ou avaliações numéricas do usuário.\\n` +\n`- Todos os textos em ${lang}.`;\n\nreturn [{ json: { prompt } }];"
+        "jsCode": "// Prompt do agente de CARREIRA (assessment) com consulta direta ao catálogo real + roadmap da área.\nconst d = $('Normalizar Entrada').first().json;\nconst lang = d.idioma === 'es' ? 'espanhol (neutro latino-americano, tuteo)' : 'português do Brasil';\n\n// Catálogo vivo vindo de GET /api/cursos (StandardApiResponse{success,data})\nlet catalogo = [];\ntry {\n  const resp = $('Buscar Catálogo').first().json;\n  const data = resp.data || resp;\n  catalogo = (Array.isArray(data) ? data : []).map(c => `- ${c.titulo || c.nome} (${c.instituicao || ''} | área: ${c.area || ''} | ${c.gratuito ? 'gratuito' : 'pago'})`);\n} catch (e) { catalogo = []; }\nconst catalogoTxt = catalogo.length ? catalogo.slice(0, 25).join('\\n') : '(catálogo indisponível — recomende trilhas gratuitas conhecidas: Oracle ONE, DIO, Santander Open Academy)';\n\n// Roadmap vivo vindo de GET /api/roadmaps/{area} (StandardApiResponse{success,data}).\n// Leitura DEFENSIVA: erro HTTP, success:false, data ausente, área sem roadmap (422) ou\n// qualquer exceção de parsing caem no MESMO fallback textual — nunca quebram o prompt.\nlet roadmapTxt = '(roadmap indisponível para esta área — baseie o plano de desenvolvimento apenas no perfil e no catálogo acima)';\ntry {\n  const rr = $('Buscar Roadmap').first().json;\n  const rdata = rr && rr.success !== false ? (rr.data || null) : null;\n  if (rdata) {\n    const fundamentos = (rdata.habilidades?.fundamentos?.itens || []).map(i => i.nome).filter(Boolean);\n    const frameworks = (rdata.habilidades?.frameworks?.itens || []).map(i => i.nome).filter(Boolean);\n    const complementares = (rdata.habilidades?.complementares?.itens || []).map(i => i.nome).filter(Boolean);\n    const linhas = [];\n    if (rdata.titulo) linhas.push(`Trilha de referência: ${rdata.titulo}`);\n    if (fundamentos.length) linhas.push(`Fundamentos esperados: ${fundamentos.join(', ')}`);\n    if (frameworks.length) linhas.push(`Frameworks/ferramentas esperados: ${frameworks.join(', ')}`);\n    if (complementares.length) linhas.push(`Complementares desejáveis: ${complementares.join(', ')}`);\n    if (linhas.length) roadmapTxt = linhas.join('\\n');\n  }\n} catch (e) { /* mantém fallback textual */ }\n\nconst prompt = `Você é o agente de Avaliação Profissional do App BiT.\\n\\n` +\n`PERFIL DO USUÁRIO:\\n` +\n`Nome: ${d.nome} | Idade: ${d.idade ?? 'n/i'} | Escolaridade: ${d.escolaridade}\\n` +\n`Experiência: ${d.experiencia}\\n` +\n`Hard skills: ${(d.hardSkills||[]).join(', ') || 'nenhuma informada'}\\n` +\n`Soft skills: ${(d.softSkills||[]).join(', ') || 'nenhuma informada'}\\n` +\n`Tecnologias: ${(d.tecnologias||[]).join(', ') || 'nenhuma informada'}\\n\\n` +\n`ROADMAP DE REFERÊNCIA PARA A ÁREA DE INTERESSE (${d.area || 'não informada'}):\\n${roadmapTxt}\\n\\n` +\n`CATÁLOGO DE CURSOS DISPONÍVEIS NO APP (use APENAS estes ao recomendar cursos):\\n${catalogoTxt}\\n\\n` +\n`REGRAS OBRIGATÓRIAS:\\n` +\n`- Responda SOMENTE com JSON válido, sem markdown, sem cercas de código.\\n` +\n`- Shape exato: {\"compatibilidade\": inteiro 0-100, \"nivel\": string, \"pontosFortes\": [strings], \"gaps\": [strings], \"planoDesenvolvimento\": [strings]}\\n` +\n  `- As CHAVES do JSON sao identificadores tecnicos FIXOS: compatibilidade, nivel, pontosFortes, gaps, planoDesenvolvimento — NUNCA as traduza; traduza APENAS os valores/textos.\\n` +\n`- gaps: 2 a 4 lacunas específicas derivadas do perfil real.\\n` +\n`- planoDesenvolvimento: 2 a 4 passos concretos; cite pelo NOME cursos do catálogo acima quando fizerem sentido para os gaps.\\n` +\n`- nivel: um de \"Júnior Trainee\", \"Júnior\", \"Júnior Pleno\".\\n` +\n`- Nunca invente cursos fora do catálogo. Nunca cite notas ou avaliações numéricas do usuário.\\n` +\n`- Todos os textos em ${lang}.`;\n\nreturn [{ json: { prompt } }];"
       },
       "id": "cf7893c8-a154-413f-a35d-788d7e6276d9",
       "name": "Montar Prompt Carreira",
@@ -168,7 +175,7 @@
     },
     {
       "parameters": {
-        "respondWith": "allIncomingItems",
+        "respondWith": "firstIncomingItem",
         "options": {}
       },
       "id": "9b74dd8a-0e39-4863-9f69-3142ad414cfc",
@@ -182,7 +189,7 @@
     },
     {
       "parameters": {
-        "url": "=https://s06-26-appbit-demo.onrender.com/api/roadmaps/{{ $('Normalizar Entrada').first().json.area\n}}",
+        "url": "={{ $env.BITAPP_BASE_URL.replace(/\\/+$/, '') }}/api/roadmaps/{{ $('Normalizar Entrada').first().json.area }}",
         "options": {
           "timeout": 15000
         }
@@ -289,7 +296,7 @@
         ],
         [
           {
-            "node": "Buscar Catálogo (RAG)",
+            "node": "Buscar Catálogo",
             "type": "main",
             "index": 0
           }
@@ -307,7 +314,7 @@
         ]
       ]
     },
-    "Buscar Catálogo (RAG)": {
+    "Buscar Catálogo": {
       "main": [
         [
           {

@@ -170,16 +170,19 @@ public class SaudeMentalService {
      * IMPORTANTE: o agente só fornece TEXTO. Ele nunca decide/aciona/cancela o CVV.
      */
     private SaudeDto.RawResponse obterAcolhimento(SaudeDto.Request request) {
-        try {
-            MentalHealthDto.Response agente = mentalHealthClient.process(montarPayloadAgente(request));
-            SaudeDto.RawResponse mapeada = mapearAgente(agente);
-            if (mapeada != null) {
-                log.info("[SaudeMentalService] Acolhimento via Mental Health Agent (n8n) usuarioId={}", request.usuarioId());
-                return mapeada;
+        // URL do n8n vazia = n8n desligado: vai direto para o Gemini / respostas curadas.
+        if (mentalHealthClient.isConfigured()) {
+            try {
+                MentalHealthDto.Response agente = mentalHealthClient.process(montarPayloadAgente(request));
+                SaudeDto.RawResponse mapeada = mapearAgente(agente);
+                if (mapeada != null) {
+                    log.info("[SaudeMentalService] Acolhimento via Mental Health Agent (n8n) usuarioId={}", request.usuarioId());
+                    return mapeada;
+                }
+                log.warn("[SaudeMentalService] Agente retornou vazio, usando fallback local");
+            } catch (Exception ex) {
+                log.warn("[SaudeMentalService] Mental Health Agent indisponivel, usando fallback local: {}", ex.getMessage());
             }
-            log.warn("[SaudeMentalService] Agente retornou vazio, usando fallback local");
-        } catch (Exception ex) {
-            log.warn("[SaudeMentalService] Mental Health Agent indisponivel, usando fallback local: {}", ex.getMessage());
         }
         return acolhimentoFallback(request);
     }
@@ -188,36 +191,28 @@ public class SaudeMentalService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("userId", request.usuarioId());
         payload.put("nota", request.nota());
+        // O workflow monta o prompt com "humor" (rótulo da escala) e "idioma"; a nota
+        // segue no payload mas o agente nunca a cita nem decide nada com ela.
+        payload.put("humor", request.nota() != null ? NivelCheckin.fromNota(request.nota()).getRotulo() : "");
+        payload.put("idioma", request.idiomaOuPadrao());
         payload.put("message", request.contexto() != null ? request.contexto() : "");
         payload.put("tipo", "mental-health");
         return payload;
     }
 
     /**
-     * Mapeia {nivel, alerta, recomendacoes, acoes, canaisApoio} do agente para
-     * a mensagem/ação que a tela renderiza. Campos ausentes são tolerados;
-     * derivarCvv/scoreRisco do agente são deliberadamente IGNORADOS.
+     * Mapeia {mensagem, acaoSugerida} do agente para o que a tela renderiza.
+     * Sem mensagem útil (inclusive a resposta PARSE_FALHOU do workflow) devolve
+     * null e o fallback local assume. O agente só fornece TEXTO: não existe
+     * campo de derivação no contrato.
      */
     private SaudeDto.RawResponse mapearAgente(MentalHealthDto.Response agente) {
-        if (agente == null) {
-            return null;
-        }
-        String mensagem = null;
-        if (agente.recomendacoes() != null && !agente.recomendacoes().isEmpty()) {
-            mensagem = String.join(" ", agente.recomendacoes());
-        } else if (agente.alerta() != null && !agente.alerta().isBlank()) {
-            mensagem = agente.alerta();
-        }
-        if (mensagem == null || mensagem.isBlank()) {
+        if (agente == null || agente.mensagem() == null || agente.mensagem().isBlank()) {
             return null; // sem texto útil → deixa o fallback assumir
         }
+        String mensagem = agente.mensagem();
 
-        String acao = null;
-        if (agente.acoes() != null && !agente.acoes().isEmpty()) {
-            acao = agente.acoes().get(0);
-        } else if (agente.canaisApoio() != null && !agente.canaisApoio().isEmpty()) {
-            acao = agente.canaisApoio().get(0);
-        }
+        String acao = agente.acaoSugerida();
         if (acao == null || acao.isBlank()) {
             acao = "Reserve um momento de cuidado com você hoje.";
         }

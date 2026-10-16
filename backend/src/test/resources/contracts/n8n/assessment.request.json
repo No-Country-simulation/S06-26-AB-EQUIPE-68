@@ -1,0 +1,12 @@
+{
+  "nome": "Maria",
+  "idade": 28,
+  "escolaridade": "Superior",
+  "experiencia": "2 anos em suporte técnico",
+  "hardSkills": ["Java", "SQL"],
+  "softSkills": ["Comunicação"],
+  "tecnologias": ["Git", "Docker"],
+  "tipo": "orientacao",
+  "idioma": "pt",
+  "area": "Java"
+}

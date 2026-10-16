@@ -4,12 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.bitsystem.bitapp.domain.CareerAssessment;
 import com.bitsystem.bitapp.dto.AssessmentDto;
+import com.bitsystem.bitapp.integration.ContratosN8n;
 import com.bitsystem.bitapp.integration.N8NAssessmentClient;
 import com.bitsystem.bitapp.repository.CareerAssessmentRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,6 +43,7 @@ class AssessmentServiceTest {
     void setUp() {
         // ObjectMapper real (não mockado) — os testes exercitam a serialização
         // JSON de verdade, não só o wiring.
+        lenient().when(n8nClient.isConfigured()).thenReturn(true);
         service = new AssessmentService(n8nClient, repository, fallbackStorage, new ObjectMapper());
     }
 
@@ -140,7 +143,7 @@ class AssessmentServiceTest {
         verify(fallbackStorage).saveAssessment(5L, respostaN8n);
     }
 
-    // ── ÁREA (RAG de roadmaps): repassada ao n8n sem alterar tecnologias ─────
+    // ── ÁREA (base curada de roadmaps): repassada ao n8n sem alterar tecnologias ─────
     @Test
     void processar_repassaAreaAoN8nSemAlterarTecnologias() {
         when(n8nClient.process(any())).thenReturn(respostaCompleta());
@@ -227,5 +230,65 @@ class AssessmentServiceTest {
         List<AssessmentDto.HistoricoResponse> historico = service.buscarHistorico(99L);
 
         assertThat(historico).isEmpty();
+    }
+
+    // ── CONTRATO COM O N8N (exemplos em src/test/resources/contracts/n8n/) ───
+    @Test
+    void processar_respostaDeExemploDoContrato_ehSalvaEDevolvida() {
+        when(n8nClient.process(any()))
+                .thenReturn(ContratosN8n.ler("assessment.response", AssessmentDto.Response.class));
+
+        AssessmentDto.Response resposta = service.processar(request(), 7L);
+
+        assertThat(resposta.compatibilidade()).isEqualTo(72);
+        ArgumentCaptor<CareerAssessment> captor = ArgumentCaptor.forClass(CareerAssessment.class);
+        verify(repository).save(captor.capture());
+        assertThat(captor.getValue().getNivel()).isEqualTo("Júnior");
+    }
+
+    @Test
+    void processar_parseFalhouDoWorkflow_usaOFallbackLocalENaoGravaAssessmentVazio() {
+        when(n8nClient.process(any()))
+                .thenReturn(ContratosN8n.ler("assessment.response-parse-falhou", AssessmentDto.Response.class));
+
+        AssessmentDto.Response resposta = service.processar(request(), 7L);
+
+        assertThat(resposta.compatibilidade()).isNotNull();
+        ArgumentCaptor<CareerAssessment> captor = ArgumentCaptor.forClass(CareerAssessment.class);
+        verify(repository).save(captor.capture());
+        assertThat(captor.getValue().getCompatibilidade()).isNotNull();
+    }
+
+    @Test
+    void processar_n8nNaoConfigurado_naoChamaOAgenteEUsaOFallbackLocal() {
+        when(n8nClient.isConfigured()).thenReturn(false);
+
+        AssessmentDto.Response resposta = service.processar(request(), 7L);
+
+        assertThat(resposta.compatibilidade()).isNotNull();
+        verify(n8nClient, never()).process(any());
+    }
+
+    @Test
+    void processar_respostaNulaDoAgente_usaOFallbackLocal() {
+        when(n8nClient.process(any())).thenReturn(null);
+
+        AssessmentDto.Response resposta = service.processar(request(), 7L);
+
+        assertThat(resposta.compatibilidade()).isNotNull();
+    }
+
+    @Test
+    void requestEnviadoAoAgente_temOsMesmosCamposDoExemploDoContrato() {
+        ArgumentCaptor<AssessmentDto.Request> enviado = ArgumentCaptor.forClass(AssessmentDto.Request.class);
+        when(n8nClient.process(enviado.capture()))
+                .thenReturn(ContratosN8n.ler("assessment.response", AssessmentDto.Response.class));
+
+        service.processar(request(), 7L);
+
+        var json = ContratosN8n.MAPPER_DO_CLIENTE.valueToTree(enviado.getValue());
+        assertThat(ContratosN8n.campos(json))
+                .containsExactlyInAnyOrderElementsOf(ContratosN8n.campos(ContratosN8n.json("assessment.request")));
+        assertThat(json.path("tipo").asText()).isEqualTo("orientacao");
     }
 }

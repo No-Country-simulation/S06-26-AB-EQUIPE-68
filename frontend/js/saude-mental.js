@@ -1,6 +1,14 @@
-import { saudeCheckin, historicoSaude, buscarSugestoes } from './api.js';
+// CVV: com nota 1 ou 3 o painel do CVV aparece NA HORA, calculado aqui pela nota
+// (nivelDerivacaoLocal), antes e independente da resposta do servidor; a resposta
+// só atualiza a mensagem de acolhimento e a tendência da semana. Falha ou
+// timeout nunca viram alert() quando há CVV na tela.
+import { saudeCheckin, historicoSaude, buscarSugestoes, sessaoExpirou } from './api.js';
 import { t, getIdioma } from './i18n.js';
-import { nivelPorNota, renderNivelDerivacaoPanel } from './saude-shared.js';
+import {
+    nivelPorNota, nivelDerivacaoLocal, cvvBlocoHtml, renderNivelDerivacaoPanel,
+    renderCvvImediato, atualizarAcolhimento, marcarAcolhimentoIndisponivel, mostrarErroSalvar,
+} from './saude-shared.js';
+import { escapeHtml } from './escape.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -50,6 +58,9 @@ function aplicarTextos() {
     set('confirmMsg', t('saude.modalMsg'));
     set('confirmSim', t('saude.modalSim'));
     set('confirmNao', t('saude.modalNao'));
+    // O 188 fica dentro do modal da nota 1, mesmo antes de a pessoa confirmar.
+    const cvv = document.getElementById('confirmCvv');
+    if (cvv) cvv.innerHTML = cvvBlocoHtml();
 }
 
 const formSaude = document.getElementById('formSaude');
@@ -59,6 +70,27 @@ const formSaude = document.getElementById('formSaude');
 async function enviarCheckin() {
     const submitBtn = formSaude?.querySelector('button[type="submit"]');
     if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = `<span class="loader"></span> ${t('saude.salvando')}`; }
+    const els = {
+        container: document.getElementById('aiResponseContainer'),
+        title: document.getElementById('aiResponseTitle'),
+        msg: document.getElementById('aiResponseMsg'),
+        action: document.getElementById('aiResponseAction'),
+    };
+    const leituraEl = document.getElementById('aiLeituraEmocional');
+    const nivelLocal = nivelDerivacaoLocal(notaSelecionada);
+
+    if (leituraEl) {
+        leituraEl.classList.add('hidden');
+        // Com CVV a leitura emocional fica ABAIXO do painel: nada acima dos botões se move.
+        if (nivelLocal) els.container.after(leituraEl); else els.container.before(leituraEl);
+    }
+    if (nivelLocal) {
+        // O botão volta de "spinner + Salvando…" para só o texto quando a resposta chega, e a
+        // diferença de altura empurraria o painel do CVV para cima. Trava a altura de agora.
+        if (submitBtn) submitBtn.style.minHeight = `${submitBtn.offsetHeight}px`;
+        renderCvvImediato(els, nivelLocal);
+    }
+
     try {
         const data = await saudeCheckin({
             usuarioId: usuario.id,
@@ -66,22 +98,16 @@ async function enviarCheckin() {
             contexto: document.getElementById('healthContext')?.value || '',
             idioma: getIdioma(),
         });
-        const leituraEl = document.getElementById('aiLeituraEmocional');
-        if (leituraEl) {
-            if (data.leituraEmocional) {
-                leituraEl.textContent = data.leituraEmocional;
-                leituraEl.classList.remove('hidden');
-            } else {
-                leituraEl.classList.add('hidden');
-            }
+        if (leituraEl && data.leituraEmocional) {
+            leituraEl.textContent = data.leituraEmocional;
+            leituraEl.classList.remove('hidden');
         }
-        renderNivelDerivacaoPanel({
-            container: document.getElementById('aiResponseContainer'),
-            title: document.getElementById('aiResponseTitle'),
-            msg: document.getElementById('aiResponseMsg'),
-            action: document.getElementById('aiResponseAction'),
-        }, data);
-    } catch { alert(t('saude.erroSalvar')); }
+        if (nivelLocal) atualizarAcolhimento(els, data); else renderNivelDerivacaoPanel(els, data);
+    } catch (err) {
+        if (nivelLocal) marcarAcolhimentoIndisponivel(els, err);   // o painel do CVV fica
+        else if (err?.status === 401) sessaoExpirou();
+        else mostrarErroSalvar(els);
+    }
     finally { if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = t('saude.enviarRegistro'); } }
 }
 
@@ -89,7 +115,10 @@ async function enviarCheckin() {
 // antes de gravar. A confirmação é o único filtro do clique acidental — texto
 // e IA nunca cancelam nada.
 const confirmModal = document.getElementById('confirmModal');
-function abrirConfirmacao() { confirmModal?.classList.remove('hidden'); }
+function abrirConfirmacao() {
+    confirmModal?.classList.remove('hidden');
+    document.getElementById('confirmSim')?.focus(); // foco no modal: os links do CVV ficam alcançáveis pelo teclado
+}
 function fecharConfirmacao() { confirmModal?.classList.add('hidden'); }
 
 document.getElementById('confirmSim')?.addEventListener('click', () => {
@@ -101,6 +130,7 @@ document.getElementById('confirmNao')?.addEventListener('click', () => {
     fecharConfirmacao();
 });
 confirmModal?.addEventListener('click', (e) => { if (e.target === confirmModal) fecharConfirmacao(); });
+confirmModal?.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharConfirmacao(); });
 
 formSaude?.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -133,9 +163,9 @@ async function carregarDicasLazer() {
             <div class="rounded-2xl bg-slate-900/60 border border-slate-800 p-5 hover:border-emerald-500/40 transition-all duration-200 flex flex-col gap-3">
                 <div class="flex items-center gap-3">
                     <span class="text-2xl">💡</span>
-                    <h3 class="text-sm font-bold text-white">${s.titulo}</h3>
+                    <h3 class="text-sm font-bold text-white">${escapeHtml(s.titulo)}</h3>
                 </div>
-                <p class="text-xs text-slate-400 leading-relaxed">${s.motivo || ''}</p>
+                <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(s.motivo)}</p>
             </div>
         `).join('');
     } catch {
@@ -167,7 +197,7 @@ async function carregarHistorico() {
                 <span class="text-2xl">${emoji}</span>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-semibold text-white">${rotulo}</p>
-                    <p class="text-xs text-slate-400 truncate">${r.contexto || t('saude.semContexto')}</p>
+                    <p class="text-xs text-slate-400 truncate">${r.contexto ? escapeHtml(r.contexto) : t('saude.semContexto')}</p>
                 </div>
                 <span class="text-[10px] text-slate-500 shrink-0">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('pt-BR') : '—'}</span>
             </div>`;

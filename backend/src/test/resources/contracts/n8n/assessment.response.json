@@ -1,0 +1,7 @@
+{
+  "compatibilidade": 72,
+  "nivel": "Júnior",
+  "pontosFortes": ["Base sólida em Java", "Boa comunicação"],
+  "gaps": ["Testes automatizados", "Spring Boot"],
+  "planoDesenvolvimento": ["Concluir um curso de Spring Boot do catálogo", "Praticar TDD em um projeto pequeno"]
+}

@@ -34,8 +34,11 @@ public class AssessmentService {
     }
 
     public AssessmentDto.Response processar(AssessmentDto.Request request, Long usuarioId) {
-        // ── Tentar N8N primeiro ────────────────────────────────────────────
+        // ── Tentar N8N primeiro (URL vazia = n8n desligado, vai ao fallback local) ──
         try {
+            if (!n8nClient.isConfigured()) {
+                throw new BusinessException("N8N_UNAVAILABLE", "Webhook do n8n não configurado.");
+            }
             AssessmentDto.Request enrichedRequest = new AssessmentDto.Request(
                 request.nome(),
                 request.idade(),
@@ -49,6 +52,10 @@ public class AssessmentService {
                 request.area()
             );
             AssessmentDto.Response response = n8nClient.process(enrichedRequest);
+            if (response == null || response.compatibilidade() == null) {
+                // Resposta vazia ou PARSE_FALHOU do workflow: não grava lixo, usa o fallback local.
+                throw new BusinessException("N8N_RESPOSTA_INVALIDA", "O agente de carreira não devolveu um assessment válido.");
+            }
             salvarAssessment(usuarioId, response);
 
             log.info("[AssessmentService] Assessment processado via N8N: usuarioId={}", usuarioId);

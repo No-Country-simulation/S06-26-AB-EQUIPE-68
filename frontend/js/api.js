@@ -4,27 +4,85 @@ function getToken() {
     return localStorage.getItem('bitapp_token');
 }
 
+// Erro de chamada à API com o status HTTP, para quem precisa decidir pelo 401/403.
+export class ApiError extends Error {
+    constructor(message, status, codigo) {
+        super(message);
+        this.name = 'ApiError';
+        this.status = status;
+        this.codigo = codigo;
+    }
+}
+
+// Toda chamada à API é abortada depois deste tempo (AbortController), para a tela
+// nunca ficar esperando o servidor, o n8n ou o Gemini sem resposta.
+const TIMEOUT_MS = 15000;
+
+// 401 = sem token, token vencido ou sessão revogada: limpa o que ficou guardado
+// e leva ao login. Na própria página de login não redireciona (evita loop).
+export function sessaoExpirou() {
+    ['bitapp_token', 'bitapp_refresh', 'bitapp_usuario'].forEach((k) => localStorage.removeItem(k));
+    clearAssessmentCache();
+    const pagina = window.location.pathname.split('/').pop();
+    if (pagina === '' || pagina === 'index.html') return;
+    window.location.href = 'index.html?msg=auth_required';
+}
+
+// options.redirecionarEm401 = false deixa o 401 com quem chamou (ex.: o check-in
+// de saúde, que não pode tirar o painel do CVV da tela).
+// options.bruto = true devolve o corpo como veio, para as rotas que não usam o
+// envelope {success, data} (POST /api/rota repassa o GeoJSON da ORS).
 async function apiFetch(path, options = {}) {
+    const { redirecionarEm401 = true, bruto = false, ...fetchOptions } = options;
     const headers = { 'Content-Type': 'application/json' };
     const token = getToken();
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-        ...options,
-        headers: { ...headers, ...(options.headers || {}) },
-    });
-
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    let response;
     let json;
     try {
-        json = await response.json();
-    } catch {
-        throw new Error(`API Error ${response.status}`);
+        response = await fetch(`${API_BASE_URL}${path}`, {
+            ...fetchOptions,
+            headers: { ...headers, ...(fetchOptions.headers || {}) },
+            signal: controller.signal,
+        });
+
+        if (response.status === 401 && redirecionarEm401) {
+            sessaoExpirou();
+        }
+
+        try {
+            json = await response.json();
+        } catch (e) {
+            if (e?.name === 'AbortError') throw e;
+            json = undefined; // corpo ausente ou que não é JSON
+        }
+    } catch (e) {
+        if (e?.name === 'AbortError') {
+            throw new ApiError('Tempo esgotado ao falar com o servidor.', 0, 'TIMEOUT');
+        }
+        throw e;
+    } finally {
+        clearTimeout(timer);
+    }
+
+    if (json === undefined) {
+        throw new ApiError(`API Error ${response.status}`, response.status);
+    }
+
+    if (bruto) {
+        if (!response.ok) {
+            throw new ApiError(json.mensagem || json.erro || `API Error ${response.status}`, response.status, json.erro);
+        }
+        return json;
     }
 
     if (!response.ok || !json.success) {
-        throw new Error(json.error || `API Error ${response.status}`);
+        throw new ApiError(json.error || `API Error ${response.status}`, response.status, json.codigo);
     }
 
     return json.data;
@@ -39,19 +97,18 @@ async function apiFetch(path, options = {}) {
 //     });
 // }
 
+// O 401 fica com quem chamou: o painel do CVV não pode sair da tela por causa de
+// uma sessão vencida (ver bit.js e saude-mental.js).
 export async function saudeCheckin(dados) {
     return apiFetch('/api/saude', {
         method: 'POST',
         body: JSON.stringify(dados),
+        redirecionarEm401: false,
     });
 }
 
 export async function networkStatus(usuarioId, raioMetros = 5000) {
     return apiFetch(`/api/network-status/${usuarioId}?raioMetros=${raioMetros}`);
-}
-
-export async function listarUsuarios() {
-    return apiFetch('/api/usuarios', { method: 'GET' });
 }
 
 export async function register(data) {
@@ -187,12 +244,26 @@ export async function salvarLocalizacao(usuarioId, latitude, longitude) {
     });
 }
 
+// Rota de carro entre dois pontos [lng, lat], calculada pela ORS no backend.
+// Devolve o GeoJSON bruto. O 401 fica com quem chamou: o mapa cai no Google Maps
+// em vez de mandar o usuário para o login no meio da tela.
+export async function calcularRota(origem, destino) {
+    return apiFetch('/api/rota', {
+        method: 'POST',
+        body: JSON.stringify({ origem, destino }),
+        bruto: true,
+        redirecionarEm401: false,
+    });
+}
+
 export async function listarPontosLazer() {
     return apiFetch('/api/lazer/pontos');
 }
 
-export async function buscarSugestoes(usuarioId, idioma = 'pt') {
-    return apiFetch(`/api/sugestoes/${usuarioId}?idioma=${idioma}`);
+// opcoes.redirecionarEm401 = false: o Bit pede sugestões logo depois do check-in, com o
+// painel do CVV na tela, e uma sessão vencida não pode levá-lo embora.
+export async function buscarSugestoes(usuarioId, idioma = 'pt', opcoes = {}) {
+    return apiFetch(`/api/sugestoes/${usuarioId}?idioma=${idioma}`, opcoes);
 }
 
 export async function listarMentores() {

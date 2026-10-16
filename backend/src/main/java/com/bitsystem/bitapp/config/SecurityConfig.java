@@ -1,16 +1,23 @@
 package com.bitsystem.bitapp.config;
 
+import com.bitsystem.bitapp.dto.StandardApiResponse;
 import com.bitsystem.bitapp.repository.UserSessionRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -33,10 +40,41 @@ public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
     private final UserSessionRepository sessionRepository;
+    private final ObjectMapper objectMapper;
+    private final List<String> origensPermitidas;
 
-    public SecurityConfig(JwtUtil jwtUtil, UserSessionRepository sessionRepository) {
+    public SecurityConfig(JwtUtil jwtUtil, UserSessionRepository sessionRepository, ObjectMapper objectMapper,
+            @Value("${app.cors.allowed-origins:http://localhost:8080}") String origensPermitidas) {
         this.jwtUtil = jwtUtil;
         this.sessionRepository = sessionRepository;
+        this.objectMapper = objectMapper;
+        this.origensPermitidas = parseOrigens(origensPermitidas);
+    }
+
+    /**
+     * Lê APP_CORS_ALLOWED_ORIGINS (lista separada por vírgula). Curinga não é aceito:
+     * com credenciais habilitadas, "*" deixaria qualquer site falar com a API como o usuário.
+     */
+    static List<String> parseOrigens(String valor) {
+        List<String> origens = Arrays.stream((valor == null ? "" : valor).split(","))
+                .map(String::trim)
+                .filter(o -> !o.isEmpty())
+                .toList();
+        if (origens.isEmpty()) {
+            throw new IllegalStateException("APP_CORS_ALLOWED_ORIGINS vazio: informe ao menos uma origem, "
+                    + "como http://localhost:8080.");
+        }
+        for (String origem : origens) {
+            if (origem.contains("*")) {
+                throw new IllegalStateException("APP_CORS_ALLOWED_ORIGINS não aceita curinga (\"" + origem
+                        + "\"): liste as origens exatas, separadas por vírgula.");
+            }
+            if (!origem.startsWith("http://") && !origem.startsWith("https://")) {
+                throw new IllegalStateException("Origem inválida em APP_CORS_ALLOWED_ORIGINS: \"" + origem
+                        + "\". Use o formato https://dominio ou http://host:porta.");
+            }
+        }
+        return origens;
     }
 
     @Bean
@@ -47,7 +85,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedOrigins(origensPermitidas);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -64,29 +102,33 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET, "/", "/index.html", "/*.html", "/*.css", "/css/**", "/js/**", "/img/**", "/assets/**", "/favicon.ico", "/manifest.json", "/sw.js").permitAll()
+                // Estáticos do frontend.
+                .requestMatchers(HttpMethod.GET, "/", "/index.html", "/*.html", "/*.css", "/css/**", "/js/**", "/img/**", "/assets/**", "/favicon.ico", "/manifest.json", "/sw.js", "/icon-192.png", "/icon-512.png").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // Cadastro e sessão.
                 .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
-                .requestMatchers("/h2-console/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/usuarios").permitAll()
-                .requestMatchers("/api/orientar").permitAll()
-                .requestMatchers("/api/saude/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/rota").permitAll()
-                .requestMatchers("/api/network-status/**").permitAll()
-                .requestMatchers("/api/assessment/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/vagas/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/vagas/*/match").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/cursos/**").permitAll()
+                // O match depende do perfil de quem está logado: precisa vir antes do catálogo público.
+                .requestMatchers(HttpMethod.GET, "/api/vagas/match-lote", "/api/vagas/*/match").authenticated()
+                // Catálogo público: vagas e cursos (lista, detalhe, regiões, stats), roadmaps, lazer e mentores.
+                .requestMatchers(HttpMethod.GET, "/api/vagas", "/api/vagas/regioes", "/api/vagas/stats", "/api/vagas/{id:\\d+}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/cursos", "/api/cursos/regioes", "/api/cursos/gratuitos", "/api/cursos/beneficentes", "/api/cursos/stats", "/api/cursos/{id:\\d+}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/roadmaps/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/lazer/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/mentores/**").permitAll()
-                .requestMatchers("/api/mentorias/**").permitAll()
-                .requestMatchers("/api/sugestoes/**").permitAll()
+                // Todo o resto (saúde, assessment, mentorias, sugestões, rede, orientar, rota...) exige token.
                 .anyRequest().authenticated()
             )
-            .headers(headers -> headers.frameOptions(fo -> fo.disable()))
+            // Sem entry point o Spring responde 403 a quem não mandou token; o certo é 401,
+            // que o frontend usa para levar o usuário de volta ao login.
+            .exceptionHandling(eh -> eh.authenticationEntryPoint((request, response, ex) -> {
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                response.getWriter().write(objectMapper.writeValueAsString(
+                        StandardApiResponse.error("Autenticação necessária.", "NAO_AUTENTICADO")));
+            }))
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -108,10 +150,11 @@ public class SecurityConfig {
                         if (!jwtUtil.isTokenExpired(token)) {
                             var session = sessionRepository.findByToken(token);
                             if (session.isPresent() && !session.get().getRevoked()) {
+                                var dono = new UsuarioAutenticado(
+                                        jwtUtil.getUserIdFromToken(token), jwtUtil.getEmailFromToken(token));
                                 var auth = new org.springframework.security.authentication
                                     .UsernamePasswordAuthenticationToken(
-                                        jwtUtil.getEmailFromToken(token), null,
-                                        java.util.Collections.emptyList());
+                                        dono, null, java.util.Collections.emptyList());
                                 org.springframework.security.core.context.SecurityContextHolder
                                     .getContext().setAuthentication(auth);
                             }

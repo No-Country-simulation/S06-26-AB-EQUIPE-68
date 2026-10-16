@@ -1,6 +1,5 @@
 package com.bitsystem.bitapp.integration;
 
-import com.bitsystem.bitapp.config.CorsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
