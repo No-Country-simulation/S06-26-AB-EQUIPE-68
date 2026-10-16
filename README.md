@@ -436,7 +436,7 @@ docker run -p 8080:8080 -e JWT_SECRET="$(openssl rand -base64 48)" -e GEMINI_API
 | Variável | Padrão | Função |
 | --- | --- | --- |
 | `JWT_SECRET` | *(sem padrão)* | **Obrigatória.** Segredo de assinatura dos tokens, com no mínimo 32 bytes; a aplicação não sobe sem ele. Gere com `openssl rand -base64 48` |
-| `APP_CORS_ALLOWED_ORIGINS` | `http://localhost:8080` | Origens autorizadas a chamar a API pelo navegador, separadas por vírgula, sem curinga. Em produção inclua a URL pública do app |
+| `APP_CORS_ALLOWED_ORIGINS` | `http://localhost:8080` | Origens autorizadas a chamar a API pelo navegador, separadas por vírgula, sem curinga. **Obrigatória em produção atrás de proxy TLS (Render)**: o servidor vê a requisição como `http` e o navegador manda `Origin: https://…`, que o Spring trata como outra origem; sem a URL pública do app aqui, os POST do navegador (inclusive o login) recebem 403 "Invalid CORS request" |
 | `H2_CONSOLE_ENABLED` | `false` | Liga o console do H2; mesmo ligado, `/h2-console` exige token |
 | `GEMINI_API_KEY` | *(vazio)* | Habilita a IA direta; vazio = modo contingência |
 | `GEMINI_MODEL` | `gemini-2.5-flash` | Modelo Gemini utilizado |
@@ -449,6 +449,8 @@ docker run -p 8080:8080 -e JWT_SECRET="$(openssl rand -base64 48)" -e GEMINI_API
 | `DB_URL` | H2 em memória | Aponte para PostgreSQL (produção/Render) ou MySQL para persistência |
 | `DEMO_SEED` | `false` | `true` = povoar dados de demonstração |
 | `VISENT_ENABLED` | `true` | Ingestão do dataset Vísent na inicialização |
+
+No `docker-compose.yml` o frontend sai de um nginx em `http://localhost:3000` e chama o backend em `http://localhost:8080`, que é outra origem: defina `APP_CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080` e `JWT_SECRET` no `.env.production` do serviço `backend`.
 
 Variável do **n8n** (não do backend): `BITAPP_BASE_URL`, a URL pública do app, lida pelos nós "Buscar Catálogo" e "Buscar Roadmap" do workflow. Se o n8n bloquear `$env` em expressões, defina também `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` no container do n8n.
 
@@ -522,12 +524,12 @@ Registradas para não parecerem mais do que são. Algumas já vinham do hackatho
 **Servidor e dados**
 
 * `spring.jpa.open-in-view` está no padrão do Spring (ligado): a conexão do pool fica presa durante toda a requisição, inclusive enquanto o backend espera o n8n ou o Gemini. Com várias chamadas lentas ao mesmo tempo, o pool pode esgotar.
-* O agrupamento diário dos check-ins (e a tendência semanal) usa o fuso do servidor, que está em UTC; perto da meia-noite do horário de Brasília o "dia" pode virar antes.
+* O agrupamento diário dos check-ins (e a tendência semanal) usa o fuso do servidor (no Render costuma ser UTC; não verificado); se for UTC, perto da meia-noite do horário de Brasília o "dia" vira antes.
 * Não há limite de requisições (rate limiting) em nenhuma rota, inclusive as que chamam IA.
 * Quando o banco cai, parte dos serviços grava em memória (`FallbackStorage`); esses dados somem no restart e não são sincronizados quando o banco volta.
 * Erros inesperados do servidor respondem HTTP 200 com `success: false` e código `ERRO_INTERNO` (`GlobalExceptionHandler`), o que esconde falhas de quem só olha o status.
 * A candidatura enviada por `POST /api/vagas/enviar-curriculo` usa o `usuarioId` do token, mas ainda aceita `nome` e `e-mail` do corpo da requisição.
-* O timeout de 15 s do frontend pode cortar uma avaliação de carreira que o backend ainda estaria processando (n8n e Gemini somados).
+* O timeout de 15 s do frontend pode ser menor que o tempo do backend (o n8n sozinho já pode usar 15 s, e depois entra o Gemini). Num check-in sem derivação (notas 5, 7 e 9) isso mostra erro embora o servidor termine e grave: reenviar duplica o registro e, se a pessoa estiver com a tendência da semana ativa, o painel da tendência (que só vem do backend) não aparece. Com nota 1 ou 3 o painel do CVV já está na tela e não é afetado. O mesmo corte vale para a avaliação de carreira.
 
 **Privacidade e LGPD**
 
