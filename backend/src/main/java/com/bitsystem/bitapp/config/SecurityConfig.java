@@ -9,8 +9,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -39,11 +41,40 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final UserSessionRepository sessionRepository;
     private final ObjectMapper objectMapper;
+    private final List<String> origensPermitidas;
 
-    public SecurityConfig(JwtUtil jwtUtil, UserSessionRepository sessionRepository, ObjectMapper objectMapper) {
+    public SecurityConfig(JwtUtil jwtUtil, UserSessionRepository sessionRepository, ObjectMapper objectMapper,
+            @Value("${app.cors.allowed-origins:http://localhost:8080}") String origensPermitidas) {
         this.jwtUtil = jwtUtil;
         this.sessionRepository = sessionRepository;
         this.objectMapper = objectMapper;
+        this.origensPermitidas = parseOrigens(origensPermitidas);
+    }
+
+    /**
+     * Lê APP_CORS_ALLOWED_ORIGINS (lista separada por vírgula). Curinga não é aceito:
+     * com credenciais habilitadas, "*" deixaria qualquer site falar com a API como o usuário.
+     */
+    static List<String> parseOrigens(String valor) {
+        List<String> origens = Arrays.stream((valor == null ? "" : valor).split(","))
+                .map(String::trim)
+                .filter(o -> !o.isEmpty())
+                .toList();
+        if (origens.isEmpty()) {
+            throw new IllegalStateException("APP_CORS_ALLOWED_ORIGINS vazio: informe ao menos uma origem, "
+                    + "como http://localhost:8080.");
+        }
+        for (String origem : origens) {
+            if (origem.contains("*")) {
+                throw new IllegalStateException("APP_CORS_ALLOWED_ORIGINS não aceita curinga (\"" + origem
+                        + "\"): liste as origens exatas, separadas por vírgula.");
+            }
+            if (!origem.startsWith("http://") && !origem.startsWith("https://")) {
+                throw new IllegalStateException("Origem inválida em APP_CORS_ALLOWED_ORIGINS: \"" + origem
+                        + "\". Use o formato https://dominio ou http://host:porta.");
+            }
+        }
+        return origens;
     }
 
     @Bean
@@ -54,7 +85,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedOrigins(origensPermitidas);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
