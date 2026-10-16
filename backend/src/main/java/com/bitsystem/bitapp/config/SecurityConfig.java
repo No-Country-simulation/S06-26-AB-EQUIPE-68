@@ -72,7 +72,7 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 // Estáticos do frontend.
-                .requestMatchers(HttpMethod.GET, "/", "/index.html", "/*.html", "/*.css", "/css/**", "/js/**", "/img/**", "/assets/**", "/favicon.ico", "/manifest.json", "/sw.js").permitAll()
+                .requestMatchers(HttpMethod.GET, "/", "/index.html", "/*.html", "/*.css", "/css/**", "/js/**", "/img/**", "/assets/**", "/favicon.ico", "/manifest.json", "/sw.js", "/icon-192.png", "/icon-512.png").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // Cadastro e sessão.
                 .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()

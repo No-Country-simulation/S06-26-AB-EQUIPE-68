@@ -219,6 +219,16 @@ class AutorizacaoRotasTest {
     }
 
     @Test
+    void iconesDoPwaSaoPublicos() throws Exception {
+        for (String icone : List.of("/icon-192.png", "/icon-512.png")) {
+            MvcResult res = mvc.perform(get(icone)).andReturn();
+            assertThat(res.getResponse().getStatus()).as("GET %s sem token", icone).isEqualTo(200);
+            assertThat(res.getResponse().getContentType()).isEqualTo("image/png");
+            assertThat(res.getResponse().getContentAsByteArray().length).isGreaterThan(0);
+        }
+    }
+
+    @Test
     void registroELoginContinuamPublicos() throws Exception {
         Conta nova = registrar("publico");
         String email = "login_publico_" + System.nanoTime() + "@teste.com";
