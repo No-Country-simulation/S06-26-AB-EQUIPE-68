@@ -1,6 +1,7 @@
 package com.bitsystem.bitapp.integration;
 
 import com.bitsystem.bitapp.exception.BusinessException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,12 +16,18 @@ public abstract class N8NBaseClient {
 
     private static final Logger log = LoggerFactory.getLogger(N8NBaseClient.class);
 
+    // Só para medir o tamanho do payload no log: o conteúdo nunca é registrado.
+    private static final ObjectMapper MEDIDOR = new ObjectMapper();
+
     protected final RestTemplate restTemplate;
+    /** Rótulo do tipo de chamada ("mental-health", "assessment"), usado só no log. */
+    protected final String tipo;
     protected final String webhookUrl;
     protected final int timeout;
     protected final int maxRetries;
 
-    public N8NBaseClient(String webhookUrl, int timeout, int maxRetries) {
+    public N8NBaseClient(String tipo, String webhookUrl, int timeout, int maxRetries) {
+        this.tipo = tipo;
         this.webhookUrl = webhookUrl;
         this.timeout = timeout;
         this.maxRetries = maxRetries;
@@ -41,10 +48,12 @@ public abstract class N8NBaseClient {
 
                 HttpEntity<T> entity = new HttpEntity<>(request, headers);
 
-                log.info("Calling N8N webhook [{}] attempt {}/{} with payload: {}", webhookUrl, attempt, maxRetries, request);
+                // Só metadados: o payload carrega o texto livre do check-in e não vai para o log.
+                log.info("Chamando webhook n8n [tipo={}] tentativa {}/{} (payload de {} bytes)",
+                        tipo, attempt, maxRetries, tamanhoEmBytes(request));
                 ResponseEntity<R> response = restTemplate.postForEntity(
                         webhookUrl, entity, responseType);
-                log.debug("N8N response status: {}, body: {}", response.getStatusCode(), response.getBody());
+                log.debug("Resposta do n8n [tipo={}]: status {}", tipo, response.getStatusCode());
                 return response.getBody();
 
             } catch (Exception ex) {
@@ -63,5 +72,13 @@ public abstract class N8NBaseClient {
 
         throw new BusinessException("N8N_UNAVAILABLE",
                 "Serviço de orquestração temporariamente indisponível. Tente novamente mais tarde.");
+    }
+
+    private static int tamanhoEmBytes(Object payload) {
+        try {
+            return MEDIDOR.writeValueAsBytes(payload).length;
+        } catch (Exception ex) {
+            return -1;
+        }
     }
 }
