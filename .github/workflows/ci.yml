@@ -1,0 +1,28 @@
+name: CI
+
+# Roda os testes do backend em todo push e em todo pull request.
+# O Dockerfile continua com -DskipTests: esta etapa é a barreira.
+on:
+  push:
+  pull_request:
+
+jobs:
+  testes:
+    name: mvn test (Java 21)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Código
+        uses: actions/checkout@v4
+
+      - name: Java 21 (Temurin) com cache do Maven
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Testes
+        run: mvn -B test
