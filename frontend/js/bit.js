@@ -169,9 +169,20 @@ function pedirConsentimento() {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) { modal.remove(); resolve(false); }
         });
+        modal.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                // Sem isto o Esc subiria ao document e, com o modal já removido, fecharia o Bit também.
+                e.stopPropagation();
+                modal.remove();
+                resolve(false);
+            }
+        });
         modal.querySelector('[data-acao="sim"]').addEventListener('click', () => { modal.remove(); resolve(true); });
         modal.querySelector('[data-acao="nao"]').addEventListener('click', () => { modal.remove(); resolve(false); });
         document.body.appendChild(modal);
+        // O foco entra no modal (e não fica no "Enviar" por baixo): os links do CVV ficam
+        // alcançáveis pelo teclado e o Esc passa a cancelar.
+        modal.querySelector('[data-acao="sim"]').focus();
     });
 }
 
@@ -260,8 +271,14 @@ function perguntarCheckinDiario(bubblesEl) {
         // Nota 1 (derivação REFORÇADA): consentimento ANTES de gravar. O CVV já aparece
         // dentro do modal, então o 188 está na tela mesmo se a pessoa desistir.
         if (notaEscolhida === 1) {
+            // Enquanto o modal está aberto, um segundo clique ou Enter não pode empilhar outro modal
+            // nem disparar dois envios.
+            botaoEnviar.disabled = true;
             const consentiu = await pedirConsentimento();
-            if (!consentiu) return; // "cliquei sem querer": não grava, não avança
+            if (!consentiu) { // "cliquei sem querer": não grava, não avança
+                botaoEnviar.disabled = false;
+                return;
+            }
         }
 
         const dados = { usuarioId: usuario.id, nota: notaEscolhida, contexto, idioma: getIdioma() };
@@ -364,8 +381,16 @@ function renderRespostaBit(bubblesEl, data) {
         addBitBubble(bubblesEl, `<span class="italic text-slate-300">${escapeHtml(data.leituraEmocional)}</span>`);
     }
 
-    const { els } = criarPainelResposta(bubblesEl);
+    const { row, els } = criarPainelResposta(bubblesEl);
     renderNivelDerivacaoPanel(els, data);
+
+    // A tendência da semana (ou um nível vindo do servidor) também leva o CVV: se o Bit já foi
+    // fechado quando a resposta chega, o painel vai direto para o cartão fixo, e se for fechado
+    // depois, dispensar() o preserva.
+    if (data.nivelDerivacao || data.tendenciaSemana) {
+        painelCvvRow = row;
+        if (!bubblesEl.isConnected) preservarPainelCvv(row);
+    }
 
     renderSugestoes(bubblesEl);
     linkAgoraNao(bubblesEl);

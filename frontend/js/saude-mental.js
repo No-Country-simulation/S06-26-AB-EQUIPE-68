@@ -115,7 +115,10 @@ async function enviarCheckin() {
 // antes de gravar. A confirmação é o único filtro do clique acidental — texto
 // e IA nunca cancelam nada.
 const confirmModal = document.getElementById('confirmModal');
-function abrirConfirmacao() { confirmModal?.classList.remove('hidden'); }
+function abrirConfirmacao() {
+    confirmModal?.classList.remove('hidden');
+    document.getElementById('confirmSim')?.focus(); // foco no modal: os links do CVV ficam alcançáveis pelo teclado
+}
 function fecharConfirmacao() { confirmModal?.classList.add('hidden'); }
 
 document.getElementById('confirmSim')?.addEventListener('click', () => {
@@ -127,6 +130,7 @@ document.getElementById('confirmNao')?.addEventListener('click', () => {
     fecharConfirmacao();
 });
 confirmModal?.addEventListener('click', (e) => { if (e.target === confirmModal) fecharConfirmacao(); });
+confirmModal?.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharConfirmacao(); });
 
 formSaude?.addEventListener('submit', async (event) => {
     event.preventDefault();
