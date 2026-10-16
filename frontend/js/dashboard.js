@@ -1,5 +1,6 @@
 import { assessment, logout, listarVagas, listarCursos, networkStatus, salvarLocalizacao, getAssessmentCache, setAssessmentCache } from './api.js';
 import { t, getIdioma } from './i18n.js';
+import { escapeHtml } from './escape.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -72,7 +73,7 @@ async function carregarAssessment() {
         if (gapList) {
             gapList.innerHTML = (data.gaps || []).map(item =>
                 `<li class="rounded-xl bg-slate-950 px-4 py-3 border border-slate-800/60 flex items-center gap-2">
-                    <span class="text-rose-500">❌</span> ${item}</li>`
+                    <span class="text-rose-500">❌</span> ${escapeHtml(item)}</li>`
             ).join('');
         }
 
@@ -80,7 +81,7 @@ async function carregarAssessment() {
         if (trilha) {
             trilha.innerHTML = (data.planoDesenvolvimento || []).map(item =>
                 `<article class="rounded-2xl bg-slate-950/80 p-5 border border-slate-800 hover:border-slate-700 transition">
-                    <h3 class="text-base font-bold text-white">${item}</h3>
+                    <h3 class="text-base font-bold text-white">${escapeHtml(item)}</h3>
                     <span class="inline-block mt-2 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 px-2.5 py-1 text-xs font-bold">${t('dashboard.recomendado')}</span>
                 </article>`
             ).join('');

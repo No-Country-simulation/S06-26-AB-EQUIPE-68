@@ -1,5 +1,6 @@
 import { listarVagas, buscarVaga, listarRegioesVagas, matchLoteVagas, matchVaga } from './api.js';
 import { t, getIdioma } from './i18n.js';
+import { escapeHtml } from './escape.js';
 
 const grid = document.getElementById('vagasGrid');
 const statusEl = document.getElementById('vagasStatus');
@@ -173,9 +174,9 @@ function renderMatchDetalhe(data) {
         return `<p class="text-sm text-slate-400">${t('vagas.semDadosDetalhe')}</p>`;
     }
     const atendidasHtml = (data.skillsAtendidas || []).map(s =>
-        `<span class="text-xs text-emerald-400 block">✓ ${s}</span>`).join('');
+        `<span class="text-xs text-emerald-400 block">✓ ${escapeHtml(s)}</span>`).join('');
     const faltantesHtml = (data.skillsFaltantes || []).map(s =>
-        `<span class="text-xs text-slate-400 block">○ ${s}</span>`).join('');
+        `<span class="text-xs text-slate-400 block">○ ${escapeHtml(s)}</span>`).join('');
     return `
         <p class="text-2xl font-bold text-cyan-400 mb-1">${data.matchPercentual}%</p>
         <p class="text-sm text-slate-300 mb-3">${t('vagas.voceAtende', { pct: data.matchPercentual })}</p>
@@ -189,7 +190,7 @@ function renderMatchDetalhe(data) {
                 ${faltantesHtml || '<span class="text-xs text-slate-500">—</span>'}
             </div>
         </div>
-        ${data.comoResolver ? `<p class="text-xs text-slate-400 mt-2"><strong class="text-slate-300">${t('vagas.comoResolverLabel')}</strong> ${data.comoResolver}</p>` : ''}
+        ${data.comoResolver ? `<p class="text-xs text-slate-400 mt-2"><strong class="text-slate-300">${t('vagas.comoResolverLabel')}</strong> ${escapeHtml(data.comoResolver)}</p>` : ''}
     `;
 }
 

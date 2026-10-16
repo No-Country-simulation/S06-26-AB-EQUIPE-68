@@ -1,6 +1,7 @@
 import { saudeCheckin, historicoSaude, buscarSugestoes } from './api.js';
 import { t, getIdioma } from './i18n.js';
 import { nivelPorNota, renderNivelDerivacaoPanel } from './saude-shared.js';
+import { escapeHtml } from './escape.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -133,9 +134,9 @@ async function carregarDicasLazer() {
             <div class="rounded-2xl bg-slate-900/60 border border-slate-800 p-5 hover:border-emerald-500/40 transition-all duration-200 flex flex-col gap-3">
                 <div class="flex items-center gap-3">
                     <span class="text-2xl">💡</span>
-                    <h3 class="text-sm font-bold text-white">${s.titulo}</h3>
+                    <h3 class="text-sm font-bold text-white">${escapeHtml(s.titulo)}</h3>
                 </div>
-                <p class="text-xs text-slate-400 leading-relaxed">${s.motivo || ''}</p>
+                <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(s.motivo)}</p>
             </div>
         `).join('');
     } catch {
@@ -167,7 +168,7 @@ async function carregarHistorico() {
                 <span class="text-2xl">${emoji}</span>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-semibold text-white">${rotulo}</p>
-                    <p class="text-xs text-slate-400 truncate">${r.contexto || t('saude.semContexto')}</p>
+                    <p class="text-xs text-slate-400 truncate">${r.contexto ? escapeHtml(r.contexto) : t('saude.semContexto')}</p>
                 </div>
                 <span class="text-[10px] text-slate-500 shrink-0">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('pt-BR') : '—'}</span>
             </div>`;

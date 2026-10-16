@@ -11,6 +11,7 @@
 import { saudeCheckin, buscarSugestoes } from './api.js';
 import { t, getIdioma } from './i18n.js';
 import { NIVEL_CHECKIN, nivelPorNota, renderNivelDerivacaoPanel } from './saude-shared.js';
+import { escapeHtml } from './escape.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -23,9 +24,11 @@ const usuario = getUsuarioLogado();
 
 function saudacaoPorHora() {
     const hora = new Date().getHours();
-    if (hora < 12) return t('bit.saudacaoManha', { nome: usuario.nome });
-    if (hora < 18) return t('bit.saudacaoTarde', { nome: usuario.nome });
-    return t('bit.saudacaoNoite', { nome: usuario.nome });
+    // O nome é digitado no cadastro e a saudação entra via innerHTML: escapa só o nome.
+    const nome = escapeHtml(usuario.nome);
+    if (hora < 12) return t('bit.saudacaoManha', { nome });
+    if (hora < 18) return t('bit.saudacaoTarde', { nome });
+    return t('bit.saudacaoNoite', { nome });
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -100,7 +103,7 @@ function addBitBubble(bubblesEl, innerHtml) {
 function addUserBubble(bubblesEl, texto) {
     const bubble = document.createElement('div');
     bubble.className = 'flex justify-end';
-    bubble.innerHTML = `<div class="rounded-2xl rounded-tr-sm bg-cyan-500 text-slate-950 font-semibold px-4 py-2 text-sm">${texto}</div>`;
+    bubble.innerHTML = `<div class="rounded-2xl rounded-tr-sm bg-cyan-500 text-slate-950 font-semibold px-4 py-2 text-sm">${escapeHtml(texto)}</div>`;
     bubblesEl.appendChild(bubble);
     return bubble;
 }
@@ -156,8 +159,8 @@ async function renderSugestoes(bubblesEl) {
         grid.className = 'grid gap-2 sm:grid-cols-3 pl-9';
         grid.innerHTML = sugestoes.map(s => `
             <div class="rounded-xl bg-slate-900/60 border border-slate-800 p-3">
-                <p class="text-xs font-bold text-white">${s.titulo}</p>
-                <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">${s.motivo || ''}</p>
+                <p class="text-xs font-bold text-white">${escapeHtml(s.titulo)}</p>
+                <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">${escapeHtml(s.motivo)}</p>
             </div>
         `).join('');
         bubblesEl.appendChild(grid);
@@ -254,7 +257,7 @@ function perguntarCheckinDiario(bubblesEl) {
 
 function renderRespostaBit(bubblesEl, data) {
     if (data.leituraEmocional) {
-        addBitBubble(bubblesEl, `<span class="italic text-slate-300">${data.leituraEmocional}</span>`);
+        addBitBubble(bubblesEl, `<span class="italic text-slate-300">${escapeHtml(data.leituraEmocional)}</span>`);
     }
 
     // Não reaproveita addBitBubble aqui: renderNivelDerivacaoPanel substitui o

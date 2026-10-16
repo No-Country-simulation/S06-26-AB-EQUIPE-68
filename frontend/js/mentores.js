@@ -1,5 +1,6 @@
 import { listarMentores, solicitarMentoria, historicoMentorias } from './api.js';
 import { t, getIdioma } from './i18n.js';
+import { escapeHtml } from './escape.js';
 
 const SESSION_KEY = 'bitapp_usuario';
 
@@ -160,8 +161,8 @@ function historicoItemHtml(item) {
     return `
         <li class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-                <p class="text-sm font-bold text-white">${t('mentores.com', { mentor: item.mentorNome })}</p>
-                <p class="text-xs text-slate-500 mt-0.5">${t('mentores.solicitadoEm', { data: formatarData(item.createdAt) })} · ${item.areaSolicitada}</p>
+                <p class="text-sm font-bold text-white">${t('mentores.com', { mentor: escapeHtml(item.mentorNome) })}</p>
+                <p class="text-xs text-slate-500 mt-0.5">${t('mentores.solicitadoEm', { data: formatarData(item.createdAt) })} · ${escapeHtml(item.areaSolicitada)}</p>
             </div>
             <span class="text-xs font-semibold px-2.5 py-1 rounded-full border shrink-0 ${statusBadgeClasse(item.status)}">${statusLabel(item.status)}</span>
         </li>`;

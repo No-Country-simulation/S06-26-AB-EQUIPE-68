@@ -3,6 +3,7 @@
 // do DICT (mesma regra de derivação do backend, decidida só pela nota do
 // check-in — CVV v2).
 import { t } from './i18n.js';
+import { escapeHtml } from './escape.js';
 
 // Escala única de check-in (CVV v2): nota fixa por nível, na ordem exibida
 // nos botões (do mais positivo ao mais negativo). Espelha exatamente
@@ -54,7 +55,7 @@ export function renderNivelDerivacaoPanel({ container, title, msg, action }, dat
             <p class="text-sm text-amber-100">${proximaVariacaoCvv()}</p>
             <p class="text-sm font-bold text-white">${t('saude.reforcadoCvv')}</p>
             ${botoesCvv('amber')}
-            <p class="text-xs text-slate-400 pt-1">${data.acaoSugerida || ''}</p></div>`;
+            <p class="text-xs text-slate-400 pt-1">${escapeHtml(data.acaoSugerida)}</p></div>`;
     } else if (data.nivelDerivacao === 'PREVENTIVO') {
         // Nota 3: escuta suave, apresentada como recurso — não como alerta.
         container.className = 'p-6 rounded-3xl border border-cyan-800/50 bg-cyan-950/20 mt-6 animate-fade-in';
@@ -64,7 +65,7 @@ export function renderNivelDerivacaoPanel({ container, title, msg, action }, dat
             <p class="text-sm text-cyan-100">${proximaVariacaoCvv()}</p>
             <p class="text-sm text-slate-200">${t('saude.preventivoCvv')}</p>
             ${botoesCvv('cyan')}
-            <p class="text-xs text-slate-400 pt-1">${data.acaoSugerida || ''}</p></div>`;
+            <p class="text-xs text-slate-400 pt-1">${escapeHtml(data.acaoSugerida)}</p></div>`;
     } else if (data.tendenciaSemana) {
         // Sem gatilho hoje, mas os últimos dias vêm pesados (CVV v2): mesma
         // estrutura dos gatilhos pontuais, cor distinta (índigo). Mensagem é
@@ -76,13 +77,13 @@ export function renderNivelDerivacaoPanel({ container, title, msg, action }, dat
         action.innerHTML = `<div class="p-4 bg-slate-950 border border-indigo-800/40 rounded-2xl space-y-2">
             <p class="text-sm text-slate-200">${t('saude.tendenciaMsg')}</p>
             ${botoesCvv('indigo')}
-            <p class="text-xs text-slate-400 pt-1">${data.acaoSugerida || ''}</p></div>`;
+            <p class="text-xs text-slate-400 pt-1">${escapeHtml(data.acaoSugerida)}</p></div>`;
     } else {
         // Nota 5/7/9 ou ausente, sem tendência: acolhimento normal.
         container.className = 'p-6 rounded-3xl border border-slate-800 bg-slate-900/60 mt-6 animate-fade-in';
         title.className = 'text-sm font-bold uppercase tracking-wider mb-2 text-cyan-400';
         title.innerText = t('saude.normalTitulo');
         action.innerHTML = `<p class="text-xs text-slate-400 font-semibold mb-1">${t('saude.acaoLabel')}</p>
-            <p class="text-sm text-slate-200">${data.acaoSugerida || ''}</p>`;
+            <p class="text-sm text-slate-200">${escapeHtml(data.acaoSugerida)}</p>`;
     }
 }
