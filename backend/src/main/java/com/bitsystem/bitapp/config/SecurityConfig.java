@@ -1,16 +1,21 @@
 package com.bitsystem.bitapp.config;
 
+import com.bitsystem.bitapp.dto.StandardApiResponse;
 import com.bitsystem.bitapp.repository.UserSessionRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -33,10 +38,12 @@ public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
     private final UserSessionRepository sessionRepository;
+    private final ObjectMapper objectMapper;
 
-    public SecurityConfig(JwtUtil jwtUtil, UserSessionRepository sessionRepository) {
+    public SecurityConfig(JwtUtil jwtUtil, UserSessionRepository sessionRepository, ObjectMapper objectMapper) {
         this.jwtUtil = jwtUtil;
         this.sessionRepository = sessionRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Bean
@@ -86,6 +93,15 @@ public class SecurityConfig {
                 .requestMatchers("/api/sugestoes/**").permitAll()
                 .anyRequest().authenticated()
             )
+            // Sem entry point o Spring responde 403 a quem não mandou token; o certo é 401,
+            // que o frontend usa para levar o usuário de volta ao login.
+            .exceptionHandling(eh -> eh.authenticationEntryPoint((request, response, ex) -> {
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                response.getWriter().write(objectMapper.writeValueAsString(
+                        StandardApiResponse.error("Autenticação necessária.", "NAO_AUTENTICADO")));
+            }))
             .headers(headers -> headers.frameOptions(fo -> fo.disable()))
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
