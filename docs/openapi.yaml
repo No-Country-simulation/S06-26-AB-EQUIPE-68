@@ -167,7 +167,10 @@ paths:
       parameters:
         - name: usuarioId
           in: query
-          required: true
+          required: false
+          description: >-
+            Opcional. O usuário é sempre o dono do token; se informado, precisa ser
+            o dele, senão a resposta é 403 ACESSO_NEGADO.
           schema:
             type: integer
             format: int64
@@ -195,10 +198,12 @@ paths:
         - name: usuarioId
           in: query
           required: false
+          description: >-
+            Opcional. O usuário é sempre o dono do token; se informado, precisa ser
+            o dele, senão a resposta é 403 ACESSO_NEGADO.
           schema:
             type: integer
             format: int64
-            default: 0
       requestBody:
         required: true
         content:
@@ -225,7 +230,10 @@ paths:
       parameters:
         - name: usuarioId
           in: query
-          required: true
+          required: false
+          description: >-
+            Opcional. O usuário é sempre o dono do token; se informado, precisa ser
+            o dele, senão a resposta é 403 ACESSO_NEGADO.
           schema:
             type: integer
             format: int64
@@ -493,10 +501,12 @@ paths:
         - name: usuarioId
           in: query
           required: false
+          description: >-
+            Opcional. O usuário é sempre o dono do token; se informado, precisa ser
+            o dele, senão a resposta é 403 ACESSO_NEGADO.
           schema:
             type: integer
             format: int64
-            default: 0
       requestBody:
         required: true
         content:
@@ -525,7 +535,10 @@ paths:
       parameters:
         - name: usuarioId
           in: query
-          required: true
+          required: false
+          description: >-
+            Opcional. O usuário é sempre o dono do token; se informado, precisa ser
+            o dele, senão a resposta é 403 ACESSO_NEGADO.
           schema:
             type: integer
             format: int64
@@ -654,7 +667,10 @@ paths:
           schema: { type: integer, format: int64 }
         - name: usuarioId
           in: query
-          required: true
+          required: false
+          description: >-
+            Opcional. O usuário é sempre o dono do token; se informado, precisa ser
+            o dele, senão a resposta é 403 ACESSO_NEGADO.
           schema: { type: integer, format: int64 }
         - name: idioma
           in: query
@@ -706,7 +722,10 @@ paths:
       parameters:
         - name: usuarioId
           in: query
-          required: true
+          required: false
+          description: >-
+            Opcional. O usuário é sempre o dono do token; se informado, precisa ser
+            o dele, senão a resposta é 403 ACESSO_NEGADO.
           schema: { type: integer, format: int64 }
       responses:
         '200':
@@ -997,6 +1016,7 @@ paths:
     post:
       tags: [Autenticação]
       summary: Revoga a sessão (token) atual
+      security: []
       responses:
         '200':
           description: Logout efetuado (sempre 200, mesmo com header ausente/malformado)
