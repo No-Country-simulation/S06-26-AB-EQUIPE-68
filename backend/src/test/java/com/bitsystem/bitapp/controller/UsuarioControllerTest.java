@@ -108,7 +108,10 @@ class UsuarioControllerTest {
                 "/api/usuarios", HttpMethod.GET,
                 new HttpEntity<>(headersComToken(usuario.token())), String.class);
 
-        // Nenhum controller atende GET /api/usuarios: o corpo nunca traz e-mail de ninguém.
-        assertFalse(String.valueOf(response.getBody()).contains("@teste.com"));
+        // Nenhum controller atende GET /api/usuarios: nunca devolve success:true nem e-mail de ninguém.
+        // (Hoje o handler genérico responde 200 com ERRO_INTERNO; o teste não depende disso.)
+        String corpo = String.valueOf(response.getBody());
+        assertFalse(corpo.contains("\"success\":true"));
+        assertFalse(corpo.contains("@"));
     }
 }

@@ -31,7 +31,9 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  * devolve 403 e o dono devolve 200. O usuário vem sempre do token; o usuarioId
  * enviado pelo cliente só é aceito quando é o do dono.
  */
-@SpringBootTest
+// As propriedades abaixo têm precedência sobre variáveis de ambiente: sem chave da ORS não há
+// chamada externa e, sem URL do n8n, o check-in e o assessment vão direto ao fallback local.
+@SpringBootTest(properties = {"ors.api.key=NAO_CONFIGURADA", "n8n.assessment.url=", "n8n.mental-health.url="})
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AutorizacaoRotasTest {
