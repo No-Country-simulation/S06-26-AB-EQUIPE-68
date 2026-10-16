@@ -28,7 +28,7 @@ A tag `fim-hackathon-2026-07-25` marca o estado entregue ao fim do hackathon (De
 * `JWT_SECRET` não tem mais valor padrão (a aplicação não sobe sem ele); o CORS ficou numa só configuração, com origens vindas de `APP_CORS_ALLOWED_ORIGINS` e sem curinga; o console H2 vem desligado e fora das rotas públicas; o `X-Frame-Options` voltou.
 * Texto digitado pelo usuário e texto devolvido pelos agentes (n8n/Gemini) passam por escape antes de ir para HTML; o log do n8n não registra mais o relato do check-in; o service worker deixou de guardar respostas de `/api/`.
 
-**CVV** — o painel só aparecia depois da resposta do backend, que espera o n8n e o Gemini: a decisão sempre foi determinística, mas a entrega dependia do n8n e do Gemini.
+**CVV** — o painel só aparecia depois da resposta do backend, que espera o n8n e o Gemini: a decisão sempre foi determinística, mas a entrega dependia dessa espera.
 
 * Com nota 1 ou 3 o painel do CVV aparece na hora, calculado no navegador com os mesmos limites do backend, antes e independente da resposta. A resposta só atualiza a mensagem de acolhimento e a tendência da semana.
 * Falha, timeout ou sessão vencida não tiram o painel da tela; o modal da nota 1 já traz o 188; fechar o Bit não descarta o painel.
@@ -275,7 +275,7 @@ GET /api/assessment/historico
 
 ## 🧑‍🏫 Sistema de Mentorias
 
-Usuários podem solicitar mentoria com um dos **4 mentores voluntários da equipe**. Cada solicitação segue um fluxo de status simples — `aguardando` → `confirmada` → `concluída` — e, cada mentor atende numa sala fixa do **Google Meet**, exibida ao solicitar a mentoria.
+Usuários podem solicitar mentoria com um dos **4 mentores voluntários da equipe**. Cada solicitação segue um fluxo de status simples — `aguardando` → `confirmada` → `concluída` — e cada mentor atende numa sala fixa do **Google Meet**, exibida ao solicitar a mentoria.
 
 ```http
 POST  /api/mentorias
@@ -459,7 +459,7 @@ cd backend
 mvn test
 ```
 
-Suíte com **102 testes automatizados** cobrindo, entre outros, as regras determinísticas de derivação ao CVV, o match de vagas e os serviços de domínio.
+Suíte com **211 execuções de teste** (contando os casos parametrizados), em H2, cobrindo, entre outros, as regras determinísticas de derivação ao CVV, o match de vagas, os serviços de domínio, a matriz de autorização por rota (sem token 401, token de outro usuário 403, dono 200), o contrato com o n8n e o JSON do workflow versionado. Os testes não rodam no build Docker (`-DskipTests`) e usam H2, não PostgreSQL.
 
 ---
 
