@@ -1,6 +1,13 @@
-import { saudeCheckin, historicoSaude, buscarSugestoes } from './api.js';
+// CVV: com nota 1 ou 3 o painel do CVV aparece NA HORA, calculado aqui pela nota
+// (nivelDerivacaoLocal), antes e independente da resposta do servidor; a resposta
+// só atualiza a mensagem de acolhimento e a tendência da semana. Falha ou
+// timeout nunca viram alert() quando há CVV na tela.
+import { saudeCheckin, historicoSaude, buscarSugestoes, sessaoExpirou } from './api.js';
 import { t, getIdioma } from './i18n.js';
-import { nivelPorNota, renderNivelDerivacaoPanel } from './saude-shared.js';
+import {
+    nivelPorNota, nivelDerivacaoLocal, cvvBlocoHtml, renderNivelDerivacaoPanel,
+    renderCvvImediato, atualizarAcolhimento, marcarAcolhimentoIndisponivel, mostrarErroSalvar,
+} from './saude-shared.js';
 import { escapeHtml } from './escape.js';
 
 const SESSION_KEY = 'bitapp_usuario';
@@ -51,6 +58,9 @@ function aplicarTextos() {
     set('confirmMsg', t('saude.modalMsg'));
     set('confirmSim', t('saude.modalSim'));
     set('confirmNao', t('saude.modalNao'));
+    // O 188 fica dentro do modal da nota 1, mesmo antes de a pessoa confirmar.
+    const cvv = document.getElementById('confirmCvv');
+    if (cvv) cvv.innerHTML = cvvBlocoHtml();
 }
 
 const formSaude = document.getElementById('formSaude');
@@ -60,6 +70,27 @@ const formSaude = document.getElementById('formSaude');
 async function enviarCheckin() {
     const submitBtn = formSaude?.querySelector('button[type="submit"]');
     if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = `<span class="loader"></span> ${t('saude.salvando')}`; }
+    const els = {
+        container: document.getElementById('aiResponseContainer'),
+        title: document.getElementById('aiResponseTitle'),
+        msg: document.getElementById('aiResponseMsg'),
+        action: document.getElementById('aiResponseAction'),
+    };
+    const leituraEl = document.getElementById('aiLeituraEmocional');
+    const nivelLocal = nivelDerivacaoLocal(notaSelecionada);
+
+    if (leituraEl) {
+        leituraEl.classList.add('hidden');
+        // Com CVV a leitura emocional fica ABAIXO do painel: nada acima dos botões se move.
+        if (nivelLocal) els.container.after(leituraEl); else els.container.before(leituraEl);
+    }
+    if (nivelLocal) {
+        // O botão volta de "spinner + Salvando…" para só o texto quando a resposta chega, e a
+        // diferença de altura empurraria o painel do CVV para cima. Trava a altura de agora.
+        if (submitBtn) submitBtn.style.minHeight = `${submitBtn.offsetHeight}px`;
+        renderCvvImediato(els, nivelLocal);
+    }
+
     try {
         const data = await saudeCheckin({
             usuarioId: usuario.id,
@@ -67,22 +98,16 @@ async function enviarCheckin() {
             contexto: document.getElementById('healthContext')?.value || '',
             idioma: getIdioma(),
         });
-        const leituraEl = document.getElementById('aiLeituraEmocional');
-        if (leituraEl) {
-            if (data.leituraEmocional) {
-                leituraEl.textContent = data.leituraEmocional;
-                leituraEl.classList.remove('hidden');
-            } else {
-                leituraEl.classList.add('hidden');
-            }
+        if (leituraEl && data.leituraEmocional) {
+            leituraEl.textContent = data.leituraEmocional;
+            leituraEl.classList.remove('hidden');
         }
-        renderNivelDerivacaoPanel({
-            container: document.getElementById('aiResponseContainer'),
-            title: document.getElementById('aiResponseTitle'),
-            msg: document.getElementById('aiResponseMsg'),
-            action: document.getElementById('aiResponseAction'),
-        }, data);
-    } catch { alert(t('saude.erroSalvar')); }
+        if (nivelLocal) atualizarAcolhimento(els, data); else renderNivelDerivacaoPanel(els, data);
+    } catch (err) {
+        if (nivelLocal) marcarAcolhimentoIndisponivel(els, err);   // o painel do CVV fica
+        else if (err?.status === 401) sessaoExpirou();
+        else mostrarErroSalvar(els);
+    }
     finally { if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = t('saude.enviarRegistro'); } }
 }
 

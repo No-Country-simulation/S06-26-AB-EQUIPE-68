@@ -20,7 +20,7 @@ const TIMEOUT_MS = 15000;
 
 // 401 = sem token, token vencido ou sessão revogada: limpa o que ficou guardado
 // e leva ao login. Na própria página de login não redireciona (evita loop).
-function sessaoExpirou() {
+export function sessaoExpirou() {
     ['bitapp_token', 'bitapp_refresh', 'bitapp_usuario'].forEach((k) => localStorage.removeItem(k));
     clearAssessmentCache();
     const pagina = window.location.pathname.split('/').pop();
@@ -97,10 +97,13 @@ async function apiFetch(path, options = {}) {
 //     });
 // }
 
+// O 401 fica com quem chamou: o painel do CVV não pode sair da tela por causa de
+// uma sessão vencida (ver bit.js e saude-mental.js).
 export async function saudeCheckin(dados) {
     return apiFetch('/api/saude', {
         method: 'POST',
         body: JSON.stringify(dados),
+        redirecionarEm401: false,
     });
 }
 
@@ -257,8 +260,10 @@ export async function listarPontosLazer() {
     return apiFetch('/api/lazer/pontos');
 }
 
-export async function buscarSugestoes(usuarioId, idioma = 'pt') {
-    return apiFetch(`/api/sugestoes/${usuarioId}?idioma=${idioma}`);
+// opcoes.redirecionarEm401 = false: o Bit pede sugestões logo depois do check-in, com o
+// painel do CVV na tela, e uma sessão vencida não pode levá-lo embora.
+export async function buscarSugestoes(usuarioId, idioma = 'pt', opcoes = {}) {
+    return apiFetch(`/api/sugestoes/${usuarioId}?idioma=${idioma}`, opcoes);
 }
 
 export async function listarMentores() {
