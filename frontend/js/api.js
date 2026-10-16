@@ -4,7 +4,30 @@ function getToken() {
     return localStorage.getItem('bitapp_token');
 }
 
+// Erro de chamada à API com o status HTTP, para quem precisa decidir pelo 401/403.
+export class ApiError extends Error {
+    constructor(message, status, codigo) {
+        super(message);
+        this.name = 'ApiError';
+        this.status = status;
+        this.codigo = codigo;
+    }
+}
+
+// 401 = sem token, token vencido ou sessão revogada: limpa o que ficou guardado
+// e leva ao login. Na própria página de login não redireciona (evita loop).
+function sessaoExpirou() {
+    ['bitapp_token', 'bitapp_refresh', 'bitapp_usuario'].forEach((k) => localStorage.removeItem(k));
+    clearAssessmentCache();
+    const pagina = window.location.pathname.split('/').pop();
+    if (pagina === '' || pagina === 'index.html') return;
+    window.location.href = 'index.html?msg=auth_required';
+}
+
+// options.redirecionarEm401 = false deixa o 401 com quem chamou (ex.: o check-in
+// de saúde, que não pode tirar o painel do CVV da tela).
 async function apiFetch(path, options = {}) {
+    const { redirecionarEm401 = true, ...fetchOptions } = options;
     const headers = { 'Content-Type': 'application/json' };
     const token = getToken();
     if (token) {
@@ -12,19 +35,23 @@ async function apiFetch(path, options = {}) {
     }
 
     const response = await fetch(`${API_BASE_URL}${path}`, {
-        ...options,
-        headers: { ...headers, ...(options.headers || {}) },
+        ...fetchOptions,
+        headers: { ...headers, ...(fetchOptions.headers || {}) },
     });
+
+    if (response.status === 401 && redirecionarEm401) {
+        sessaoExpirou();
+    }
 
     let json;
     try {
         json = await response.json();
     } catch {
-        throw new Error(`API Error ${response.status}`);
+        throw new ApiError(`API Error ${response.status}`, response.status);
     }
 
     if (!response.ok || !json.success) {
-        throw new Error(json.error || `API Error ${response.status}`);
+        throw new ApiError(json.error || `API Error ${response.status}`, response.status, json.codigo);
     }
 
     return json.data;
