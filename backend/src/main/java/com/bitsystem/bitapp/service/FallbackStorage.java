@@ -102,10 +102,6 @@ public class FallbackStorage {
         return emailToId.containsKey(email.toLowerCase());
     }
 
-    public List<UserRecord> findAllUsers() {
-        return new ArrayList<>(users.values());
-    }
-
     public UserRecord updateUser(Long id, String nome, String cidade, String whatsapp,
             String nivelProfissional, String areaTecnologia, String competenciasAtuais,
             String idiomaPreferido) {

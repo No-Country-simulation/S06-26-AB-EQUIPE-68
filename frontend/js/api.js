@@ -50,10 +50,6 @@ export async function networkStatus(usuarioId, raioMetros = 5000) {
     return apiFetch(`/api/network-status/${usuarioId}?raioMetros=${raioMetros}`);
 }
 
-export async function listarUsuarios() {
-    return apiFetch('/api/usuarios', { method: 'GET' });
-}
-
 export async function register(data) {
     return apiFetch('/api/auth/register', {
         method: 'POST',

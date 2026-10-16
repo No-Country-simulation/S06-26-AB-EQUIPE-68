@@ -9,7 +9,6 @@ import com.bitsystem.bitapp.exception.BusinessException;
 import com.bitsystem.bitapp.repository.UserRepository;
 import com.bitsystem.bitapp.repository.UserSessionRepository;
 import java.time.LocalDateTime;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -207,25 +206,6 @@ public class AuthService {
         userRepository.save(user);
 
         return new UsuarioDto.LocalizacaoResponse(latitude, longitude);
-    }
-
-    // ════════════════════════════════════════════════════════════════════════
-    //  LIST USERS
-    // ════════════════════════════════════════════════════════════════════════
-
-    public List<AuthDto.UserResponse> listUsers() {
-        try {
-            return userRepository.findAll().stream()
-                    .map(this::toUserResponse)
-                    .toList();
-
-        } catch (Exception ex) {
-            log.warn("[AuthService] Banco indisponível, listUsers via fallback: {}", ex.getMessage());
-
-            return fallbackStorage.findAllUsers().stream()
-                .map(this::toUserResponseFromFallback)
-                .toList();
-        }
     }
 
     // ════════════════════════════════════════════════════════════════════════

@@ -59,18 +59,6 @@ public class ApiController {
         return ResponseEntity.ok(StandardApiResponse.ok(geolocationService.getNetworkStatus(usuarioId, raioMetros)));
     }
 
-    @GetMapping("/usuarios")
-    public ResponseEntity<StandardApiResponse<java.util.List<UsuarioDto.Response>>> listarUsuarios() {
-        java.util.List<UsuarioDto.Response> response = authService.listUsers().stream()
-                .map(user -> new UsuarioDto.Response(
-                        user.id(), user.nome(), user.email(),
-                        user.cidade(), user.whatsapp(),
-                        user.nivelProfissional(), user.areaTecnologia(),
-                        user.competenciasAtuais()))
-                .toList();
-        return ResponseEntity.ok(StandardApiResponse.ok(response));
-    }
-
     @PutMapping("/usuarios/{id}/localizacao")
     public ResponseEntity<StandardApiResponse<UsuarioDto.LocalizacaoResponse>> atualizarLocalizacao(
             @PathVariable Long id,

@@ -90,4 +90,25 @@ class UsuarioControllerTest {
         assertFalse(response.getBody().success());
         assertEquals("ACESSO_NEGADO", response.getBody().codigo());
     }
+
+    @Test
+    void listaPublicaDeUsuariosFoiRemovida() {
+        // Sem token a rota cai em anyRequest().authenticated(): nenhum dado de pessoa sai.
+        ResponseEntity<String> response = restTemplate.getForEntity("/api/usuarios", String.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertFalse(String.valueOf(response.getBody()).contains("@"));
+    }
+
+    @Test
+    void listaDeUsuariosNaoExisteNemParaQuemTemToken() {
+        AuthDto.Response usuario = registrarUsuario("lista_removida");
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/api/usuarios", HttpMethod.GET,
+                new HttpEntity<>(headersComToken(usuario.token())), String.class);
+
+        // Nenhum controller atende GET /api/usuarios: o corpo nunca traz e-mail de ninguém.
+        assertFalse(String.valueOf(response.getBody()).contains("@teste.com"));
+    }
 }
