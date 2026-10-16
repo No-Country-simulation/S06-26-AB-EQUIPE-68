@@ -26,8 +26,10 @@ function sessaoExpirou() {
 
 // options.redirecionarEm401 = false deixa o 401 com quem chamou (ex.: o check-in
 // de saúde, que não pode tirar o painel do CVV da tela).
+// options.bruto = true devolve o corpo como veio, para as rotas que não usam o
+// envelope {success, data} (POST /api/rota repassa o GeoJSON da ORS).
 async function apiFetch(path, options = {}) {
-    const { redirecionarEm401 = true, ...fetchOptions } = options;
+    const { redirecionarEm401 = true, bruto = false, ...fetchOptions } = options;
     const headers = { 'Content-Type': 'application/json' };
     const token = getToken();
     if (token) {
@@ -48,6 +50,13 @@ async function apiFetch(path, options = {}) {
         json = await response.json();
     } catch {
         throw new ApiError(`API Error ${response.status}`, response.status);
+    }
+
+    if (bruto) {
+        if (!response.ok) {
+            throw new ApiError(json.mensagem || json.erro || `API Error ${response.status}`, response.status, json.erro);
+        }
+        return json;
     }
 
     if (!response.ok || !json.success) {
@@ -207,6 +216,18 @@ export async function salvarLocalizacao(usuarioId, latitude, longitude) {
     return apiFetch(`/api/usuarios/${usuarioId}/localizacao`, {
         method: 'PUT',
         body: JSON.stringify({ latitude, longitude }),
+    });
+}
+
+// Rota de carro entre dois pontos [lng, lat], calculada pela ORS no backend.
+// Devolve o GeoJSON bruto. O 401 fica com quem chamou: o mapa cai no Google Maps
+// em vez de mandar o usuário para o login no meio da tela.
+export async function calcularRota(origem, destino) {
+    return apiFetch('/api/rota', {
+        method: 'POST',
+        body: JSON.stringify({ origem, destino }),
+        bruto: true,
+        redirecionarEm401: false,
     });
 }
 

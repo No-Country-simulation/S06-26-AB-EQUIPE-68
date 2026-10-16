@@ -1,5 +1,5 @@
 import { t } from './i18n.js';
-import { listarPontosLazer } from './api.js';
+import { listarPontosLazer, calcularRota } from './api.js';
 
 const REGION_LABELS = {
     CBD_BEIRAMAR: 'Centro/Beiramar',
@@ -336,22 +336,17 @@ window.tracarRota = async function(idDestino) {
     }
     const coordDestino = { lat: ponto.lat, lng: ponto.lng };
 
+    // A rota exige login: quem não entrou vai direto para o Google Maps.
+    if (!localStorage.getItem('bitapp_token')) {
+        abrirNoGoogleMaps(coordsUsuario, coordDestino);
+        return;
+    }
+
     try {
-        const resp = await fetch(API_BASE_URL + '/api/rota', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                origem:  [coordsUsuario[1], coordsUsuario[0]],
-                destino: [coordDestino.lng, coordDestino.lat]
-            })
-        });
-
-        if (!resp.ok) {
-            abrirNoGoogleMaps(coordsUsuario, coordDestino);
-            return;
-        }
-
-        const dados = await resp.json();
+        const dados = await calcularRota(
+            [coordsUsuario[1], coordsUsuario[0]],
+            [coordDestino.lng, coordDestino.lat]
+        );
         const coords = dados.features[0].geometry.coordinates;
 
         if (linhaRota) mapa.removeLayer(linhaRota);
