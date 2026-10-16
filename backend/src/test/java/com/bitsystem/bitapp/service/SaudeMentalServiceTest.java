@@ -4,9 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import com.bitsystem.bitapp.dto.MentalHealthDto;
 import com.bitsystem.bitapp.dto.SaudeDto;
+import com.bitsystem.bitapp.integration.ContratosN8n;
 import com.bitsystem.bitapp.integration.GeminiClient;
 import com.bitsystem.bitapp.integration.N8NMentalHealthClient;
 import com.bitsystem.bitapp.model.HistoricoSaude;
@@ -25,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -314,6 +318,62 @@ class SaudeMentalServiceTest {
         );
         // 3 dias-com-registro numérico (d-1,d-2,d-3), todos <=3 -> dispara
         assertThat(SaudeMentalService.calcularTendenciaSemana(historico, HOJE)).isTrue();
+    }
+
+    // ── CONTRATO COM O N8N (exemplos em src/test/resources/contracts/n8n/) ───
+    @Test
+    void agente_respondeMensagemEAcao_ambasVaoParaOAcolhimento() {
+        doReturn(ContratosN8n.ler("mental-health.response", MentalHealthDto.Response.class)).when(mentalHealthClient).process(any());
+
+        SaudeDto.Response r = checkin(5, "ctx");
+
+        assertThat(r.mensagem()).startsWith("Semanas assim cansam mesmo");
+        assertThat(r.acaoSugerida()).contains("respiração 4-4-6");
+    }
+
+    @Test
+    void agente_parseFalhou_caiNoAcolhimentoLocal() {
+        doReturn(ContratosN8n.ler("mental-health.response-parse-falhou", MentalHealthDto.Response.class)).when(mentalHealthClient).process(any());
+
+        SaudeDto.Response r = checkin(5, "ctx");
+
+        assertThat(r.mensagem()).isEqualTo("Estamos com você.");
+        assertThat(r.acaoSugerida()).isEqualTo("Respire fundo.");
+    }
+
+    @Test
+    void agente_semAcaoSugerida_usaAAcaoPadrao() {
+        doReturn(new MentalHealthDto.Response("Estou aqui com você.", null)).when(mentalHealthClient).process(any());
+
+        SaudeDto.Response r = checkin(5, "ctx");
+
+        assertThat(r.mensagem()).isEqualTo("Estou aqui com você.");
+        assertThat(r.acaoSugerida()).isNotBlank();
+    }
+
+    @Test
+    void agente_naoMudaADerivacaoDoCvv_decididaSoPelaNota() {
+        doReturn(ContratosN8n.ler("mental-health.response", MentalHealthDto.Response.class)).when(mentalHealthClient).process(any());
+
+        assertThat(checkin(1, "ctx").nivelDerivacao()).isEqualTo("REFORCADO");
+        assertThat(checkin(3, "ctx").nivelDerivacao()).isEqualTo("PREVENTIVO");
+        assertThat(checkin(5, "ctx").nivelDerivacao()).isNull();
+    }
+
+    @Test
+    void payloadParaOAgente_temOsMesmosCamposDoExemploDoContrato() {
+        ArgumentCaptor<Object> payload = ArgumentCaptor.forClass(Object.class);
+        doReturn(ContratosN8n.ler("mental-health.response", MentalHealthDto.Response.class)).when(mentalHealthClient).process(payload.capture());
+
+        checkin(3, "Semana puxada, muita coisa para entregar.");
+
+        var enviado = ContratosN8n.MAPPER_DO_CLIENTE.valueToTree(payload.getValue());
+        assertThat(ContratosN8n.campos(enviado))
+                .containsExactlyInAnyOrderElementsOf(ContratosN8n.campos(ContratosN8n.json("mental-health.request")));
+        assertThat(enviado.path("tipo").asText()).isEqualTo("mental-health");
+        assertThat(enviado.path("humor").asText()).isEqualTo("Triste");
+        assertThat(enviado.path("idioma").asText()).isEqualTo("pt");
+        assertThat(enviado.path("message").asText()).isEqualTo("Semana puxada, muita coisa para entregar.");
     }
 
     private static SaudeDto.HistoricoResponse registro(LocalDate dia, Integer nota) {

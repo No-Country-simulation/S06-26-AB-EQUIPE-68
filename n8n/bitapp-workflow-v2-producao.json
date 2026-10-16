@@ -168,7 +168,7 @@
     },
     {
       "parameters": {
-        "respondWith": "allIncomingItems",
+        "respondWith": "firstIncomingItem",
         "options": {}
       },
       "id": "9b74dd8a-0e39-4863-9f69-3142ad414cfc",

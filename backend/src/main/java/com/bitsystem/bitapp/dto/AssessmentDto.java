@@ -1,5 +1,6 @@
 package com.bitsystem.bitapp.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 
@@ -26,6 +27,12 @@ public class AssessmentDto {
         }
     }
 
+    /**
+     * Resposta do Assessment Agent (n8n). Se o workflow não conseguiu ler o JSON do
+     * Gemini ele devolve {error: "PARSE_FALHOU", raw: ...}: os campos vêm nulos e o
+     * AssessmentService trata como falha, caindo no assessment local.
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Response(
         Integer compatibilidade,
         String nivel,

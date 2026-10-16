@@ -49,6 +49,10 @@ public class AssessmentService {
                 request.area()
             );
             AssessmentDto.Response response = n8nClient.process(enrichedRequest);
+            if (response == null || response.compatibilidade() == null) {
+                // Resposta vazia ou PARSE_FALHOU do workflow: não grava lixo, usa o fallback local.
+                throw new BusinessException("N8N_RESPOSTA_INVALIDA", "O agente de carreira não devolveu um assessment válido.");
+            }
             salvarAssessment(usuarioId, response);
 
             log.info("[AssessmentService] Assessment processado via N8N: usuarioId={}", usuarioId);
