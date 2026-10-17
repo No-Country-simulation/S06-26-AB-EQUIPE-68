@@ -87,6 +87,15 @@ function ordenarMensagemPrimeiro({ container, title, msg, action }) {
     container.append(title, msg, action);
 }
 
+// Painel da tendência da semana: título, caixa da semana (com os botões do CVV) e SÓ DEPOIS
+// o que o servidor diz sobre hoje (mensagem e sugestão do dia), sob o rótulo "Sobre hoje".
+// Mesmo princípio do ordenarComCvvPrimeiro: nada acima dos botões se mexe quando o texto cresce.
+function ordenarTendenciaPrimeiro({ container, title, msg, action }) {
+    action.className = 'mt-1';
+    msg.className = 'text-sm text-slate-200 leading-relaxed whitespace-pre-line';
+    container.append(title, action, msg);
+}
+
 function montarPainelCvv(els, nivel) {
     const { container, title, action } = els;
     container.classList.remove('hidden');
@@ -182,13 +191,25 @@ export function renderNivelDerivacaoPanel(els, data) {
         // estrutura dos gatilhos pontuais, cor distinta (índigo). Mensagem é
         // FIXA — explica o alerta agregado da semana, não pode virar frase
         // genérica rotativa — mas ganha os mesmos botões de ação.
+        // A mensagem e a sugestão do dia (humor bom, por exemplo) vêm DEPOIS da caixa da semana,
+        // sob "Sobre hoje": se ficassem juntas, o título da semana contradiria o texto do dia.
         container.className = 'p-6 rounded-3xl border border-indigo-800/50 bg-indigo-950/20 mt-6 animate-fade-in';
         title.className = 'text-sm font-bold uppercase tracking-wider mb-2 text-indigo-300 flex items-center gap-2';
         title.innerHTML = `📈 ${t('saude.tendenciaTitulo')}`;
+        const temHoje = Boolean(data.mensagem || data.acaoSugerida);
         action.innerHTML = `<div class="p-4 bg-slate-950 border border-indigo-800/40 rounded-2xl space-y-2">
             <p class="text-sm text-slate-200">${t('saude.tendenciaMsg')}</p>
-            ${botoesCvv('indigo')}
-            <p class="text-xs text-slate-400 pt-1">${escapeHtml(data.acaoSugerida)}</p></div>`;
+            ${botoesCvv('indigo')}</div>
+            ${temHoje ? `<p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mt-5 mb-1">${t('saude.tendenciaSobreHoje')}</p>` : ''}`;
+        ordenarTendenciaPrimeiro(els);
+        if (data.acaoSugerida) {
+            // Dentro do msg (e não como nó solto): o container é reaproveitado entre check-ins na
+            // página Saúde Mental e todo render seguinte zera o msg. textContent já escapa o texto.
+            const sugestao = document.createElement('span');
+            sugestao.className = 'block text-xs text-slate-400 mt-3';
+            sugestao.textContent = data.acaoSugerida;
+            msg.appendChild(sugestao);
+        }
     } else {
         // Nota 5/7/9 ou ausente, sem tendência: acolhimento normal.
         container.className = 'p-6 rounded-3xl border border-slate-800 bg-slate-900/60 mt-6 animate-fade-in';
