@@ -6,7 +6,7 @@
 // saúde, assessments, mentorias) e ficariam no aparelho depois do logout.
 // A troca do nome abaixo faz o activate apagar os caches antigos, que ainda
 // podem conter respostas de /api/ guardadas antes desta regra.
-const CACHE_NAME = 'bitapp-v20261016';
+const CACHE_NAME = 'bitapp-v20261017';
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();
