@@ -117,7 +117,7 @@ G --> H[Evolução Contínua]
 
 ## 🧠 Orientação de Carreira com IA
 
-O sistema analisa hard skills, soft skills, experiências e objetivos do usuário, gerando mapeamento de lacunas técnicas, recomendações de estudo e plano de desenvolvimento personalizado. A análise é feita pelo agente de orientação (Gemini 2.5-flash via n8n), enriquecida em tempo real com o catálogo de cursos da própria plataforma, consultado direto na API (sem busca por similaridade).
+O sistema analisa hard skills, soft skills, experiências e objetivos do usuário, gerando mapeamento de lacunas técnicas, recomendações de estudo e plano de desenvolvimento personalizado. A análise é feita pelo agente de orientação (Gemini via n8n), enriquecida em tempo real com o catálogo de cursos da própria plataforma, consultado direto na API (sem busca por similaridade).
 
 ### Endpoint
 
@@ -313,7 +313,7 @@ DB[(H2 em memória — padrão local<br/>PostgreSQL em produção via ambiente)]
 
 N8N[n8n Cloud — roteamento determinístico]
 
-AI[Google Gemini 2.5-flash]
+AI[Google Gemini]
 
 CAT[Catálogo de cursos e roadmaps — consulta direta à API]
 
@@ -339,8 +339,8 @@ Backend Spring Boot (8080)
    │  envia payload estruturado (hardSkills, humor, contexto, tipo, idioma)
    v
 n8n Cloud — Switch determinístico pelo campo "tipo"
-   ├── agente de orientação  → Gemini 2.5-flash (+ consulta ao catálogo de cursos e aos roadmaps)
-   └── agente de saúde mental → Gemini 2.5-flash (linguagem de acolhimento)
+   ├── agente de orientação  → Gemini (+ consulta ao catálogo de cursos e aos roadmaps)
+   └── agente de saúde mental → Gemini (linguagem de acolhimento)
    v
 Backend valida, persiste e responde ao Frontend
 (se qualquer etapa de IA falhar → fallback local)
@@ -375,7 +375,7 @@ Backend valida, persiste e responde ao Frontend
 
 ## Inteligência Artificial
 
-* Google Gemini 2.5-flash
+* Google Gemini (modelo configurável por `GEMINI_MODEL` na integração direta do Java; nos workflows do n8n, o modelo fica na URL dos nós "Gemini Acolhimento" e "Gemini Carreira")
 * n8n Cloud como orquestrador dos agentes (roteamento determinístico + consulta ao catálogo)
 * Integração direta Java → Gemini (`GeminiClient`) para orientação e sugestões
 
@@ -439,7 +439,7 @@ docker run -p 8080:8080 -e JWT_SECRET="$(openssl rand -base64 48)" -e GEMINI_API
 | `APP_CORS_ALLOWED_ORIGINS` | `http://localhost:8080` | Origens autorizadas a chamar a API pelo navegador, separadas por vírgula, sem curinga. **Obrigatória em produção atrás de proxy TLS (Render)**: o servidor vê a requisição como `http` e o navegador manda `Origin: https://…`, que o Spring trata como outra origem; sem a URL pública do app aqui, os POST do navegador (inclusive o login) recebem 403 "Invalid CORS request" |
 | `H2_CONSOLE_ENABLED` | `false` | Liga o console do H2; mesmo ligado, `/h2-console` exige token |
 | `GEMINI_API_KEY` | *(vazio)* | Habilita a IA direta; vazio = modo contingência |
-| `GEMINI_MODEL` | `gemini-2.5-flash` | Modelo Gemini utilizado |
+| `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Modelo Gemini da integração direta (`GeminiClient`); nos workflows do n8n o modelo fica fixo na URL de cada nó |
 | `N8N_ASSESSMENT_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de orientação; **vazio desliga o n8n** e o backend segue direto para o Gemini |
 | `N8N_MENTAL_HEALTH_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de saúde mental; vazio desliga o n8n |
 | `N8N_WEBHOOK_TOKEN` | *(vazio)* | Valor do cabeçalho `X-Webhook-Token`; só é enviado se estiver definido |
@@ -526,6 +526,7 @@ Registradas para não parecerem mais do que são. Algumas já vinham do hackatho
 * `spring.jpa.open-in-view` está no padrão do Spring (ligado): a conexão do pool fica presa durante toda a requisição, inclusive enquanto o backend espera o n8n ou o Gemini. Com várias chamadas lentas ao mesmo tempo, o pool pode esgotar.
 * O agrupamento diário dos check-ins (e a tendência semanal) usa o fuso do servidor (no Render costuma ser UTC; não verificado); se for UTC, perto da meia-noite do horário de Brasília o "dia" vira antes.
 * Não há limite de requisições (rate limiting) em nenhuma rota, inclusive as que chamam IA.
+* O Google retira modelos Gemini de projetos novos sem aviso: um modelo que funcionava pode passar a responder 404 para quem cria uma chave agora. Na integração direta do Java, o modelo se troca pela variável `GEMINI_MODEL`, sem mudar código; nos workflows do n8n, o modelo está na URL dos nós Gemini e se troca no próprio workflow. Cada check-in faz duas chamadas ao Gemini (acolhimento e sugestões), o que pesa no limite do plano gratuito do Google.
 * Quando o banco cai, parte dos serviços grava em memória (`FallbackStorage`); esses dados somem no restart e não são sincronizados quando o banco volta.
 * Erros inesperados do servidor respondem HTTP 200 com `success: false` e código `ERRO_INTERNO` (`GlobalExceptionHandler`), o que esconde falhas de quem só olha o status.
 * A candidatura enviada por `POST /api/vagas/enviar-curriculo` usa o `usuarioId` do token, mas ainda aceita `nome` e `e-mail` do corpo da requisição.
