@@ -48,6 +48,18 @@ class EmotionResponseProviderTest {
         assertEquals(5, java.util.Set.copyOf(respostas).size(), "os 5 níveis devem ter textos distintos");
     }
 
+    // Com humor bom hoje e a semana pesada, o painel mostra a sugestão do dia ao lado do título
+    // da semana: ela precisa falar de hoje, senão o texto se contradiz.
+    @Test
+    void sugestaoDoMuitoFelizFalaDeHojeENaoDaSemana() {
+        for (String idioma : java.util.List.of("pt", "es")) {
+            String sugestao = provider.resolve(9, idioma).acaoSugerida().toLowerCase();
+            assertFalse(sugestao.contains("semana"), "sugestão do MUITO_FELIZ (" + idioma + ") não deve citar a semana: " + sugestao);
+        }
+        assertTrue(provider.resolve(9, "pt").acaoSugerida().contains("hoje"));
+        assertTrue(provider.resolve(9, "es").acaoSugerida().contains("hoy"));
+    }
+
     // ── CHECK-IN SÓ-TEXTO: nota null não lança exceção ───────────────────────
     @Test
     void notaAusenteNaoLancaExcecao() {

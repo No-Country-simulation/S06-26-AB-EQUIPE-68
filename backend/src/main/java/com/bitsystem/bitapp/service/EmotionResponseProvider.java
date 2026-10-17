@@ -21,7 +21,7 @@ public class EmotionResponseProvider {
         NivelCheckin.MUITO_FELIZ,
         new SaudeDto.RawResponse(
             "Que bom saber que você está se sentindo muito bem hoje. Esse estado é um recurso valioso — reconheço o esforço que você tem investido na sua jornada tech.",
-            "Aproveite 10 minutos para anotar o que funcionou bem esta semana. Isso reforça sua confiança nos próximos passos."
+            "Aproveite 10 minutos para anotar o que funcionou bem hoje. Isso reforça sua confiança nos próximos passos."
         ),
         NivelCheckin.FELIZ,
         new SaudeDto.RawResponse(
@@ -49,7 +49,7 @@ public class EmotionResponseProvider {
         NivelCheckin.MUITO_FELIZ,
         new SaudeDto.RawResponse(
             "Qué bueno saber que te sientes muy bien hoy. Este estado es un recurso valioso — reconozco el esfuerzo que has invertido en tu camino tech.",
-            "Aprovecha 10 minutos para anotar lo que funcionó bien esta semana. Esto refuerza tu confianza en los próximos pasos."
+            "Aprovecha 10 minutos para anotar lo que funcionó bien hoy. Esto refuerza tu confianza en los próximos pasos."
         ),
         NivelCheckin.FELIZ,
         new SaudeDto.RawResponse(
