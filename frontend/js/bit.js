@@ -95,7 +95,7 @@ let painelCvvRow = null;
 // A pessoa pode recolher o cartão numa pílula no canto inferior direito, que mantém o
 // "Ligar 188" sempre à mão. O estado recolhido vale só nesta visualização (sem localStorage).
 const CVV_CARTAO_ABERTO = 'fixed bottom-4 left-4 right-4 sm:left-auto sm:w-96 z-[85] max-h-[70vh] flex flex-col rounded-3xl border border-slate-700 bg-slate-900/95 p-3 shadow-2xl backdrop-blur-lg';
-const CVV_CARTAO_RECOLHIDO = 'fixed bottom-4 right-4 z-[85] flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/95 p-2 shadow-2xl backdrop-blur-lg';
+const CVV_CARTAO_RECOLHIDO = 'fixed bottom-4 right-4 z-[85] flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-900/95 p-1.5 shadow-2xl backdrop-blur-lg';
 
 function criarCartaoCvv() {
     const fixo = document.createElement('aside');
@@ -110,9 +110,9 @@ function criarCartaoCvv() {
                 class="rounded-full border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:text-white hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500">${t('bit.cvvRecolher')}</button>
         </div>
         <div id="bitCvvArea" class="min-h-0 overflow-y-auto"></div>
-        <a data-cvv-ligar href="tel:188" class="hidden rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-slate-950 shadow-lg transition hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-300">${t('saude.cvvBtnLigar')}</a>
+        <a data-cvv-ligar href="tel:188" class="hidden rounded-full bg-amber-500 px-3 py-2 text-sm font-bold text-slate-950 shadow-lg transition hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-300">${t('saude.cvvBtnLigar')}</a>
         <button type="button" data-cvv-abrir aria-expanded="false" aria-controls="bitCvvArea"
-            class="hidden rounded-full border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:text-white hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500">${t('bit.cvvAbrir')}</button>
+            class="hidden rounded-full border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:text-white hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500">${t('bit.cvvAbrir')}</button>
     `;
     const recolher = fixo.querySelector('[data-cvv-recolher]');
     const abrir = fixo.querySelector('[data-cvv-abrir]');
