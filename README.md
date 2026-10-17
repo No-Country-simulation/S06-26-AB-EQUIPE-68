@@ -45,6 +45,12 @@ A tag `fim-hackathon-2026-07-25` marca o estado entregue ao fim do hackathon (De
 * `icon-192.png` e `icon-512.png` agora respondem sem token, que é o que o manifest precisa para o app ser instalável.
 * O botão de rota do mapa chamava uma variável que não existia no módulo e sempre caía no Google Maps. Agora passa por `POST /api/rota` com o token; sem login ou sem `ORS_API_KEY`, abre o Google Maps.
 
+**Ajustes depois do teste em produção** — o teste da demonstração no Render, em 16/10, mostrou dois defeitos de tela e um de configuração.
+
+* **Cartão do CVV recolhível.** O cartão que guarda o painel depois que o Bit é fechado não tinha como ser recolhido e, no celular, ocupava até 70% da altura da tela. Agora ele pode ser recolhido numa pílula no canto inferior direito, com "Ligar 188" sempre à mão e um botão para abrir de novo. Continua nascendo aberto, e o estado não é guardado: recarregar a página limpa o cartão.
+* **Painel da semana sem contradição.** Com humor bom no dia e a semana pesada, o título "Essa semana parece pesada" aparecia na mesma caixa da mensagem e da sugestão do dia, e o texto se contradizia. Agora a caixa da semana, com os botões do CVV, vem primeiro; a mensagem e a sugestão do dia vêm depois, sob "Sobre hoje", e a sugestão do nível mais positivo fala de hoje, não da semana. Vale para o Bit e para a página Saúde Mental. A regra do CVV no backend não mudou.
+* **Modelo padrão do Gemini.** O padrão passou a ser `gemini-3.5-flash-lite`: o modelo anterior responde 404 para projetos novos do Google, e quem clonasse o projeto com uma chave nova caía nesse erro (em produção já estava contornado pela variável `GEMINI_MODEL`). O workflow do n8n de produção usa o mesmo modelo; o workflow original do hackathon (`n8n/bitapp-agent-workflow.json`) ficou como estava.
+
 **Organização e documentação** — scripts movidos para `scripts/`, guia antigo para `docs/`, contrato OpenAPI com a coluna de acesso corrigida e o termo "RAG" trocado por "consulta à base curada", já que roadmaps e catálogo são consultas diretas, sem busca por similaridade.
 
 ---
