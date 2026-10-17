@@ -381,7 +381,7 @@ Backend valida, persiste e responde ao Frontend
 
 ## Inteligência Artificial
 
-* Google Gemini (modelo configurável por `GEMINI_MODEL` na integração direta do Java; nos workflows do n8n, o modelo fica na URL dos nós "Gemini Acolhimento" e "Gemini Carreira")
+* Google Gemini (modelo configurável por `GEMINI_MODEL` na integração direta do Java; no workflow de produção do n8n (`n8n/bitapp-workflow-v2-producao.json`), o modelo fica na URL dos nós "Gemini Acolhimento" e "Gemini Carreira")
 * n8n Cloud como orquestrador dos agentes (roteamento determinístico + consulta ao catálogo)
 * Integração direta Java → Gemini (`GeminiClient`) para orientação e sugestões
 
@@ -532,7 +532,7 @@ Registradas para não parecerem mais do que são. Algumas já vinham do hackatho
 * `spring.jpa.open-in-view` está no padrão do Spring (ligado): a conexão do pool fica presa durante toda a requisição, inclusive enquanto o backend espera o n8n ou o Gemini. Com várias chamadas lentas ao mesmo tempo, o pool pode esgotar.
 * O agrupamento diário dos check-ins (e a tendência semanal) usa o fuso do servidor (no Render costuma ser UTC; não verificado); se for UTC, perto da meia-noite do horário de Brasília o "dia" vira antes.
 * Não há limite de requisições (rate limiting) em nenhuma rota, inclusive as que chamam IA.
-* O Google retira modelos Gemini de projetos novos sem aviso: um modelo que funcionava pode passar a responder 404 para quem cria uma chave agora. Na integração direta do Java, o modelo se troca pela variável `GEMINI_MODEL`, sem mudar código; nos workflows do n8n, o modelo está na URL dos nós Gemini e se troca no próprio workflow. Cada check-in faz duas chamadas ao Gemini (acolhimento e sugestões), o que pesa no limite do plano gratuito do Google.
+* O Google retira modelos Gemini de projetos novos sem aviso: um modelo que funcionava pode passar a responder 404 para quem cria uma chave agora. Na integração direta do Java, o modelo se troca pela variável `GEMINI_MODEL`, sem mudar código; nos workflows do n8n, o modelo está fixo na URL dos nós que chamam o Gemini e se troca no próprio workflow (o workflow original do hackathon, `n8n/bitapp-agent-workflow.json`, segue com o modelo anterior). Cada check-in feito pelo Bit faz duas chamadas ao Gemini (acolhimento e sugestões); na página Saúde Mental as sugestões são buscadas uma vez, ao abrir a página. Isso pesa no limite do plano gratuito do Google.
 * Quando o banco cai, parte dos serviços grava em memória (`FallbackStorage`); esses dados somem no restart e não são sincronizados quando o banco volta.
 * Erros inesperados do servidor respondem HTTP 200 com `success: false` e código `ERRO_INTERNO` (`GlobalExceptionHandler`), o que esconde falhas de quem só olha o status.
 * A candidatura enviada por `POST /api/vagas/enviar-curriculo` usa o `usuarioId` do token, mas ainda aceita `nome` e `e-mail` do corpo da requisição.
