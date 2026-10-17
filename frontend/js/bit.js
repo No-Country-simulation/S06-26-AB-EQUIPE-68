@@ -92,21 +92,54 @@ let painelCvvRow = null;
 
 // Cartão fixo que guarda o painel do CVV depois que o Bit é fechado. O nó do painel é
 // movido (não recriado), então a resposta que ainda estiver a caminho continua atualizando-o.
+// A pessoa pode recolher o cartão numa pílula no canto inferior direito, que mantém o
+// "Ligar 188" sempre à mão. O estado recolhido vale só nesta visualização (sem localStorage).
+const CVV_CARTAO_ABERTO = 'fixed bottom-4 left-4 right-4 sm:left-auto sm:w-96 z-[85] max-h-[70vh] flex flex-col rounded-3xl border border-slate-700 bg-slate-900/95 p-3 shadow-2xl backdrop-blur-lg';
+const CVV_CARTAO_RECOLHIDO = 'fixed bottom-4 right-4 z-[85] flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/95 p-2 shadow-2xl backdrop-blur-lg';
+
+function criarCartaoCvv() {
+    const fixo = document.createElement('aside');
+    fixo.id = 'bitCvvFixo';
+    fixo.setAttribute('aria-label', t('saude.reforcadoTitulo'));
+    fixo.className = CVV_CARTAO_ABERTO;
+    // aria-expanded é fixo em cada botão: o Recolher só aparece com o cartão aberto (true) e o
+    // Abrir só com ele recolhido (false).
+    fixo.innerHTML = `
+        <div data-cvv-barra class="flex justify-end pb-2">
+            <button type="button" data-cvv-recolher aria-expanded="true" aria-controls="bitCvvArea"
+                class="rounded-full border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:text-white hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500">${t('bit.cvvRecolher')}</button>
+        </div>
+        <div id="bitCvvArea" class="min-h-0 overflow-y-auto"></div>
+        <a data-cvv-ligar href="tel:188" class="hidden rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-slate-950 shadow-lg transition hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-300">${t('saude.cvvBtnLigar')}</a>
+        <button type="button" data-cvv-abrir aria-expanded="false" aria-controls="bitCvvArea"
+            class="hidden rounded-full border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:text-white hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500">${t('bit.cvvAbrir')}</button>
+    `;
+    const recolher = fixo.querySelector('[data-cvv-recolher]');
+    const abrir = fixo.querySelector('[data-cvv-abrir]');
+    recolher.addEventListener('click', () => { definirCartaoCvvRecolhido(fixo, true); abrir.focus(); });
+    abrir.addEventListener('click', () => { definirCartaoCvvRecolhido(fixo, false); recolher.focus(); });
+    document.body.appendChild(fixo);
+    return fixo;
+}
+
+// Recolher só troca classes: a área do painel fica escondida (hidden) mas NÃO sai do DOM, porque
+// a resposta do servidor ainda pode chegar e precisa atualizar o painel que está lá dentro.
+function definirCartaoCvvRecolhido(fixo, recolhido) {
+    fixo.className = recolhido ? CVV_CARTAO_RECOLHIDO : CVV_CARTAO_ABERTO;
+    fixo.querySelector('[data-cvv-barra]').classList.toggle('hidden', recolhido);
+    fixo.querySelector('#bitCvvArea').classList.toggle('hidden', recolhido);
+    fixo.querySelector('[data-cvv-ligar]').classList.toggle('hidden', !recolhido);
+    fixo.querySelector('[data-cvv-abrir]').classList.toggle('hidden', !recolhido);
+}
+
 function preservarPainelCvv(row) {
-    let fixo = document.getElementById('bitCvvFixo');
-    if (!fixo) {
-        fixo = document.createElement('aside');
-        fixo.id = 'bitCvvFixo';
-        fixo.setAttribute('aria-label', t('saude.reforcadoTitulo'));
-        fixo.className = 'fixed bottom-4 left-4 right-4 sm:left-auto sm:w-96 z-[85] max-h-[70vh] overflow-y-auto rounded-3xl border border-slate-700 bg-slate-900/95 p-3 shadow-2xl backdrop-blur-lg';
-        document.body.appendChild(fixo);
-    }
-    fixo.appendChild(row);
+    const fixo = document.getElementById('bitCvvFixo') || criarCartaoCvv();
+    fixo.querySelector('#bitCvvArea').appendChild(row);
 }
 
 function dispensar() {
     // Só esconde na visualização atual — sem localStorage, reload sempre traz o Bit de volta.
-    // O painel do CVV, se existir, NUNCA é descartado: vai para o cartão fixo.
+    // O painel do CVV, se existir, NUNCA é descartado: vai para o cartão fixo, que nasce aberto.
     document.removeEventListener('keydown', onEscKey);
     if (painelCvvRow) preservarPainelCvv(painelCvvRow);
     document.getElementById('bitOverlay')?.remove();

@@ -250,6 +250,8 @@ const DICT = {
             dispensar: 'Dispensar',
             tituloModal: 'Assistente BiT',
             pedirAlgumaCoisa: 'Escolha um emoji ou escreva algo antes de enviar.',
+            cvvRecolher: 'Recolher',
+            cvvAbrir: 'Abrir apoio',
         },
     },
     es: {
@@ -459,6 +461,8 @@ const DICT = {
             dispensar: 'Descartar',
             tituloModal: 'Asistente BiT',
             pedirAlgumaCoisa: 'Elige un emoji o escribe algo antes de enviar.',
+            cvvRecolher: 'Minimizar',
+            cvvAbrir: 'Abrir apoyo',
         },
     },
 };
