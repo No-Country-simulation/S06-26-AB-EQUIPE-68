@@ -452,9 +452,28 @@ docker run -p 8080:8080 -e JWT_SECRET="$(openssl rand -base64 48)" -e GEMINI_API
 | `N8N_TIMEOUT` | `15000` | Timeout (ms) das chamadas ao n8n (era 40000) |
 | `N8N_MAX_RETRIES` | `1` | Tentativas por chamada ao n8n (era 3) |
 | `ORS_API_KEY` | *(não configurada)* | Chave do OpenRouteService para a rota no mapa; sem ela o botão abre o Google Maps |
-| `DB_URL` | H2 em memória | Aponte para PostgreSQL (produção/Render) ou MySQL para persistência |
+| `DB_URL` | H2 em memória | URL JDBC do banco. Em produção, o PostgreSQL do Neon: `jdbc:postgresql://<host>/<banco>?sslmode=require` (veja "Banco de dados e pool de conexões", abaixo) |
+| `DB_USERNAME` | `sa` | Usuário do banco (o padrão serve ao H2) |
+| `DB_PASSWORD` | *(vazio)* | Senha do banco; segredo, só pelo ambiente |
+| `DB_POOL_MAX_SIZE` | `5` | Máximo de conexões do pool (HikariCP) |
+| `DB_POOL_MIN_IDLE` | `0` | Conexões ociosas mantidas abertas; `0` = nenhuma |
+| `DB_POOL_IDLE_TIMEOUT_MS` | `60000` | Tempo (ms) até uma conexão ociosa ser fechada |
 | `DEMO_SEED` | `false` | `true` = povoar dados de demonstração |
 | `VISENT_ENABLED` | `true` | Ingestão do dataset Vísent na inicialização |
+
+### Banco de dados e pool de conexões
+
+Sem `DB_URL`, a aplicação usa H2 em memória: nada sobrevive a um reinício. Para persistir, aponte `DB_URL`, `DB_USERNAME` e `DB_PASSWORD` para um PostgreSQL. No **Neon** (plano gratuito) a URL tem este formato, com o `host` e o nome do banco que o painel do Neon mostra:
+
+```
+DB_URL=jdbc:postgresql://<host>/<banco>?sslmode=require
+```
+
+O Neon só aceita conexão com TLS, por isso o `sslmode=require`. O painel do Neon costuma entregar uma string no formato `postgresql://usuario:senha@host/banco`; no Spring, use o formato JDBC acima e ponha o usuário e a senha em `DB_USERNAME` e `DB_PASSWORD`, sem repeti-los na URL.
+
+**Por que o pool não guarda conexões ociosas.** A computação do Neon gratuito dorme depois de 5 minutos sem nenhuma conexão aberta, e o plano dá 100 horas de computação por mês. Um pool que mantém conexões abertas sem uso nunca deixaria o banco dormir, e as horas acabariam no meio do mês. Por isso o padrão é `DB_POOL_MIN_IDLE=0` (nenhuma conexão parada), `DB_POOL_IDLE_TIMEOUT_MS=60000` (o HikariCP fecha uma conexão ociosa em cerca de 1 minuto; a limpeza dele roda a cada 30 s) e `DB_POOL_MAX_SIZE=5`. O custo é que a primeira requisição depois de um tempo parado reabre a conexão e, se o banco dormiu, espera ele acordar.
+
+As variáveis padrão do Spring `SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE` e `SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE` também são lidas (há teste para isso) e **vencem** as `DB_POOL_*`, porque variável de ambiente tem precedência sobre o arquivo de configuração. Se existirem no ambiente, ou apague-as ou deixe-as com `5` e `0`.
 
 No `docker-compose.yml` o frontend sai de um nginx em `http://localhost:3000` e chama o backend em `http://localhost:8080`, que é outra origem: defina `APP_CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080` e `JWT_SECRET` no `.env.production` do serviço `backend`.
 
