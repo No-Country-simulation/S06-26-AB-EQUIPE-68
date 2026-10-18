@@ -296,7 +296,7 @@ Limitações conhecidas: ver a seção [Limitações Conhecidas](#limitações-c
 
 Com a variável `DEMO_SEED=true`, a aplicação sobe povoada com 6 perfis realistas, check-ins históricos e uma vaga-âncora com compatibilidade 100% — ideal para avaliação sem depender de cadastro manual. Por padrão (`false`), nada é semeado além dos catálogos.
 
-A cada boot com `DEMO_SEED=true`:
+A cada boot com `DEMO_SEED=true` (e o Render refaz o deploy todo dia às 00:05 UTC, então isso acontece pelo menos uma vez por dia):
 
 * as 6 contas do cenário voltam ao estado original: o que cada visitante fez nelas (check-ins, avaliações, mentorias, inscrições, candidaturas e sessões) é apagado, o perfil e a senha de demonstração são restaurados e os check-ins de D-5 a D-1 são replantados, tudo numa transação; a vaga-âncora não é duplicada;
 * as contas de visitantes (as que não são do cenário) criadas há mais de `DEMO_RETENCAO_DIAS` dias (padrão 30) são apagadas, com tudo o que é delas. O log diz quantas, nunca quais.
@@ -625,7 +625,7 @@ Registradas para não parecerem mais do que são. Algumas já vinham do hackatho
 
 **Testes e processo**
 
-* A maior parte da suíte roda em H2; só os testes do esquema, da persistência, do reset e da retenção rodam em PostgreSQL real (Testcontainers), e o `Dockerfile` usa `-DskipTests`. O n8n só é simulado nos testes do cliente e do contrato (servidor HTTP local e exemplos JSON); o workflow real não é executado, e o Gemini não é simulado.
+* A maior parte da suíte roda em H2; só os testes do esquema, da persistência, do reset e da retenção rodam em PostgreSQL real (Testcontainers), e o `Dockerfile` usa `-DskipTests`. O n8n só é simulado nos testes do cliente e do contrato (servidor HTTP local e exemplos JSON); o workflow real não é executado, e o Gemini só é simulado no teste dos tempos de espera (servidor HTTP local lento), nunca com resposta de modelo real.
 * O histórico do git tem autores com nomes e e-mails diferentes para a mesma pessoa; um `.mailmap` resolveria.
 * O projeto está no Spring Boot 3.3.4; a atualização para uma linha mais nova não foi feita e deve ser planejada (vale a versão declarada no `pom.xml`).
 
