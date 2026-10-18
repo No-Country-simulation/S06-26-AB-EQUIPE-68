@@ -56,7 +56,8 @@ public class GlobalExceptionHandler {
         // sabe que é erro de quem chamou (4xx). Não é "erro inesperado" e não vira 500.
         HttpStatusCode doCliente = statusDeErroDoCliente(ex);
         if (doCliente != null) {
-            log.warn("Requisição inválida ({}): {}", doCliente.value(), ex.getMessage());
+            // Só o tipo do erro: a mensagem de um JSON ilegível pode trazer pedaços do corpo (texto do check-in).
+            log.warn("Requisição inválida ({}): {}", doCliente.value(), ex.getClass().getSimpleName());
             return ResponseEntity.status(doCliente)
                     .body(StandardApiResponse.error("Requisição inválida.", "REQUISICAO_INVALIDA"));
         }
