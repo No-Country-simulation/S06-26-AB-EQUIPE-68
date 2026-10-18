@@ -4,8 +4,12 @@ import com.bitsystem.bitapp.dto.StandardApiResponse;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -48,8 +52,26 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<StandardApiResponse<Void>> handleGeneral(Exception ex) {
+        // JSON ilegível, método não aceito, rota inexistente, parâmetro ausente: o próprio Spring já
+        // sabe que é erro de quem chamou (4xx). Não é "erro inesperado" e não vira 500.
+        HttpStatusCode doCliente = statusDeErroDoCliente(ex);
+        if (doCliente != null) {
+            log.warn("Requisição inválida ({}): {}", doCliente.value(), ex.getMessage());
+            return ResponseEntity.status(doCliente)
+                    .body(StandardApiResponse.error("Requisição inválida.", "REQUISICAO_INVALIDA"));
+        }
         log.error("Unhandled exception", ex);
-        return ResponseEntity.status(HttpStatus.OK)
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(StandardApiResponse.error("Serviço temporariamente indisponível. Tente novamente em alguns instantes.", "ERRO_INTERNO"));
+    }
+
+    private static HttpStatusCode statusDeErroDoCliente(Exception ex) {
+        if (ex instanceof ErrorResponse resposta && resposta.getStatusCode().is4xxClientError()) {
+            return resposta.getStatusCode();
+        }
+        if (ex instanceof HttpMessageNotReadableException || ex instanceof TypeMismatchException) {
+            return HttpStatus.BAD_REQUEST;
+        }
+        return null;
     }
 }
