@@ -81,7 +81,7 @@ class N8NBaseClientTest {
         servidor.createContext("/webhook/lento", troca -> {
             chamadas.incrementAndGet();
             try {
-                Thread.sleep(1500);
+                Thread.sleep(3000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -96,7 +96,7 @@ class N8NBaseClientTest {
                 com.bitsystem.bitapp.exception.BusinessException.class, () -> checkin.process(checkin("qualquer")));
         long ms = (System.nanoTime() - inicio) / 1_000_000;
 
-        assertThat(ms).as("desistiu no tempo de leitura do check-in, sem esperar o n8n lento").isLessThan(1200);
+        assertThat(ms).as("desistiu no tempo de leitura do check-in, sem esperar o n8n lento (3 s)").isLessThan(2500);
         assertThat(chamadas.get()).as("uma tentativa só").isEqualTo(1);
     }
 

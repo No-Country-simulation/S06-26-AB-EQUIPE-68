@@ -5,12 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.bitsystem.bitapp.BitappApplication;
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.Map;
-import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.env.SystemEnvironmentPropertySource;
@@ -20,18 +17,17 @@ import org.springframework.core.env.SystemEnvironmentPropertySource;
  * Neon só dorme se ficar 5 minutos sem nenhuma conexão. Também confere se os
  * nomes de variável que já existem no Render são lidos pelo Spring.
  */
-@SpringBootTest
 class PoolDeConexoesTest {
-
-    @Autowired DataSource dataSource;
 
     @Test
     void padroes_naoGuardamConexaoOciosa_eTemTetoPequeno() {
-        HikariDataSource hikari = (HikariDataSource) dataSource;
+        // Ambiente simulado e vazio: o resultado não muda se a máquina tiver DB_POOL_* ou
+        // SPRING_DATASOURCE_HIKARI_* exportadas.
+        HikariDataSource pool = subirComAmbiente(Map.of());
 
-        assertThat(hikari.getMinimumIdle()).isZero();
-        assertThat(hikari.getIdleTimeout()).isEqualTo(60_000L);
-        assertThat(hikari.getMaximumPoolSize()).isEqualTo(5);
+        assertThat(pool.getMinimumIdle()).isZero();
+        assertThat(pool.getIdleTimeout()).isEqualTo(60_000L);
+        assertThat(pool.getMaximumPoolSize()).isEqualTo(5);
     }
 
     /** Sobe a aplicação com variáveis de ambiente simuladas (mesma classe e nome da fonte real do Spring). */

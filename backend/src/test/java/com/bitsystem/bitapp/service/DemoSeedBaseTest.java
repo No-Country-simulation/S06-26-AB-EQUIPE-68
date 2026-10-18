@@ -1,6 +1,7 @@
 package com.bitsystem.bitapp.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.bitsystem.bitapp.domain.CandidaturaVaga;
 import com.bitsystem.bitapp.domain.CareerAssessment;
@@ -24,7 +25,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
+import org.mockito.AdditionalAnswers;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -217,6 +221,44 @@ abstract class DemoSeedBaseTest {
         User nova = conta("quase1@teste.com");
         assertThat(nova.getNome()).isEqualTo("Carla Nunes");
         assertThat(saudeRepository.findByUserIdOrderByCreatedAtDesc(nova.getId())).hasSize(5);
+    }
+
+    @Test
+    void reset_falhaNoMeio_naoDeixaNadaPelaMetade() {
+        User bruno = conta("tendencia1@teste.com");
+        Long id = bruno.getId();
+        bruno.setNome("Nome Sujo");
+        userRepository.save(bruno);
+        encherDeUso(id);
+        long itensAntes = itensDe(id);
+        List<Long> idsDoCenario = DemoSeedService.EMAILS_DO_CENARIO.stream().map(e -> conta(e).getId()).toList();
+        List<Integer> checkinsAntes = idsDoCenario.stream()
+                .map(u -> saudeRepository.findByUserIdOrderByCreatedAtDesc(u).size()).toList();
+
+        // O reset já apagou o uso e replantou os check-ins das primeiras contas quando o repositório falha.
+        HistoricoSaudeRepository quebra = Mockito.mock(HistoricoSaudeRepository.class, AdditionalAnswers.delegatesTo(saudeRepository));
+        AtomicInteger chamadas = new AtomicInteger();
+        Mockito.doAnswer(inv -> {
+            if (chamadas.incrementAndGet() == 3) {
+                throw new IllegalStateException("falha simulada no meio do reset");
+            }
+            return saudeRepository.saveAll((Iterable<HistoricoSaude>) inv.getArgument(0));
+        }).when(quebra).saveAll(Mockito.<Iterable<HistoricoSaude>>any());
+        DemoSeedService comFalha = new DemoSeedService(userRepository, quebra, vagaRepository, dadosDoUsuario,
+                retencaoService, passwordEncoder, transactionManager, true);
+
+        assertThatThrownBy(comFalha::restaurarCenario).hasMessageContaining("falha simulada");
+
+        // Tudo voltou ao que era antes da tentativa: perfil sujo, uso acrescentado e check-ins de cada conta.
+        assertThat(conta("tendencia1@teste.com").getNome()).isEqualTo("Nome Sujo");
+        assertThat(itensDe(id)).isEqualTo(itensAntes);
+        List<Integer> checkinsDepois = idsDoCenario.stream()
+                .map(u -> saudeRepository.findByUserIdOrderByCreatedAtDesc(u).size()).toList();
+        assertThat(checkinsDepois).isEqualTo(checkinsAntes);
+
+        demoSeedService.restaurarCenario(); // o reset de verdade ainda funciona depois da falha
+        assertThat(conta("tendencia1@teste.com").getNome()).isEqualTo("Bruno Lima");
+        assertThat(itensDe(id)).isEqualTo(5);
     }
 
     @Test

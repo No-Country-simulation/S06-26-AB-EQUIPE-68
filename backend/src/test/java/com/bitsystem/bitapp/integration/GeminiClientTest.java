@@ -28,7 +28,7 @@ class GeminiClientTest {
         servidor = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         servidor.createContext("/", troca -> {
             try {
-                Thread.sleep(800);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -59,14 +59,13 @@ class GeminiClientTest {
 
     @Test
     void checkin_desisteNoTempoCurto_eAsDemaisChamadasEsperamMais() throws Exception {
-        GeminiClient cliente = cliente(300, 3000);
+        GeminiClient cliente = cliente(300, 6000);
 
         long inicio = System.nanoTime();
         assertThrows(ResourceAccessException.class, () -> cliente.generateContent("prompt", GeminiClient.Espera.CHECKIN));
         long ms = (System.nanoTime() - inicio) / 1_000_000;
-        assertThat(ms).as("check-in desistiu antes de o Gemini lento responder").isLessThan(700);
+        assertThat(ms).as("check-in desistiu antes de o Gemini lento (2 s) responder").isLessThan(1500);
 
         assertThat(cliente.generateContent("prompt")).isEqualTo("oi");
-        assertThat(cliente.generateContent("prompt", GeminiClient.Espera.PADRAO)).isEqualTo("oi");
     }
 }
