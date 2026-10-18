@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * Cenário de demonstração com banco persistente: o que o DemoSeedService faz
@@ -45,6 +46,7 @@ abstract class DemoSeedBaseTest {
     @Autowired DadosDoUsuarioService dadosDoUsuario;
     @Autowired PasswordEncoder passwordEncoder;
     @Autowired JdbcTemplate jdbc;
+    @Autowired PlatformTransactionManager transactionManager;
 
     @Autowired UserRepository userRepository;
     @Autowired HistoricoSaudeRepository saudeRepository;
@@ -247,5 +249,64 @@ abstract class DemoSeedBaseTest {
         assertThat(cursoRepository.count()).isEqualTo(cursos);
         assertThat(mentorRepository.count()).isEqualTo(mentores);
         assertThat(antenaRepository.count()).isEqualTo(antenas);
+    }
+
+    // ── item B: retenção de visitantes ─────────────────────────────────────
+
+    @Test
+    void retencao_apagaVisitanteDe31DiasComTudoQueEraDele_eMantemODe29() {
+        User velho = criarVisitante("velho", 31);
+        User recente = criarVisitante("recente", 29);
+        encherDeUso(velho.getId());
+        encherDeUso(recente.getId());
+        long itensDoRecente = itensDe(recente.getId());
+        assertThat(itensDe(velho.getId())).isEqualTo(6);
+
+        int apagadas = retencaoService.apagarVisitantesAntigos();
+
+        assertThat(apagadas).isGreaterThanOrEqualTo(1);
+        assertThat(userRepository.findById(velho.getId())).isEmpty();
+        assertThat(itensDe(velho.getId())).isZero();
+        assertThat(userRepository.findById(recente.getId())).isPresent();
+        assertThat(itensDe(recente.getId())).isEqualTo(itensDoRecente);
+    }
+
+    @Test
+    void retencao_nuncaApagaContaDoCenario_mesmoAntiga() {
+        for (String email : DemoSeedService.EMAILS_DO_CENARIO) {
+            jdbc.update("UPDATE users SET created_at = ? WHERE email = ?",
+                    LocalDateTime.now().minusDays(400), email);
+        }
+
+        retencaoService.apagarVisitantesAntigos();
+
+        for (String email : DemoSeedService.EMAILS_DO_CENARIO) {
+            User u = conta(email);
+            assertThat(saudeRepository.findByUserIdOrderByCreatedAtDesc(u.getId())).hasSize(5);
+        }
+    }
+
+    @Test
+    void retencao_menorQueUm_desligaALimpeza() {
+        User velho = criarVisitante("velho-desligado", 500);
+        DemoRetencaoService desligada =
+                new DemoRetencaoService(userRepository, dadosDoUsuario, transactionManager, 0);
+
+        assertThat(desligada.apagarVisitantesAntigos()).isZero();
+
+        assertThat(userRepository.findById(velho.getId())).isPresent();
+    }
+
+    @Test
+    void retencao_respeitaOPrazoConfigurado() {
+        User com10Dias = criarVisitante("dez-dias", 10);
+        User com3Dias = criarVisitante("tres-dias", 3);
+        DemoRetencaoService prazoCurto =
+                new DemoRetencaoService(userRepository, dadosDoUsuario, transactionManager, 7);
+
+        prazoCurto.apagarVisitantesAntigos();
+
+        assertThat(userRepository.findById(com10Dias.getId())).isEmpty();
+        assertThat(userRepository.findById(com3Dias.getId())).isPresent();
     }
 }

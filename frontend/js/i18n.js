@@ -91,6 +91,8 @@ const DICT = {
             acessibilidadeCvv: 'Em caso de dificuldade, ligue para <a href="tel:188" class="text-rose-400 font-semibold hover:text-rose-300">188 (CVV)</a> ou converse pelo <a href="https://www.cvv.org.br" target="_blank" rel="noopener noreferrer" class="text-rose-400 font-semibold hover:text-rose-300">chat online</a>.',
             erroCamposObrigatorios: 'Preencha todos os campos obrigatórios corretamente.',
             erroGenerico: 'Erro ao criar conta. Tente novamente.',
+            avisoDemoTitulo: 'Esta é uma demonstração',
+            avisoDemoTexto: 'As contas criadas aqui são apagadas automaticamente 30 dias após o cadastro. Não use dados reais: invente um nome, um e-mail de teste e uma senha que você não usa em outro lugar.',
         },
         dashboard: {
             ola: 'Olá, {nome}', matchOportunidades: '🎯 Match de Oportunidades',
@@ -303,6 +305,8 @@ const DICT = {
             acessibilidadeCvv: 'Si tienes dificultades, llama al <a href="tel:188" class="text-rose-400 font-semibold hover:text-rose-300">188 (CVV)</a> o conversa por el <a href="https://www.cvv.org.br" target="_blank" rel="noopener noreferrer" class="text-rose-400 font-semibold hover:text-rose-300">chat en línea</a>.',
             erroCamposObrigatorios: 'Completa todos los campos obligatorios correctamente.',
             erroGenerico: 'Error al crear la cuenta. Inténtalo de nuevo.',
+            avisoDemoTitulo: 'Esta es una demostración',
+            avisoDemoTexto: 'Las cuentas creadas aquí se eliminan automáticamente 30 días después del registro. No uses datos reales: inventa un nombre, un correo de prueba y una contraseña que no uses en otro lugar.',
         },
         dashboard: {
             ola: 'Hola, {nome}', matchOportunidades: '🎯 Match de Oportunidades',
