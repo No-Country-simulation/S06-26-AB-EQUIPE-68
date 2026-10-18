@@ -389,6 +389,21 @@ class SaudeMentalServiceTest {
         assertThat(enviado.path("message").asText()).isEqualTo("Semana puxada, muita coisa para entregar.");
     }
 
+    @Test
+    void promptDoGemini_mandaFalarDeHojeESemAfirmarComoFoiASemana() throws Exception {
+        // Mental Health Agent fora do ar (BeforeEach) + Gemini configurado: o fallback monta o prompt.
+        when(geminiClient.isConfigured()).thenReturn(true);
+        when(geminiClient.generateContent(anyString())).thenReturn("{}");
+
+        checkin(5, "semana boa");
+
+        ArgumentCaptor<String> prompt = ArgumentCaptor.forClass(String.class);
+        verify(geminiClient).generateContent(prompt.capture());
+        assertThat(prompt.getValue())
+                .contains("HOJE")
+                .contains("sem afirmar nem descrever como foi a semana dela");
+    }
+
     private static SaudeDto.HistoricoResponse registro(LocalDate dia, Integer nota) {
         return new SaudeDto.HistoricoResponse(1L, nota, "ctx", false, dia.atTime(10, 0));
     }

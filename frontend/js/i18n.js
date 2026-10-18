@@ -199,7 +199,7 @@ const DICT = {
             preventivoTitulo: 'Um recurso pra você',
             preventivoCvv: 'Conversar ajuda — o 188 escuta 24h, sem julgamento, sobre qualquer assunto.',
             tendenciaTitulo: 'Essa semana parece pesada',
-            tendenciaMsg: 'Percebemos que essa semana está pesada. Você não precisa passar por isso sozinho — o CVV escuta 24h, sem julgamento.',
+            tendenciaMsg: 'Pelos seus check-ins dos últimos dias, a semana tem sido pesada. Você não precisa passar por isso sozinho — o CVV escuta 24h, sem julgamento.',
             tendenciaSobreHoje: 'Sobre hoje',
             cvvVariacoes: [
                 'Sua semana tem sido desafiadora. Você não está sozinho. Ligue 188 ou converse online com o CVV — estamos aqui para ajudar.',
@@ -414,7 +414,7 @@ const DICT = {
             preventivoTitulo: 'Un recurso para ti',
             preventivoCvv: 'Hablar ayuda — el 188 escucha 24h, sin juzgar, sobre cualquier tema.',
             tendenciaTitulo: 'Esta semana parece pesada',
-            tendenciaMsg: 'Notamos que esta semana ha sido pesada. No necesitas pasar por esto solo — el CVV escucha 24h, sin juzgar.',
+            tendenciaMsg: 'Por tus check-ins de los últimos días, la semana ha sido pesada. No necesitas pasar por esto solo — el CVV escucha 24h, sin juzgar.',
             tendenciaSobreHoje: 'Sobre hoy',
             cvvVariacoes: [
                 'Tu semana ha sido desafiante. No estás solo. Llama al 188 o conversa en línea con el CVV — estamos aquí para ayudarte.',

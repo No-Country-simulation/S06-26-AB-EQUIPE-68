@@ -263,6 +263,7 @@ public class SaudeMentalService {
             - Se o rótulo indicar um momento difícil, ofereca o CVV (188) como recurso disponivel, de forma acolhedora e nunca como bloqueio
             - Se o rótulo indicar um bom momento, seja encorajador e motivador
             - NUNCA cite ou repita a nota numerica em nenhum dos campos, inclusive leituraEmocional
+            - Fale de como a pessoa esta HOJE, a partir do rótulo e do texto deste check-in, sem afirmar nem descrever como foi a semana dela (voce nao tem o historico dela)
             - Responda em %s (idioma escolhido pelo usuario na interface)
             - Retorne APENAS o JSON, sem texto adicional
             """,

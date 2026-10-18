@@ -2,9 +2,13 @@ package com.bitsystem.bitapp.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.bitsystem.bitapp.domain.User;
 import com.bitsystem.bitapp.dto.DicaLazerDto;
+import com.bitsystem.bitapp.dto.NetworkStatusDto;
 import com.bitsystem.bitapp.dto.SugestaoDto;
 import com.bitsystem.bitapp.exception.BusinessException;
 import com.bitsystem.bitapp.seed.DicasLazerSeed;
@@ -12,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -93,5 +98,25 @@ class SugestaoServiceTest {
             .isInstanceOf(BusinessException.class)
             .extracting(ex -> ((BusinessException) ex).getCode())
             .isEqualTo("USUARIO_NAO_ENCONTRADO");
+    }
+
+    @Test
+    void promptDoGemini_mandaFalarDeHojeSemDescreverASemana() throws Exception {
+        User user = new User("Ana", "ana@teste.com", "hash");
+        user.setCidade("TRINDADE");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(saudeMentalService.buscarHistorico(1L)).thenReturn(List.of());
+        when(geolocationService.getNetworkStatus(1L, 5000)).thenReturn(NetworkStatusDto.builder().build());
+        when(lazerService.listarPontos()).thenReturn(List.of());
+        when(geminiClient.isConfigured()).thenReturn(true);
+        when(geminiClient.generateContent(anyString())).thenReturn("{}");
+
+        sugestaoService.gerarSugestoes(1L, "pt");
+
+        ArgumentCaptor<String> prompt = ArgumentCaptor.forClass(String.class);
+        verify(geminiClient).generateContent(prompt.capture());
+        assertThat(prompt.getValue())
+            .contains("HOJE")
+            .contains("sem descrever a semana dele");
     }
 }
