@@ -12,7 +12,7 @@ import org.springframework.core.io.ClassPathResource;
 
 /**
  * Padrões do application.properties para o n8n. Lê o arquivo principal em vez de perguntar ao
- * Environment, que mudaria de resultado se N8N_TIMEOUT, N8N_MAX_RETRIES ou N8N_WEBHOOK_TOKEN
+ * Environment, que mudaria de resultado se N8N_CHECKIN_TIMEOUT, N8N_MAX_RETRIES ou N8N_WEBHOOK_TOKEN
  * estivessem exportadas na máquina de quem roda os testes.
  */
 @SpringBootTest
@@ -30,8 +30,10 @@ class ConfiguracaoN8nTest {
     }
 
     @Test
-    void timeoutPadraoEh15SegundosEUmaTentativa() throws IOException {
-        assertThat(aplicacao().getProperty("n8n.timeout")).isEqualTo("${N8N_TIMEOUT:15000}");
+    void temposPadraoPorTipoDeChamada_eUmaTentativa() throws IOException {
+        assertThat(aplicacao().getProperty("n8n.connect-timeout")).isEqualTo("${N8N_CONNECT_TIMEOUT:1000}");
+        assertThat(aplicacao().getProperty("n8n.mental-health.timeout")).isEqualTo("${N8N_CHECKIN_TIMEOUT:5000}");
+        assertThat(aplicacao().getProperty("n8n.assessment.timeout")).isEqualTo("${N8N_ASSESSMENT_TIMEOUT:23000}");
         assertThat(aplicacao().getProperty("n8n.max-retries")).isEqualTo("${N8N_MAX_RETRIES:1}");
     }
 

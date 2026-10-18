@@ -32,12 +32,12 @@ A tag `fim-hackathon-2026-07-25` marca o estado entregue ao fim do hackathon (De
 
 * Com nota 1 ou 3 o painel do CVV aparece na hora, calculado no navegador com os mesmos limites do backend, antes e independente da resposta. A resposta só atualiza a mensagem de acolhimento e a tendência da semana.
 * Falha, timeout ou sessão vencida não tiram o painel da tela; o modal da nota 1 já traz o 188; fechar o Bit não descarta o painel.
-* Toda chamada do frontend à API tem timeout de 15 s. A regra de derivação no backend não mudou.
+* A chamada do frontend à API é abortada por tempo (hoje: check-in 20 s, avaliação 35 s, o resto 15 s). A regra de derivação no backend não mudou.
 
 **Integração com o n8n** — o workflow respondia com uma lista e o backend esperava outro formato, então descartava a resposta do agente e caía no Gemini direto.
 
 * Contrato alinhado (`{mensagem, acaoSugerida}` no acolhimento), com exemplos em `backend/src/test/resources/contracts/n8n/` e testes de contrato.
-* Webhook com autenticação por cabeçalho (`X-Webhook-Token`, enviado se `N8N_WEBHOOK_TOKEN` existir); URL do app lida da variável `BITAPP_BASE_URL` do n8n; timeout de 15 s e 1 tentativa por padrão; URL do n8n vazia pula o n8n e vai direto ao Gemini.
+* Webhook com autenticação por cabeçalho (`X-Webhook-Token`, enviado se `N8N_WEBHOOK_TOKEN` existir); URL do app lida da variável `BITAPP_BASE_URL` do n8n; tempos por tipo de chamada (check-in 1 s + 5 s, avaliação 1 s + 23 s) e 1 tentativa por padrão; URL do n8n vazia pula o n8n e vai direto ao Gemini.
 * O teste ponta a ponta contra o n8n real ainda não foi feito.
 
 **PWA e mapa**
@@ -449,8 +449,13 @@ docker run -p 8080:8080 -e JWT_SECRET="$(openssl rand -base64 48)" -e GEMINI_API
 | `N8N_ASSESSMENT_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de orientação; **vazio desliga o n8n** e o backend segue direto para o Gemini |
 | `N8N_MENTAL_HEALTH_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de saúde mental; vazio desliga o n8n |
 | `N8N_WEBHOOK_TOKEN` | *(vazio)* | Valor do cabeçalho `X-Webhook-Token`; só é enviado se estiver definido |
-| `N8N_TIMEOUT` | `15000` | Timeout (ms) das chamadas ao n8n (era 40000) |
-| `N8N_MAX_RETRIES` | `1` | Tentativas por chamada ao n8n (era 3) |
+| `N8N_CONNECT_TIMEOUT` | `1000` | Tempo (ms) para conectar ao n8n, em qualquer chamada |
+| `N8N_CHECKIN_TIMEOUT` | `5000` | Tempo (ms) de leitura da resposta do n8n no **check-in** (agente de saúde mental) |
+| `N8N_ASSESSMENT_TIMEOUT` | `23000` | Tempo (ms) de leitura da resposta do n8n na **avaliação de carreira** |
+| `N8N_MAX_RETRIES` | `1` | Tentativas por chamada ao n8n (1 = sem nova tentativa; subir multiplica os tempos acima) |
+| `GEMINI_CONNECT_TIMEOUT` | `1000` | Tempo (ms) para conectar ao Gemini |
+| `GEMINI_CHECKIN_TIMEOUT` | `5000` | Tempo (ms) de leitura do Gemini quando ele responde no lugar do n8n no check-in |
+| `GEMINI_TIMEOUT` | `10000` | Tempo (ms) de leitura do Gemini nas demais chamadas (sugestões, como resolver). Antes valia 30000, mas nunca era aplicado |
 | `ORS_API_KEY` | *(não configurada)* | Chave do OpenRouteService para a rota no mapa; sem ela o botão abre o Google Maps |
 | `DB_URL` | H2 em memória | URL JDBC do banco. Em produção, o PostgreSQL do Neon: `jdbc:postgresql://<host>/<banco>?sslmode=require` (veja "Banco de dados e pool de conexões", abaixo) |
 | `DB_USERNAME` | `sa` | Usuário do banco (o padrão serve ao H2) |
@@ -555,7 +560,7 @@ Registradas para não parecerem mais do que são. Algumas já vinham do hackatho
 * Quando o banco cai, parte dos serviços grava em memória (`FallbackStorage`); esses dados somem no restart e não são sincronizados quando o banco volta.
 * Erros inesperados do servidor respondem HTTP 200 com `success: false` e código `ERRO_INTERNO` (`GlobalExceptionHandler`), o que esconde falhas de quem só olha o status.
 * A candidatura enviada por `POST /api/vagas/enviar-curriculo` usa o `usuarioId` do token, mas ainda aceita `nome` e `e-mail` do corpo da requisição.
-* O timeout de 15 s do frontend pode ser menor que o tempo do backend (o n8n sozinho já pode usar 15 s, e depois entra o Gemini). Num check-in sem derivação (notas 5, 7 e 9) isso mostra erro embora o servidor termine e grave: reenviar duplica o registro e, se a pessoa estiver com a tendência da semana ativa, o painel da tendência (que só vem do backend) não aparece. Com nota 1 ou 3 o painel do CVV já está na tela e não é afetado. O mesmo corte vale para a avaliação de carreira.
+* Os tempos de espera são por tipo de chamada. No backend, o check-in gasta no pior caso cerca de 12 s (n8n com 1 s para conectar e 5 s para ler e, se ele falhar, Gemini com a mesma conta), sem nova tentativa; a avaliação de carreira gasta até cerca de 24 s no n8n. O frontend espera 20 s no check-in, 35 s na avaliação e 15 s no resto, sempre mais que o pior caso do backend. Se a IA ou o n8n responderem mais devagar que isso, o check-in não perde a derivação ao CVV (ela não depende da IA): só a mensagem de acolhimento cai para o texto local. Subir `N8N_MAX_RETRIES` ou os tempos de leitura pode estourar o limite do frontend, e aí um check-in sem derivação (notas 5, 7 e 9) mostra erro embora o servidor termine e grave: reenviar duplicaria o registro.
 
 **Privacidade e LGPD**
 

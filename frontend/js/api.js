@@ -14,9 +14,15 @@ export class ApiError extends Error {
     }
 }
 
-// Toda chamada à API é abortada depois deste tempo (AbortController), para a tela
-// nunca ficar esperando o servidor, o n8n ou o Gemini sem resposta.
-const TIMEOUT_MS = 15000;
+// Toda chamada à API é abortada depois de um tempo (AbortController), para a tela nunca ficar
+// esperando o servidor, o n8n ou o Gemini sem resposta. O tempo depende do tipo de chamada e
+// precisa ser maior que o pior caso do backend (application.properties):
+//   check-in   — 20 s (o backend gasta até cerca de 12 s: n8n e, se falhar, Gemini);
+//   avaliação  — 35 s (o backend gasta até cerca de 24 s no n8n);
+//   o resto    — 15 s.
+const TIMEOUT_PADRAO_MS = 15000;
+const TIMEOUT_CHECKIN_MS = 20000;
+const TIMEOUT_AVALIACAO_MS = 35000;
 
 // 401 = sem token, token vencido ou sessão revogada: limpa o que ficou guardado
 // e leva ao login. Na própria página de login não redireciona (evita loop).
@@ -30,10 +36,11 @@ export function sessaoExpirou() {
 
 // options.redirecionarEm401 = false deixa o 401 com quem chamou (ex.: o check-in
 // de saúde, que não pode tirar o painel do CVV da tela).
+// options.timeoutMs troca o tempo de espera padrão (ver as constantes acima).
 // options.bruto = true devolve o corpo como veio, para as rotas que não usam o
 // envelope {success, data} (POST /api/rota repassa o GeoJSON da ORS).
 async function apiFetch(path, options = {}) {
-    const { redirecionarEm401 = true, bruto = false, ...fetchOptions } = options;
+    const { redirecionarEm401 = true, bruto = false, timeoutMs = TIMEOUT_PADRAO_MS, ...fetchOptions } = options;
     const headers = { 'Content-Type': 'application/json' };
     const token = getToken();
     if (token) {
@@ -41,7 +48,7 @@ async function apiFetch(path, options = {}) {
     }
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     let response;
     let json;
     try {
@@ -104,6 +111,7 @@ export async function saudeCheckin(dados) {
         method: 'POST',
         body: JSON.stringify(dados),
         redirecionarEm401: false,
+        timeoutMs: TIMEOUT_CHECKIN_MS,
     });
 }
 
@@ -179,6 +187,7 @@ export async function assessment(dados, usuarioId = 0) {
     return apiFetch(`/api/assessment?usuarioId=${usuarioId}`, {
         method: 'POST',
         body: JSON.stringify(dados),
+        timeoutMs: TIMEOUT_AVALIACAO_MS,
     });
 }
 

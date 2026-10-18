@@ -4,9 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -33,13 +35,25 @@ public class GeminiClient {
     @Value("${gemini.max-output-tokens:2048}")
     private int maxOutputTokens;
 
-    @Value("${gemini.timeout:30000}")
-    private int timeout;
+    /** Tempo de espera da chamada: o check-in é curto (há um painel de segurança esperando), o resto pode esperar mais. */
+    public enum Espera { CHECKIN, PADRAO }
 
-    private final RestTemplate restTemplate;
+    private final RestTemplate restTemplateCheckin;
+    private final RestTemplate restTemplatePadrao;
 
-    public GeminiClient() {
-        this.restTemplate = new RestTemplate();
+    public GeminiClient(
+            @Value("${gemini.connect-timeout:1000}") int connectTimeout,
+            @Value("${gemini.checkin-timeout:5000}") int checkinTimeout,
+            @Value("${gemini.timeout:10000}") int padraoTimeout) {
+        this.restTemplateCheckin = comTempos(connectTimeout, checkinTimeout);
+        this.restTemplatePadrao = comTempos(connectTimeout, padraoTimeout);
+    }
+
+    private static RestTemplate comTempos(int connectTimeoutMs, int readTimeoutMs) {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofMillis(connectTimeoutMs));
+        factory.setReadTimeout(Duration.ofMillis(readTimeoutMs));
+        return new RestTemplate(factory);
     }
 
     /**
@@ -50,6 +64,11 @@ public class GeminiClient {
      * @throws Exception se a API retornar erro ou a chave nao estiver configurada
      */
     public String generateContent(String prompt) throws Exception {
+        return generateContent(prompt, Espera.PADRAO);
+    }
+
+    /** Igual a {@link #generateContent(String)}, com o tempo de espera do tipo de chamada. */
+    public String generateContent(String prompt, Espera espera) throws Exception {
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException("GEMINI_API_KEY nao configurada. Defina a variavel de ambiente ou o fallback no application.properties.");
         }
@@ -74,6 +93,7 @@ public class GeminiClient {
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
         try {
+            RestTemplate restTemplate = espera == Espera.CHECKIN ? restTemplateCheckin : restTemplatePadrao;
             ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, request, Map.class);
 
             if (response.getBody() == null) {

@@ -74,11 +74,48 @@ class N8NBaseClientTest {
         return Map.of("userId", 7, "nota", 1, "message", relato, "tipo", "mental-health");
     }
 
+    // ── tempo de espera por tipo de chamada ─────────────────────────────
+
+    @Test
+    void leitura_estouraNoTempoDoTipoDeChamada_semNovaTentativa() {
+        servidor.createContext("/webhook/lento", troca -> {
+            chamadas.incrementAndGet();
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            troca.sendResponseHeaders(200, -1);
+            troca.close();
+        });
+        String urlLenta = "http://127.0.0.1:" + servidor.getAddress().getPort() + "/webhook/lento";
+        N8NMentalHealthClient checkin = new N8NMentalHealthClient(urlLenta, 1000, 300, 1, "");
+
+        long inicio = System.nanoTime();
+        org.junit.jupiter.api.Assertions.assertThrows(
+                com.bitsystem.bitapp.exception.BusinessException.class, () -> checkin.process(checkin("qualquer")));
+        long ms = (System.nanoTime() - inicio) / 1_000_000;
+
+        assertThat(ms).as("desistiu no tempo de leitura do check-in, sem esperar o n8n lento").isLessThan(1200);
+        assertThat(chamadas.get()).as("uma tentativa só").isEqualTo(1);
+    }
+
+    @Test
+    void cadaTipoDeChamadaGuardaOsSeusTempos() {
+        N8NMentalHealthClient checkin = new N8NMentalHealthClient(url(), 1000, 5000, 1, "");
+        N8NAssessmentClient avaliacao = new N8NAssessmentClient(url(), 2000, 23000, 1, "");
+
+        assertThat(checkin.connectTimeout).isEqualTo(1000);
+        assertThat(checkin.readTimeout).isEqualTo(5000);
+        assertThat(avaliacao.connectTimeout).isEqualTo(2000);
+        assertThat(avaliacao.readTimeout).isEqualTo(23000);
+    }
+
     // ── contrato de resposta ────────────────────────────────────────────
 
     @Test
     void saudeMental_leMensagemEAcaoSugeridaDoExemploDoContrato() {
-        MentalHealthDto.Response resposta = new N8NMentalHealthClient(url(), 2000, 1, "")
+        MentalHealthDto.Response resposta = new N8NMentalHealthClient(url(), 1000, 2000, 1, "")
                 .process(checkin("qualquer"));
 
         assertThat(resposta.mensagem()).startsWith("Semanas assim cansam mesmo");
@@ -89,7 +126,7 @@ class N8NBaseClientTest {
     void assessment_leOsCincoCamposDoExemploDoContrato() {
         corpoDaResposta = ContratosN8n.texto("assessment.response");
 
-        AssessmentDto.Response resposta = new N8NAssessmentClient(url(), 2000, 1, "")
+        AssessmentDto.Response resposta = new N8NAssessmentClient(url(), 1000, 2000, 1, "")
                 .process(ContratosN8n.ler("assessment.request", AssessmentDto.Request.class));
 
         assertThat(resposta.compatibilidade()).isEqualTo(72);
@@ -100,7 +137,7 @@ class N8NBaseClientTest {
     void respostaEmFormaDeLista_aindaNaoEhLidaComoObjeto_oQueOWorkflowAntigoFazia() {
         // Documenta o defeito corrigido no "Responder": uma lista não vira o objeto esperado.
         corpoDaResposta = "[" + ContratosN8n.texto("mental-health.response") + "]";
-        N8NMentalHealthClient cliente = new N8NMentalHealthClient(url(), 2000, 1, "");
+        N8NMentalHealthClient cliente = new N8NMentalHealthClient(url(), 1000, 2000, 1, "");
 
         org.junit.jupiter.api.Assertions.assertThrows(Exception.class, () -> cliente.process(checkin("qualquer")));
     }
@@ -109,47 +146,47 @@ class N8NBaseClientTest {
 
     @Test
     void urlVazia_naoEstaConfiguradoENaoFazNenhumaChamada() {
-        N8NMentalHealthClient cliente = new N8NMentalHealthClient("", 2000, 3, "");
+        N8NMentalHealthClient cliente = new N8NMentalHealthClient("", 1000, 2000, 3, "");
 
         assertThat(cliente.isConfigured()).isFalse();
         org.junit.jupiter.api.Assertions.assertThrows(com.bitsystem.bitapp.exception.BusinessException.class,
                 () -> cliente.process(checkin("qualquer")));
         assertThat(chamadas.get()).isZero();
-        assertThat(new N8NAssessmentClient("   ", 2000, 3, "").isConfigured()).isFalse();
-        assertThat(new N8NMentalHealthClient(url(), 2000, 1, "").isConfigured()).isTrue();
+        assertThat(new N8NAssessmentClient("   ", 1000, 2000, 3, "").isConfigured()).isFalse();
+        assertThat(new N8NMentalHealthClient(url(), 1000, 2000, 1, "").isConfigured()).isTrue();
     }
 
     // ── autenticação por cabeçalho ──────────────────────────────────────
 
     @Test
     void semToken_naoEnviaOCabecalho() {
-        new N8NMentalHealthClient(url(), 2000, 1, "").process(checkin("qualquer"));
+        new N8NMentalHealthClient(url(), 1000, 2000, 1, "").process(checkin("qualquer"));
 
         assertThat(tokenRecebido.get()).isNull();
     }
 
     @Test
     void tokenEmBranco_naoEnviaOCabecalho() {
-        new N8NMentalHealthClient(url(), 2000, 1, "   ").process(checkin("qualquer"));
+        new N8NMentalHealthClient(url(), 1000, 2000, 1, "   ").process(checkin("qualquer"));
 
         assertThat(tokenRecebido.get()).isNull();
     }
 
     @Test
     void comToken_enviaXWebhookToken_nosDoisClientes() {
-        new N8NMentalHealthClient(url(), 2000, 1, "token-de-teste-123").process(checkin("qualquer"));
+        new N8NMentalHealthClient(url(), 1000, 2000, 1, "token-de-teste-123").process(checkin("qualquer"));
         assertThat(tokenRecebido.get()).isEqualTo("token-de-teste-123");
 
         tokenRecebido.set(null);
         corpoDaResposta = ContratosN8n.texto("assessment.response");
-        new N8NAssessmentClient(url(), 2000, 1, "token-de-teste-123")
+        new N8NAssessmentClient(url(), 1000, 2000, 1, "token-de-teste-123")
                 .process(ContratosN8n.ler("assessment.request", AssessmentDto.Request.class));
         assertThat(tokenRecebido.get()).isEqualTo("token-de-teste-123");
     }
 
     @Test
     void oTokenNuncaApareceNoLog() {
-        new N8NMentalHealthClient(url(), 2000, 1, "token-de-teste-123").process(checkin("qualquer"));
+        new N8NMentalHealthClient(url(), 1000, 2000, 1, "token-de-teste-123").process(checkin("qualquer"));
 
         assertThat(logsEmTexto()).doesNotContain("token-de-teste-123");
     }
@@ -160,7 +197,7 @@ class N8NBaseClientTest {
     void log_naoContemOTextoLivreDoCheckin_soMetadados() {
         String relato = "RELATO-SECRETO-DO-USUARIO nao posso aparecer em log";
 
-        new N8NMentalHealthClient(url(), 2000, 1, "").process(checkin(relato));
+        new N8NMentalHealthClient(url(), 1000, 2000, 1, "").process(checkin(relato));
 
         String tudo = logsEmTexto();
         assertThat(tudo).doesNotContain("RELATO-SECRETO").doesNotContain("userId");
@@ -177,7 +214,7 @@ class N8NBaseClientTest {
         });
 
         org.junit.jupiter.api.Assertions.assertThrows(com.bitsystem.bitapp.exception.BusinessException.class,
-                () -> new N8NMentalHealthClient(url(), 2000, 1, "").process(List.of()));
+                () -> new N8NMentalHealthClient(url(), 1000, 2000, 1, "").process(List.of()));
         assertThat(chamadas.get()).isEqualTo(1);
     }
 }

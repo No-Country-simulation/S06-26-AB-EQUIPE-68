@@ -235,7 +235,7 @@ public class SaudeMentalService {
 
     private SaudeDto.RawResponse chamarGemini(SaudeDto.Request request) throws Exception {
         String prompt = buildPrompt(request);
-        String resposta = geminiClient.generateContent(prompt);
+        String resposta = geminiClient.generateContent(prompt, GeminiClient.Espera.CHECKIN);
         return parsearResposta(resposta);
     }
 
