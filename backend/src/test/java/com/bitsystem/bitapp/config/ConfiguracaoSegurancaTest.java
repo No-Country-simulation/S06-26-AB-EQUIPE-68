@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -20,6 +22,16 @@ class ConfiguracaoSegurancaTest {
 
     @Autowired
     private MockMvc mvc;
+
+    @Autowired
+    private ApplicationContext contexto;
+
+    @Test
+    void semUsuarioPadraoDoSpring_nemSenhaGeradaNoLog() {
+        // Sem UserDetailsService próprio o Spring criaria o usuário "user" com senha aleatória e a
+        // imprimiria no log. A autenticação é só o JWT: nenhum UserDetailsService deve existir.
+        assertThat(contexto.getBeansOfType(UserDetailsService.class)).isEmpty();
+    }
 
     @Test
     void consoleH2_naoAbreSemToken() throws Exception {
