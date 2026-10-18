@@ -62,8 +62,10 @@ info:
 servers:
   - url: http://localhost:8080
     description: Desenvolvimento local
-  - url: https://s06-26-ab-equipe-68.onrender.com
-    description: Produção
+  - url: https://appbit.andreteixeira.dev.br
+    description: Demonstração em produção (endereço principal)
+  - url: https://s06-26-appbit-demo.onrender.com
+    description: Demonstração em produção (endereço alternativo, mesmo serviço)
 
 tags:
   - name: Orientação
