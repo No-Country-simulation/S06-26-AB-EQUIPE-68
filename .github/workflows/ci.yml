@@ -2,6 +2,9 @@ name: CI
 
 # Roda os testes do backend em todo push e em todo pull request.
 # O Dockerfile continua com -DskipTests: esta etapa é a barreira.
+# Parte dos testes sobe um PostgreSQL 16 real (Testcontainers) e precisa do
+# Docker, que o runner ubuntu-latest já traz. Esses testes não são pulados:
+# sem Docker eles falham, e a última etapa confere que rodaram.
 on:
   push:
   pull_request:
@@ -24,5 +27,18 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Docker disponível (testes com PostgreSQL real)
+        working-directory: .
+        run: docker info --format 'Docker {{.ServerVersion}}'
+
       - name: Testes
         run: mvn -B test
+
+      - name: Conferir que os testes com PostgreSQL rodaram
+        run: |
+          for classe in com.bitsystem.bitapp.postgres.PostgresRealTest com.bitsystem.bitapp.service.DemoSeedPostgresTest; do
+            relatorio="target/surefire-reports/TEST-${classe}.xml"
+            test -f "$relatorio" || { echo "Sem relatório de $classe: o teste não rodou"; exit 1; }
+            grep -q 'skipped="0"' "$relatorio" || { echo "$classe teve testes pulados"; exit 1; }
+            grep -o 'tests="[0-9]*" errors="[0-9]*" skipped="[0-9]*" failures="[0-9]*"' "$relatorio" | sed "s|^|$classe: |"
+          done
