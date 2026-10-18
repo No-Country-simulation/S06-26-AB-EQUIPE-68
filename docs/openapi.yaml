@@ -1558,12 +1558,13 @@ components:
 
     CandidaturaVagaRequest:
       type: object
+      description: >
+        Nome e e-mail da candidatura vêm sempre do usuário do token; campos
+        "nome" e "email" enviados no corpo são ignorados.
       required: [vagaId]
       properties:
         vagaId: { type: integer, format: int64 }
         usuarioId: { type: integer, format: int64, nullable: true }
-        nome: { type: string, nullable: true }
-        email: { type: string, format: email, nullable: true }
         mensagem: { type: string, nullable: true }
 
     CandidaturaVagaResponse:

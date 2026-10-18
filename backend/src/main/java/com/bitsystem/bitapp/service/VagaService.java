@@ -35,8 +35,8 @@ public class VagaService {
 
     /**
      * Persiste o envio de currículo para a vaga. usuarioId vem do payload;
-     * se ausente, deriva do usuário autenticado (JWT). Nome/e-mail são
-     * completados a partir do perfil quando não vierem no payload.
+     * se ausente, deriva do usuário autenticado (JWT). Nome e e-mail são
+     * sempre os do usuário do token: o corpo da requisição não os define.
      */
     public CandidaturaVagaDto.Response enviarCurriculo(CandidaturaVagaDto.Request request, String emailAutenticado) {
         Optional<User> autenticado = emailAutenticado != null
@@ -55,12 +55,8 @@ public class VagaService {
         vagaRepository.findById(vagaId)
                 .orElseThrow(() -> new BusinessException("VAGA_NAO_ENCONTRADA", "Vaga não encontrada: " + vagaId));
 
-        String nome = request.nome() != null && !request.nome().isBlank()
-                ? request.nome()
-                : autenticado.map(User::getNome).orElse(null);
-        String email = request.email() != null && !request.email().isBlank()
-                ? request.email()
-                : autenticado.map(User::getEmail).orElse(null);
+        String nome = autenticado.map(User::getNome).orElse(null);
+        String email = autenticado.map(User::getEmail).orElse(null);
 
         CandidaturaVaga candidatura = CandidaturaVaga.builder()
                 .usuarioId(usuarioId)
