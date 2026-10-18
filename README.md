@@ -359,7 +359,7 @@ Backend valida, persiste e responde ao Frontend
 /frontend   → páginas HTML/JS servidas pelo backend no build
 /docs       → contrato OpenAPI 3 da API, plano de testes e o GUIA_EXECUCAO.txt (guia antigo, desatualizado: vale este README)
 /n8n        → export do workflow de produção dos agentes de IA
-/scripts    → scripts PowerShell de apoio (setup-project.ps1 e deploy-full.ps1; rodam a partir da raiz do repositório)
+/scripts    → script PowerShell de apoio (setup-project.ps1; roda a partir da raiz do repositório)
 ```
 
 ---
