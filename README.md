@@ -10,8 +10,14 @@
 </p>
 
 <p align="center">
-  🔗 <strong>Demonstração ao vivo:</strong> <a href="https://s06-26-appbit-demo.onrender.com">s06-26-appbit-demo.onrender.com</a><br/>
+  <a href="https://github.com/No-Country-simulation/S06-26-AB-EQUIPE-68/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/No-Country-simulation/S06-26-AB-EQUIPE-68/actions/workflows/ci.yml/badge.svg"/></a>
+</p>
+
+<p align="center">
+  🔗 <strong>Demonstração ao vivo:</strong> <a href="https://appbit.andreteixeira.dev.br">appbit.andreteixeira.dev.br</a> (principal)<br/>
+  🔗 <strong>Endereço alternativo:</strong> <a href="https://s06-26-appbit-demo.onrender.com">s06-26-appbit-demo.onrender.com</a> (o mesmo serviço)<br/>
   <em>Crie sua conta em segundos pelo "Primeiro Acesso". A instância já vem povoada com vagas, cursos e perfis de exemplo.</em><br/>
+  <em>É uma demonstração: as contas criadas são apagadas automaticamente 30 dias após o cadastro, e não se devem usar dados reais.</em><br/>
   <em>Hospedado no plano gratuito do Render: o primeiro acesso após inatividade pode levar ~1 minuto para o serviço acordar.</em>
 </p>
 
@@ -50,6 +56,35 @@ A tag `fim-hackathon-2026-07-25` marca o estado entregue ao fim do hackathon (De
 * **Cartão do CVV recolhível.** O cartão que guarda o painel depois que o Bit é fechado não tinha como ser recolhido e, no celular, ocupava até 70% da altura da tela. Agora ele pode ser recolhido numa pílula no canto inferior direito, com "Ligar 188" sempre à mão e um botão para abrir de novo. Continua nascendo aberto, e o estado não é guardado: recarregar a página limpa o cartão.
 * **Painel da semana sem contradição.** Com humor bom no dia e a semana pesada, o título "Essa semana parece pesada" aparecia na mesma caixa da mensagem e da sugestão do dia, e o texto se contradizia. Agora a caixa da semana, com os botões do CVV, vem primeiro; a mensagem e a sugestão do dia vêm depois, sob "Sobre hoje", e a sugestão do nível mais positivo fala de hoje, não da semana. Vale para o Bit e para a página Saúde Mental. A regra do CVV no backend não mudou.
 * **Modelo padrão do Gemini.** O padrão passou a ser `gemini-3.5-flash-lite`: o modelo anterior responde 404 para projetos novos do Google, e quem clonasse o projeto com uma chave nova caía nesse erro (em produção já estava contornado pela variável `GEMINI_MODEL`). O workflow do n8n de produção usa o mesmo modelo; o workflow original do hackathon (`n8n/bitapp-agent-workflow.json`) ficou como estava.
+
+**Persistência e demonstração (rodada 2)** — a demonstração rodava em H2 em memória: todo deploy apagava tudo e o seed recriava o cenário. Para ter banco persistente sem acumular o que cada visitante faz:
+
+* **Reset das contas do cenário a cada boot** (`DEMO_SEED=true`). O seed antigo pulava tudo se a conta já existisse; com banco persistente, as 6 contas de demonstração acumulariam o que cada visitante fizesse. Agora o boot apaga check-ins, avaliações, mentorias, inscrições, candidaturas e sessões delas, devolve o perfil e a senha de demonstração, replanta os check-ins de D-5 a D-1 e garante a vaga-âncora sem duplicar, tudo numa transação. Os catálogos (vagas, cursos, mentores e antenas) já pulavam quando havia dados e não duplicam.
+* **Visitantes apagados depois de 30 dias** (`DEMO_RETENCAO_DIAS`, só com `DEMO_SEED=true`), com tudo o que é deles. A demonstração é pública e o banco do plano gratuito é pequeno; o prazo também limita por quanto tempo dados digitados por visitantes ficam guardados. O cadastro avisa, em português e espanhol, que é uma demonstração, que a conta é apagada e que não se devem usar dados reais.
+* **Pool de conexões que deixa o Neon dormir.** O banco do plano gratuito dorme depois de 5 minutos sem conexão e conta as horas acordado; um pool que guarda conexões ociosas nunca o deixaria dormir. O padrão passou a ser nenhuma conexão ociosa, fechamento em 1 minuto e máximo de 5 (variáveis `DB_POOL_*`).
+* **Testes contra PostgreSQL real** (Testcontainers, imagem `postgres:16`, a mesma do `docker-compose.yml`) no `mvn test` e no CI. A suíte só em H2 deixou passar um defeito que só existia em Postgres (o `@Lob` em texto longo); agora o esquema, a gravação e leitura depois de reabrir o contexto, o reset e a retenção rodam no banco de produção. Sem Docker esses testes falham, não são pulados.
+
+**CVV e consentimento (rodada 2)** — quem estava mal de verdade e não queria apoio naquele momento não conseguia registrar o check-in, e a tendência da semana deixava de ver justamente os dias mais pesados.
+
+* **"Não quero apoio agora"** no modal da nota 1, ao lado de "Sim, quero apoio" e "Cliquei sem querer". Grava o check-in normalmente e mostra o acolhimento com uma linha discreta do 188, sem painel do CVV e sem cartão fixo depois. A recusa vale só para aquele check-in e nada fica guardado no navegador. "Cliquei sem querer", Esc, clique fora e o novo botão ✕ (no celular não há Esc) não gravam nada. O backend segue classificando a nota 1 do mesmo jeito.
+* **A caixa da semana diz de onde vem o alerta** ("pelos seus check-ins dos últimos dias"), porque quem escreveu "semana boa" via "Essa semana parece pesada" enquanto a resposta gerada pelo Gemini dizia que a semana ia bem: as duas fontes discordavam sem explicação. Os prompts do Gemini (saúde mental e sugestões) e o do n8n agora mandam falar de como a pessoa está hoje, sem afirmar como foi a semana dela.
+* **Posição do modal do Bit.** Quando a resposta traz o CVV, o modal trava o topo antes de o formulário sair, para as sugestões que chegam depois não subirem o botão "Ligar 188" sob o dedo de quem está em crise. Ao fechar o Bit com o painel indo para o cartão fixo, o foco vai para o botão Recolher, em vez de cair no `body`.
+
+**Tempos de espera e erros (rodada 2)**
+
+* **Tempos por tipo de chamada.** Um limite só (15 s) não servia ao check-in com o n8n de volta. O check-in gasta no pior caso cerca de 12 s no backend (n8n e, se falhar, Gemini, sem nova tentativa) e o frontend espera 20 s; a avaliação espera até 24 s no n8n e o frontend 35 s; o resto segue 15 s. O `GeminiClient` lia `GEMINI_TIMEOUT` e nunca o aplicava; agora aplica.
+* **Erro inesperado devolve HTTP 500** com o mesmo corpo (`ERRO_INTERNO`). Antes devolvia 200 com `success: false`, o que escondia a falha de quem só olha o status. Erros do cliente que o Spring já classifica (JSON ilegível, método não aceito, rota inexistente) continuam 4xx.
+
+**Limpezas (rodada 2)**
+
+* Dashboard: os dois grids que faltavam começam em uma coluna no celular, como a lista de cursos (sem isso a coluna única tinha a largura do maior filho e estourava a tela).
+* O `pinData` do workflow v2 do n8n foi esvaziado: guardava dados de uma execução de teste, com um endereço IP.
+* `scripts/deploy-full.ps1` foi removido: sobrescrevia o `Dockerfile` e o `docker-compose.yml` a partir de modelos fixos.
+* O comentário do `backend/.env.example` dizia que chaves do Gemini que começam com "AQ." não funcionam; é o formato novo do AI Studio. O texto agora manda copiar a chave exatamente como é mostrada.
+* O boot não imprime mais "Using generated security password": o usuário padrão do Spring não tinha por onde entrar (só há JWT) e a linha confundia quem lê o log.
+* O envio de currículo usa nome e e-mail do usuário do token; os do corpo da requisição são ignorados.
+* O OpenAPI lista os endereços da demonstração no lugar de um endereço antigo.
+* **Integração contínua** (GitHub Actions, `.github/workflows/ci.yml`): roda `mvn test` em todo push e pull request, inclusive os testes com PostgreSQL real, e confere que eles não foram pulados. O selo no topo mostra o resultado.
 
 **Organização e documentação** — scripts movidos para `scripts/`, guia antigo para `docs/`, contrato OpenAPI com a coluna de acesso corrigida e o termo "RAG" trocado por "consulta à base curada", já que roadmaps e catálogo são consultas diretas, sem busca por similaridade.
 
@@ -261,15 +296,26 @@ Limitações conhecidas: ver a seção [Limitações Conhecidas](#limitações-c
 
 Com a variável `DEMO_SEED=true`, a aplicação sobe povoada com 6 perfis realistas, check-ins históricos e uma vaga-âncora com compatibilidade 100% — ideal para avaliação sem depender de cadastro manual. Por padrão (`false`), nada é semeado além dos catálogos.
 
+A cada boot com `DEMO_SEED=true`:
+
+* as 6 contas do cenário voltam ao estado original: o que cada visitante fez nelas (check-ins, avaliações, mentorias, inscrições, candidaturas e sessões) é apagado, o perfil e a senha de demonstração são restaurados e os check-ins de D-5 a D-1 são replantados, tudo numa transação; a vaga-âncora não é duplicada;
+* as contas de visitantes (as que não são do cenário) criadas há mais de `DEMO_RETENCAO_DIAS` dias (padrão 30) são apagadas, com tudo o que é delas. O log diz quantas, nunca quais.
+
+O cadastro avisa que a conta será apagada em 30 dias; se mudar `DEMO_RETENCAO_DIAS`, ajuste também o texto `cadastro.avisoDemoTexto` em `frontend/js/i18n.js` (um teste confere que o número do texto bate com o padrão do backend).
+
 ---
 
 # 🧩 Fase 2 — Novas Entregas
 
 Sprint concluída com 4 requisitos em produção, complementando as funcionalidades da Fase 1 acima.
 
-## 🗄️ Persistência PostgreSQL (Render)
+## 🗄️ Persistência: PostgreSQL no Neon
 
-Os dados agora sobrevivem a restarts: em produção a aplicação roda sobre **PostgreSQL** (serviço gerenciado no Render), configurado pelas mesmas variáveis `DB_URL`/`DB_USERNAME`/`DB_PASSWORD` já usadas para MySQL. O **H2 em memória continua sendo o padrão local** e a base da suíte de testes automatizados — nada muda para quem só quer rodar o projeto na própria máquina. Para desenvolvimento local com Postgres, o repositório inclui um serviço `postgres` (imagem `postgres:16`) no `docker-compose.yml`.
+Em produção a aplicação roda sobre **PostgreSQL no Neon** (plano gratuito), apontado pelas variáveis `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`; o formato da URL e o motivo do pool sem conexões ociosas estão em [Variáveis de ambiente](#variáveis-de-ambiente-principais). O **H2 em memória é o padrão local** e a base da maior parte da suíte de testes: sem `DB_URL`, nada muda para quem só quer rodar o projeto na própria máquina. Para desenvolvimento local com Postgres, o repositório inclui um serviço `postgres` (imagem `postgres:16`) no `docker-compose.yml`.
+
+O plano gratuito do Neon tem 100 horas de computação por mês e a computação dorme depois de 5 minutos sem conexão; por isso o primeiro acesso depois de um tempo parado é mais lento.
+
+Com banco persistente e `DEMO_SEED=true`, a cada boot a aplicação **restaura as 6 contas do cenário de demonstração** ao estado original e **apaga os visitantes com mais de 30 dias** (`DEMO_RETENCAO_DIAS`); veja [Modo Demonstração](#-modo-demonstração). O esquema é criado pelo Hibernate (`ddl-auto=update`), sem migrações versionadas.
 
 ## 📈 Histórico de Orientações — "Minha Trilha"
 
@@ -315,7 +361,7 @@ UI[Frontend — HTML/JS/Tailwind/Leaflet<br/>servido pelo próprio backend]
 
 API[Spring Boot API — porta 8080]
 
-DB[(H2 em memória — padrão local<br/>PostgreSQL em produção via ambiente)]
+DB[(H2 em memória — padrão local<br/>PostgreSQL no Neon em produção, via ambiente)]
 
 N8N[n8n Cloud — roteamento determinístico]
 
@@ -376,8 +422,8 @@ Backend valida, persiste e responde ao Frontend
 
 ## Banco de Dados
 
-* **H2 em memória (padrão local)** — decisão deliberada para o hackathon: zero infraestrutura, sobe em qualquer máquina. Os dados são reiniciados a cada restart; o Modo Demonstração repovoa tudo automaticamente. Também é a base da suíte de testes automatizados.
-* **PostgreSQL em produção (Render)** — persistência real desde a Fase 2, configurada pelas mesmas variáveis de ambiente (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`). MySQL também suportado pelo mesmo mecanismo.
+* **H2 em memória (padrão local)** — decisão deliberada para o hackathon: zero infraestrutura, sobe em qualquer máquina. Os dados são reiniciados a cada restart; o Modo Demonstração repovoa tudo automaticamente. É a base da maior parte da suíte de testes automatizados.
+* **PostgreSQL no Neon (produção)** — persistência real, configurada pelas variáveis de ambiente `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`. O esquema é criado pelo Hibernate (`ddl-auto=update`), sem migrações versionadas. Parte da suíte roda contra um PostgreSQL 16 real (Testcontainers). MySQL também é suportado pelo mesmo mecanismo.
 
 ## Inteligência Artificial
 
@@ -463,7 +509,8 @@ docker run -p 8080:8080 -e JWT_SECRET="$(openssl rand -base64 48)" -e GEMINI_API
 | `DB_POOL_MAX_SIZE` | `5` | Máximo de conexões do pool (HikariCP) |
 | `DB_POOL_MIN_IDLE` | `0` | Conexões ociosas mantidas abertas; `0` = nenhuma |
 | `DB_POOL_IDLE_TIMEOUT_MS` | `60000` | Tempo (ms) até uma conexão ociosa ser fechada |
-| `DEMO_SEED` | `false` | `true` = povoar dados de demonstração |
+| `DEMO_SEED` | `false` | `true` = a cada boot, restaura as 6 contas do cenário de demonstração e apaga visitantes vencidos (veja `DEMO_RETENCAO_DIAS`) |
+| `DEMO_RETENCAO_DIAS` | `30` | Só com `DEMO_SEED=true`: contas de visitantes (fora do cenário) com mais de tantos dias são apagadas no boot, com tudo o que é delas; menor que 1 desliga. O texto do aviso no cadastro cita 30 dias |
 | `VISENT_ENABLED` | `true` | Ingestão do dataset Vísent na inicialização |
 
 ### Banco de dados e pool de conexões
@@ -491,7 +538,9 @@ cd backend
 mvn test
 ```
 
-Suíte com **211 execuções de teste** (contando os casos parametrizados), em H2, cobrindo, entre outros, as regras determinísticas de derivação ao CVV, o match de vagas, os serviços de domínio, a matriz de autorização por rota (sem token 401, token de outro usuário 403, dono 200), o contrato com o n8n e o JSON do workflow versionado. Os testes não rodam no build Docker (`-DskipTests`) e usam H2, não PostgreSQL.
+Suíte com **259 execuções de teste** (contando os casos parametrizados), cobrindo, entre outros, as regras determinísticas de derivação ao CVV, o match de vagas, os serviços de domínio, a matriz de autorização por rota (sem token 401, token de outro usuário 403, dono 200), o contrato com o n8n, o JSON do workflow versionado, os tempos de espera e o reset e a retenção das contas de demonstração. Os testes não rodam no build Docker (`-DskipTests`).
+
+**Docker é necessário para rodar a suíte inteira.** 12 testes sobem um PostgreSQL 16 real com Testcontainers (a mesma imagem do `docker-compose.yml`); sem Docker eles falham com uma mensagem clara, não são pulados em silêncio. O restante usa H2. No GitHub Actions o Docker já vem no runner, e a última etapa do CI confere que os testes com PostgreSQL rodaram.
 
 ---
 
@@ -557,14 +606,15 @@ Registradas para não parecerem mais do que são. Algumas já vinham do hackatho
 * O agrupamento diário dos check-ins (e a tendência semanal) usa o fuso do servidor (no Render costuma ser UTC; não verificado); se for UTC, perto da meia-noite do horário de Brasília o "dia" vira antes.
 * Não há limite de requisições (rate limiting) em nenhuma rota, inclusive as que chamam IA.
 * O Google retira modelos Gemini de projetos novos sem aviso: um modelo que funcionava pode passar a responder 404 para quem cria uma chave agora. Na integração direta do Java, o modelo se troca pela variável `GEMINI_MODEL`, sem mudar código; nos workflows do n8n, o modelo está fixo na URL dos nós que chamam o Gemini e se troca no próprio workflow (o workflow original do hackathon, `n8n/bitapp-agent-workflow.json`, segue com o modelo anterior). Cada check-in feito pelo Bit faz duas chamadas ao Gemini (acolhimento e sugestões); na página Saúde Mental as sugestões são buscadas uma vez, ao abrir a página. Isso pesa no limite do plano gratuito do Google.
+* O esquema do banco é criado pelo Hibernate (`spring.jpa.hibernate.ddl-auto=update`), sem migrações versionadas: o Hibernate acrescenta tabelas e colunas, mas não renomeia nem remove, e uma mudança de modelo incompatível precisa de intervenção manual no banco.
+* O banco do plano gratuito do Neon dorme depois de 5 minutos sem conexão (e, se as 100 horas mensais acabarem, fica suspenso até o mês seguinte): o primeiro acesso depois de um tempo parado é mais lento, porque espera o banco acordar.
 * Quando o banco cai, parte dos serviços grava em memória (`FallbackStorage`); esses dados somem no restart e não são sincronizados quando o banco volta.
-* A candidatura enviada por `POST /api/vagas/enviar-curriculo` usa o `usuarioId` do token, mas ainda aceita `nome` e `e-mail` do corpo da requisição.
-* Os tempos de espera são por tipo de chamada. No backend, o check-in gasta no pior caso cerca de 12 s (n8n com 1 s para conectar e 5 s para ler e, se ele falhar, Gemini com a mesma conta), sem nova tentativa; a avaliação de carreira gasta até cerca de 24 s no n8n. O frontend espera 20 s no check-in, 35 s na avaliação e 15 s no resto, sempre mais que o pior caso do backend. Se a IA ou o n8n responderem mais devagar que isso, o check-in não perde a derivação ao CVV (ela não depende da IA): só a mensagem de acolhimento cai para o texto local. Subir `N8N_MAX_RETRIES` ou os tempos de leitura pode estourar o limite do frontend, e aí um check-in sem derivação (notas 5, 7 e 9) mostra erro embora o servidor termine e grave: reenviar duplicaria o registro.
+* Os tempos de espera são por tipo de chamada. No backend, o check-in gasta no pior caso cerca de 12 s (n8n com 1 s para conectar e 5 s para ler e, se ele falhar, Gemini com a mesma conta), sem nova tentativa; a avaliação de carreira gasta até cerca de 24 s no n8n. O frontend espera 20 s no check-in, 35 s na avaliação e 15 s no resto, sempre mais que o pior caso do backend. Se o Gemini ou o n8n responderem mais devagar que isso, o check-in não perde a derivação ao CVV (ela não depende do Gemini nem do n8n): só a mensagem de acolhimento cai para o texto local. Subir `N8N_MAX_RETRIES` ou os tempos de leitura pode estourar o limite do frontend, e aí um check-in sem derivação (notas 5, 7 e 9) mostra erro embora o servidor termine e grave: reenviar duplicaria o registro.
 
 **Privacidade e LGPD**
 
-* O aviso de privacidade existe, mas faltam o consentimento registrado, a política de retenção e a exclusão de conta e de dados: check-ins e avaliações ficam sem prazo, e o texto livre do check-in é enviado ao n8n e ao Gemini.
-* As contas do Modo Demonstração (`DEMO_SEED=true`) usam uma senha fixa e pública no código; ligue o modo só em ambiente de demonstração.
+* O aviso de privacidade existe, mas faltam o consentimento registrado e a exclusão de conta e de dados pela própria pessoa. A única retenção que existe é a da demonstração (visitantes apagados depois de 30 dias, só com `DEMO_SEED=true`); fora dela, check-ins e avaliações ficam sem prazo. O texto livre do check-in é enviado ao n8n e ao Gemini.
+* As contas do Modo Demonstração (`DEMO_SEED=true`) usam uma senha fixa e pública no código; ligue o modo só em ambiente de demonstração. Como a senha é pública, qualquer pessoa pode entrar nelas e ver o que a anterior fez até o reset do próximo boot.
 
 **Frontend**
 
@@ -575,7 +625,7 @@ Registradas para não parecerem mais do que são. Algumas já vinham do hackatho
 
 **Testes e processo**
 
-* A suíte roda em H2, nunca em PostgreSQL real, e o `Dockerfile` usa `-DskipTests`. O n8n só é simulado nos testes do cliente e do contrato (servidor HTTP local e exemplos JSON); o workflow real não é executado, e o Gemini não é simulado.
+* A maior parte da suíte roda em H2; só os testes do esquema, da persistência, do reset e da retenção rodam em PostgreSQL real (Testcontainers), e o `Dockerfile` usa `-DskipTests`. O n8n só é simulado nos testes do cliente e do contrato (servidor HTTP local e exemplos JSON); o workflow real não é executado, e o Gemini não é simulado.
 * O histórico do git tem autores com nomes e e-mails diferentes para a mesma pessoa; um `.mailmap` resolveria.
 * O projeto está no Spring Boot 3.3.4; a atualização para uma linha mais nova não foi feita e deve ser planejada (vale a versão declarada no `pom.xml`).
 
