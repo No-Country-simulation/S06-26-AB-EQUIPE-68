@@ -449,9 +449,15 @@ function renderRespostaSemApoio(bubblesEl, data) {
 }
 
 function renderRespostaBit(bubblesEl, data) {
-    if (data.leituraEmocional) {
-        addBitBubble(bubblesEl, `<span class="italic text-slate-300">${escapeHtml(data.leituraEmocional)}</span>`);
-    }
+    const comCvv = Boolean(data.nivelDerivacao || data.tendenciaSemana);
+    const leituraEmocional = () => {
+        if (data.leituraEmocional) {
+            addBitBubble(bubblesEl, `<span class="italic text-slate-300">${escapeHtml(data.leituraEmocional)}</span>`);
+        }
+    };
+    // Com CVV a leitura emocional vem DEPOIS do painel (como em enviarComCvv): se viesse antes,
+    // empurraria o botão "Ligar 188" para baixo, até a borda do modal no celular.
+    if (!comCvv) leituraEmocional();
 
     const { row, els } = criarPainelResposta(bubblesEl);
     renderNivelDerivacaoPanel(els, data);
@@ -459,7 +465,7 @@ function renderRespostaBit(bubblesEl, data) {
     // A tendência da semana (ou um nível vindo do servidor) também leva o CVV: se o Bit já foi
     // fechado quando a resposta chega, o painel vai direto para o cartão fixo, e se for fechado
     // depois, dispensar() o preserva.
-    if (data.nivelDerivacao || data.tendenciaSemana) {
+    if (comCvv) {
         fixarPosicaoDoModal(); // as sugestões que chegam depois não podem subir os botões do CVV
         painelCvvRow = row;
         if (!bubblesEl.isConnected) preservarPainelCvv(row);
@@ -478,6 +484,7 @@ async function iniciarBit() {
 
     const bubblesEl = criarModal();
     if (!bubblesEl) return;
+        leituraEmocional();
 
     perguntarCheckinDiario(bubblesEl);
 }
