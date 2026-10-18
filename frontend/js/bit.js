@@ -144,8 +144,12 @@ function dispensar() {
     // Só esconde na visualização atual — sem localStorage, reload sempre traz o Bit de volta.
     // O painel do CVV, se existir, NUNCA é descartado: vai para o cartão fixo, que nasce aberto.
     document.removeEventListener('keydown', onEscKey);
-    if (painelCvvRow) preservarPainelCvv(painelCvvRow);
+    const levouPainel = Boolean(painelCvvRow);
+    if (levouPainel) preservarPainelCvv(painelCvvRow);
     document.getElementById('bitOverlay')?.remove();
+    // Sem isto o foco cairia no body ao remover o modal, e quem navega por teclado ou leitor de
+    // tela perderia o lugar: vai para o Recolher do cartão, que acabou de receber o painel.
+    if (levouPainel) document.querySelector('#bitCvvFixo [data-cvv-recolher]')?.focus();
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -345,6 +349,9 @@ function perguntarCheckinDiario(bubblesEl) {
 
         try {
             const data = await saudeCheckin(dados);
+            // Resposta com CVV (nível ou tendência da semana): trava a posição do modal ANTES de o
+            // formulário sair, para o painel e as sugestões que chegam depois não moverem os botões.
+            if (!recusouApoio && (data.nivelDerivacao || data.tendenciaSemana)) fixarPosicaoDoModal();
             moodWrap.remove();
             formWrap.remove();
             if (notaEscolhida) addUserBubble(bubblesEl, nivelPorNota(notaEscolhida)?.emoji || '');
@@ -387,7 +394,9 @@ function criarPainelResposta(bubblesEl) {
 function fixarPosicaoDoModal() {
     const overlay = document.getElementById('bitOverlay');
     const box = document.getElementById('bitModalBox');
-    if (!overlay || !box) return;
+    // Já travado: uma segunda medida pegaria o modal depois de o formulário sair e o moveria de novo.
+    if (!overlay || !box || overlay.dataset.posicaoFixa) return;
+    overlay.dataset.posicaoFixa = '1';
     const topo = Math.max(16, Math.round(box.getBoundingClientRect().top));
     overlay.classList.remove('items-center');
     overlay.classList.add('items-start');
@@ -451,6 +460,7 @@ function renderRespostaBit(bubblesEl, data) {
     // fechado quando a resposta chega, o painel vai direto para o cartão fixo, e se for fechado
     // depois, dispensar() o preserva.
     if (data.nivelDerivacao || data.tendenciaSemana) {
+        fixarPosicaoDoModal(); // as sugestões que chegam depois não podem subir os botões do CVV
         painelCvvRow = row;
         if (!bubblesEl.isConnected) preservarPainelCvv(row);
     }
