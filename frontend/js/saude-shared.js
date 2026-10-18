@@ -181,6 +181,15 @@ export function mostrarErroSalvar(els) {
     msg.textContent = t('saude.erroSalvar');
 }
 
+// Falha de envio depois de "Não quero apoio agora": o modal que trazia o 188 já fechou, então o aviso
+// de erro vem acompanhado da mesma linha discreta, e o 401 não leva ao login (ver saudeCheckin).
+export function mostrarErroSalvarSemPainel(els, erro) {
+    mostrarErroSalvar(els);
+    if (erro?.status === 401) els.msg.textContent = t('saude.sessaoExpiradaCvv');
+    els.action.className = 'mt-3 text-xs text-slate-400';
+    els.action.innerHTML = t('saude.cvvSeMudarDeIdeia');
+}
+
 // Renderiza o acolhimento a partir da resposta do servidor, quando NÃO há painel
 // local do CVV na tela (nota 5/7/9, check-in só-texto) ou como rede de segurança.
 // Prioridade visual: REFORCADO > PREVENTIVO > tendência semanal (sem gatilho hoje)

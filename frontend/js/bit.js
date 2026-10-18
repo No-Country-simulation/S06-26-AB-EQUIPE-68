@@ -329,6 +329,7 @@ function perguntarCheckinDiario(bubblesEl) {
             const escolha = await pedirConsentimento();
             if (escolha === 'cancelou') { // "cliquei sem querer": não grava, não avança
                 botaoEnviar.disabled = false;
+                botaoEnviar.focus(); // sem isto o foco cairia no body ao fechar o modal
                 return;
             }
             // "Não quero apoio agora": grava como qualquer check-in, sem o painel do CVV.
@@ -358,10 +359,14 @@ function perguntarCheckinDiario(bubblesEl) {
             if (contexto) addUserBubble(bubblesEl, contexto);
             if (recusouApoio) renderRespostaSemApoio(bubblesEl, data); else renderRespostaBit(bubblesEl, data);
         } catch (err) {
-            if (err?.status === 401) { sessaoExpirou(); return; }
+            // Quem recusou o apoio com nota 1 não pode ficar sem o 188 nem ser levado ao login: o modal
+            // que o trazia já fechou. Nos demais casos o 401 continua levando ao login.
+            if (err?.status === 401 && !recusouApoio) { sessaoExpirou(); return; }
             // Falha ou timeout sem CVV em jogo: aviso no próprio formulário, sem alert().
             botaoEnviar.disabled = false;
             botaoEnviar.textContent = t('saude.enviarRegistro');
+            erroEl.textContent = err?.status === 401 ? t('saude.sessaoExpiradaCvv') : t('saude.erroSalvar');
+            if (recusouApoio) mostrarLinhaDiscretaCvv(erroEl);
             erroEl.classList.remove('hidden');
         }
     });
@@ -435,6 +440,16 @@ async function enviarComCvv(bubblesEl, { moodWrap, formWrap }, dados, nivelLocal
     linkAgoraNao(bubblesEl);
 }
 
+// Linha discreta do 188 logo abaixo do aviso de erro (uma só, mesmo que o envio falhe de novo).
+function mostrarLinhaDiscretaCvv(erroEl) {
+    if (erroEl.parentElement.querySelector('[data-cvv-discreto]')) return;
+    const linha = document.createElement('p');
+    linha.dataset.cvvDiscreto = '';
+    linha.className = 'text-xs text-slate-400';
+    linha.innerHTML = t('saude.cvvSeMudarDeIdeia');
+    erroEl.after(linha);
+}
+
 // "Não quero apoio agora": só o acolhimento e a linha discreta do 188. Não guarda o painel
 // (painelCvvRow fica como está), então fechar o Bit não cria o cartão fixo do CVV.
 function renderRespostaSemApoio(bubblesEl, data) {
@@ -469,6 +484,7 @@ function renderRespostaBit(bubblesEl, data) {
         fixarPosicaoDoModal(); // as sugestões que chegam depois não podem subir os botões do CVV
         painelCvvRow = row;
         if (!bubblesEl.isConnected) preservarPainelCvv(row);
+        leituraEmocional();
     }
 
     renderSugestoes(bubblesEl);
@@ -484,7 +500,6 @@ async function iniciarBit() {
 
     const bubblesEl = criarModal();
     if (!bubblesEl) return;
-        leituraEmocional();
 
     perguntarCheckinDiario(bubblesEl);
 }

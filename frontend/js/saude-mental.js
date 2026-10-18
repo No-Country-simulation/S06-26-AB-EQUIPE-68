@@ -7,7 +7,7 @@ import { t, getIdioma } from './i18n.js';
 import {
     nivelPorNota, nivelDerivacaoLocal, cvvBlocoHtml, renderNivelDerivacaoPanel,
     renderCvvImediato, atualizarAcolhimento, marcarAcolhimentoIndisponivel, mostrarErroSalvar,
-    renderAcolhimentoSemPainel,
+    renderAcolhimentoSemPainel, mostrarErroSalvarSemPainel,
 } from './saude-shared.js';
 import { escapeHtml } from './escape.js';
 
@@ -112,6 +112,7 @@ async function enviarCheckin({ recusouApoio = false } = {}) {
         else renderNivelDerivacaoPanel(els, data);
     } catch (err) {
         if (nivelLocal) marcarAcolhimentoIndisponivel(els, err);   // o painel do CVV fica
+        else if (recusouApoio) mostrarErroSalvarSemPainel(els, err); // sem o modal do 188 e sem ir ao login
         else if (err?.status === 401) sessaoExpirou();
         else mostrarErroSalvar(els);
     }
@@ -127,6 +128,11 @@ function abrirConfirmacao() {
     document.getElementById('confirmSim')?.focus(); // foco no modal: os links do CVV ficam alcançáveis pelo teclado
 }
 function fecharConfirmacao() { confirmModal?.classList.add('hidden'); }
+// Cancelar (✕, "Cliquei sem querer", Esc, clique fora): o foco volta ao botão de enviar, em vez de cair no body.
+function cancelarConfirmacao() {
+    fecharConfirmacao();
+    formSaude?.querySelector('button[type="submit"]')?.focus();
+}
 
 document.getElementById('confirmSim')?.addEventListener('click', () => {
     fecharConfirmacao();
@@ -139,10 +145,10 @@ document.getElementById('confirmRecusa')?.addEventListener('click', () => {
 });
 // "Cliquei sem querer" e o ✕ (no celular não há Esc): cancelam o envio, não gravam nada.
 // O usuário pode reescolher o nível.
-document.getElementById('confirmNao')?.addEventListener('click', fecharConfirmacao);
-document.getElementById('confirmFechar')?.addEventListener('click', fecharConfirmacao);
-confirmModal?.addEventListener('click', (e) => { if (e.target === confirmModal) fecharConfirmacao(); });
-confirmModal?.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharConfirmacao(); });
+document.getElementById('confirmNao')?.addEventListener('click', cancelarConfirmacao);
+document.getElementById('confirmFechar')?.addEventListener('click', cancelarConfirmacao);
+confirmModal?.addEventListener('click', (e) => { if (e.target === confirmModal) cancelarConfirmacao(); });
+confirmModal?.addEventListener('keydown', (e) => { if (e.key === 'Escape') cancelarConfirmacao(); });
 
 formSaude?.addEventListener('submit', async (event) => {
     event.preventDefault();
