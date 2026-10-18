@@ -120,7 +120,8 @@ public class DemoSeedService implements CommandLineRunner {
 
         log.info("DemoSeedService: restaurando o cenário de demonstração...");
         ResultadoReset r = restaurarCenario();
-        log.info("DemoSeedService: {} contas do cenário restauradas ({} criadas, {} registros de uso apagados), "
+        log.info("DemoSeedService: {} contas do cenário restauradas ({} criadas, {} registros apagados, "
+                        + "inclui os check-ins do cenário, replantados em seguida), "
                         + "{} check-ins plantados (D-5 a D-1, hoje vazio), vaga âncora {}",
                 r.contas(), r.contasCriadas(), r.linhasApagadas(), r.checkinsPlantados(),
                 r.ancoraCriada() ? "plantada" : "já existia");
