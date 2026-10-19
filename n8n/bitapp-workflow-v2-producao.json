@@ -62,7 +62,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Prompt do agente de ACOLHIMENTO (saúde mental).\n// Regras invioláveis do App BiT: o agente só gera TEXTO de acolhimento.\n// Ele NUNCA decide/menciona derivação ao CVV e NUNCA cita nota numérica.\nconst d = $('Normalizar Entrada').first().json;\nconst lang = d.idioma === 'es' ? 'espanhol (neutro latino-americano, tuteo: te/ti/tu)' : 'português do Brasil';\nconst offline = d.conectividade === 'fraca'\n  ? '\\n- A conexão do usuário está fraca: priorize ações OFFLINE (caminhada, respiração, escrita, leitura em papel).'\n  : '';\n\nconst prompt = `Você é o Bit, agente de acolhimento emocional do App BiT.\\n` +\n`Estado emocional declarado pelo usuário: ${d.humor || 'não informado'}.\\n` +\n`O que a pessoa escreveu (opcional): \"${d.contexto || ''}\"\\n\\n` +\n`Sua tarefa: escrever uma resposta de acolhimento breve e humana, no espírito de escutar sem julgar.\\n\\n` +\n`REGRAS OBRIGATÓRIAS:\\n` +\n`- Responda SOMENTE com JSON válido, sem markdown, sem cercas de código.\\n` +\n`- Shape exato: {\"mensagem\": string, \"acaoSugerida\": string}\\n` +\n`- mensagem: 2 a 4 frases, empática, específica ao que a pessoa disse. NUNCA cite notas ou números de avaliação.\\n` +\n`- acaoSugerida: UMA ação concreta e imediata (ex.: um capítulo de livro, um episódio de podcast, caminhar, respiração 4-4-6).\\n` +\n`- NUNCA mencione encaminhamentos, CVV, telefones de apoio ou decisões de crise — isso é responsabilidade de outro sistema.\\n` +\n`- Não faça diagnósticos nem use rótulos clínicos.\\n` +\n`- Escreva em ${lang}.${offline}`;\n\nreturn [{ json: { prompt } }];"
+        "jsCode": "// Prompt do agente de ACOLHIMENTO (saúde mental).\n// Regras invioláveis do App BiT: o agente só gera TEXTO de acolhimento.\n// Ele NUNCA decide/menciona derivação ao CVV e NUNCA cita nota numérica.\nconst d = $('Normalizar Entrada').first().json;\nconst lang = d.idioma === 'es' ? 'espanhol (neutro latino-americano, tuteo: te/ti/tu)' : 'português do Brasil';\nconst offline = d.conectividade === 'fraca'\n  ? '\\n- A conexão do usuário está fraca: priorize ações OFFLINE (caminhada, respiração, escrita, leitura em papel).'\n  : '';\n\nconst prompt = `Você é o Bit, agente de acolhimento emocional do App BiT.\\n` +\n`Estado emocional declarado pelo usuário: ${d.humor || 'não informado'}.\\n` +\n`O que a pessoa escreveu (opcional): \"${d.contexto || ''}\"\\n\\n` +\n`Sua tarefa: escrever uma resposta de acolhimento breve e humana, no espírito de escutar sem julgar.\\n\\n` +\n`REGRAS OBRIGATÓRIAS:\\n` +\n`- Responda SOMENTE com JSON válido, sem markdown, sem cercas de código.\\n` +\n`- Shape exato: {\"mensagem\": string, \"acaoSugerida\": string}\\n` +\n`- mensagem: 2 a 4 frases, empática, específica ao que a pessoa disse. NUNCA cite notas ou números de avaliação.\\n` +\n`- acaoSugerida: UMA ação concreta e imediata (ex.: um capítulo de livro, um episódio de podcast, caminhar, respiração 4-4-6).\\n` +\n`- NUNCA mencione encaminhamentos, CVV, telefones de apoio ou decisões de crise — isso é responsabilidade de outro sistema.\\n` +\n`- Não faça diagnósticos nem use rótulos clínicos.\\n` +\n`- Fale de como a pessoa está HOJE, a partir do estado declarado e do texto deste check-in. NÃO afirme nem descreva como foi a semana dela: você não vê o histórico.\\n` +\n`- Escreva em ${lang}.${offline}`;\n\nreturn [{ json: { prompt } }];"
       },
       "id": "f3d31642-2cb8-49d3-b37f-da44c46a85ce",
       "name": "Montar Prompt Acolhimento",
@@ -207,61 +207,7 @@
       "onError": "continueRegularOutput"
     }
   ],
-  "pinData": {
-    "Webhook Entrada": [
-      {
-        "json": {
-          "headers": {
-            "host": "teixeiraandre51.app.n8n.cloud",
-            "user-agent": "curl/8.21.0",
-            "content-length": "253",
-            "accept": "*/*",
-            "accept-encoding": "gzip, br",
-            "cdn-loop": "cloudflare; loops=1; subreqs=1",
-            "cf-connecting-ip": "2804:40d4:1005:7000:f927:9a2d:fd47:4cd6",
-            "cf-ew-via": "15",
-            "cf-ipcountry": "BR",
-            "cf-ray": "a158bae0e887a5c3-GRU",
-            "cf-visitor": "{\"scheme\":\"https\"}",
-            "cf-worker": "n8n.cloud",
-            "content-type": "application/json",
-            "x-forwarded-for": "2804:40d4:1005:7000:f927:9a2d:fd47:4cd6, 172.69.11.178",
-            "x-forwarded-host": "teixeiraandre51.app.n8n.cloud",
-            "x-forwarded-port": "443",
-            "x-forwarded-proto": "https",
-            "x-forwarded-server": "traefik-prod-users-swc-11-5c9f5d66c5-xftrb",
-            "x-is-trusted": "yes",
-            "x-real-ip": "2804:40d4:1005:7000:f927:9a2d:fd47:4cd6"
-          },
-          "params": {},
-          "query": {},
-          "body": {
-            "tipo": "orientacao",
-            "idioma": "es",
-            "nome": "André",
-            "idade": 45,
-            "escolaridade": "Superior",
-            "experiencia": "27 anos em logística, transição para Java",
-            "hardSkills": [
-              "Java",
-              "Spring Boot",
-              "SQL"
-            ],
-            "softSkills": [
-              "Comunicação"
-            ],
-            "tecnologias": [
-              "Docker",
-              "Git"
-            ],
-            "area": "Java"
-          },
-          "webhookUrl": "https://teixeiraandre51.app.n8n.cloud/webhook-test/bit/agent",
-          "executionMode": "test"
-        }
-      }
-    ]
-  },
+  "pinData": {},
   "connections": {
     "Webhook Entrada": {
       "main": [

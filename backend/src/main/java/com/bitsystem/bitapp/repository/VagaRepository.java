@@ -10,6 +10,11 @@ public interface VagaRepository extends JpaRepository<Vaga, Long> {
 
     List<Vaga> findByAtivaTrue();
 
+    /** Candidatas a vaga-âncora: mesmos campos curtos; quem chama confere o texto das tecnologias. */
+    List<Vaga> findByTituloAndEmpresaAndRegiaoAndNivelAndAreaAndTipoContratoAndSalario(
+        String titulo, String empresa, String regiao, String nivel,
+        String area, String tipoContrato, String salario);
+
     List<Vaga> findByRegiaoAndAtivaTrue(String regiao);
 
     List<Vaga> findByNivelAndAtivaTrue(String nivel);

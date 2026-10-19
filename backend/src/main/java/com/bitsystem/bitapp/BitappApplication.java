@@ -2,6 +2,7 @@ package com.bitsystem.bitapp;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 
 /**
  * ============================================================================
@@ -32,7 +33,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author BiT System
  * @version 1.0.0-SNAPSHOT
  */
-@SpringBootApplication
+// UserDetailsServiceAutoConfiguration fora: sem UserDetailsService próprio o Spring cria um usuário
+// "user" com senha aleatória e a imprime no log ("Using generated security password"). Ele não tem
+// por onde entrar (não há login por formulário nem httpBasic: a autenticação é só o JWT), então o
+// usuário só serviria para confundir quem lê o log.
+@SpringBootApplication(exclude = UserDetailsServiceAutoConfiguration.class)
 public class BitappApplication {
 
     public static void main(String[] args) {

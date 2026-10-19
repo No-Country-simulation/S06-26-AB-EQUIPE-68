@@ -26,21 +26,29 @@ public abstract class N8NBaseClient {
     /** Rótulo do tipo de chamada ("mental-health", "assessment"), usado só no log. */
     protected final String tipo;
     protected final String webhookUrl;
-    protected final int timeout;
+    protected final int connectTimeout;
+    protected final int readTimeout;
     protected final int maxRetries;
     /** Valor de N8N_WEBHOOK_TOKEN; vazio = o webhook do n8n não exige cabeçalho. */
     private final String webhookToken;
 
-    public N8NBaseClient(String tipo, String webhookUrl, int timeout, int maxRetries, String webhookToken) {
+    /**
+     * Cada tipo de chamada tem os seus tempos (em ms): o check-in é curto porque há um painel de
+     * segurança esperando a resposta; a avaliação de carreira pode demorar mais. O pior caso de
+     * uma chamada é connectTimeout + readTimeout, multiplicado por maxRetries.
+     */
+    public N8NBaseClient(String tipo, String webhookUrl, int connectTimeout, int readTimeout,
+            int maxRetries, String webhookToken) {
         this.tipo = tipo;
         this.webhookToken = webhookToken;
         this.webhookUrl = webhookUrl;
-        this.timeout = timeout;
+        this.connectTimeout = connectTimeout;
+        this.readTimeout = readTimeout;
         this.maxRetries = maxRetries;
 
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(Duration.ofSeconds(5));
-        factory.setReadTimeout(Duration.ofMillis(timeout));
+        factory.setConnectTimeout(Duration.ofMillis(connectTimeout));
+        factory.setReadTimeout(Duration.ofMillis(readTimeout));
         this.restTemplate = new RestTemplate(factory);
     }
 

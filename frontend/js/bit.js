@@ -12,11 +12,14 @@
 // nota (nivelDerivacaoLocal), antes e independente da resposta do servidor;
 // a resposta só atualiza a mensagem de acolhimento e a tendência da semana.
 // Falha ou timeout nunca viram alert() e fechar o Bit não descarta o painel.
+// Nota 1 pede consentimento antes de gravar, com três saídas: "Sim, quero apoio" (painel e
+// cartão fixo), "Não quero apoio agora" (grava; só o acolhimento e uma linha discreta do 188,
+// sem cartão fixo) e "Cliquei sem querer" (não grava). A recusa vale só para aquele check-in.
 import { saudeCheckin, buscarSugestoes, sessaoExpirou } from './api.js';
 import { t, getIdioma } from './i18n.js';
 import {
     NIVEL_CHECKIN, nivelPorNota, nivelDerivacaoLocal, cvvBlocoHtml, renderNivelDerivacaoPanel,
-    renderCvvImediato, atualizarAcolhimento, marcarAcolhimentoIndisponivel,
+    renderCvvImediato, atualizarAcolhimento, marcarAcolhimentoIndisponivel, renderAcolhimentoSemPainel,
 } from './saude-shared.js';
 import { escapeHtml } from './escape.js';
 
@@ -141,8 +144,12 @@ function dispensar() {
     // Só esconde na visualização atual — sem localStorage, reload sempre traz o Bit de volta.
     // O painel do CVV, se existir, NUNCA é descartado: vai para o cartão fixo, que nasce aberto.
     document.removeEventListener('keydown', onEscKey);
-    if (painelCvvRow) preservarPainelCvv(painelCvvRow);
+    const levouPainel = Boolean(painelCvvRow);
+    if (levouPainel) preservarPainelCvv(painelCvvRow);
     document.getElementById('bitOverlay')?.remove();
+    // Sem isto o foco cairia no body ao remover o modal, e quem navega por teclado ou leitor de
+    // tela perderia o lugar: vai para o Recolher do cartão, que acabou de receber o painel.
+    if (levouPainel) document.querySelector('#bitCvvFixo [data-cvv-recolher]')?.focus();
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -177,9 +184,14 @@ function linkAgoraNao(bubblesEl) {
 }
 
 // ════════════════════════════════════════════════════════════════════════
-//  CONSENTIMENTO (nota 0-1) — mesmos textos/comportamento do lote 2
+//  CONSENTIMENTO (nota 0-1) — oferece apoio sem forçar
 // ════════════════════════════════════════════════════════════════════════
 
+// Resolve com uma de três escolhas:
+//   'apoio'    — "Sim, quero apoio": painel do CVV em destaque e cartão fixo ao fechar o Bit.
+//   'recusou'  — "Não quero apoio agora": grava o check-in; a tela só mostra o acolhimento e uma
+//                linha discreta com o 188. Vale só para este check-in.
+//   'cancelou' — "Cliquei sem querer", o ✕, o Esc e o clique fora: não grava nada.
 function pedirConsentimento() {
     return new Promise((resolve) => {
         const modal = document.createElement('div');
@@ -187,31 +199,37 @@ function pedirConsentimento() {
         modal.className = 'fixed inset-0 z-[95] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm px-4';
         modal.setAttribute('role', 'dialog');
         modal.setAttribute('aria-modal', 'true');
+        modal.setAttribute('aria-label', t('saude.modalTitulo'));
         modal.innerHTML = `
-            <div class="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900 p-8 shadow-2xl space-y-5 text-center animate-fade-in">
+            <div class="relative w-full max-w-md max-h-[92vh] overflow-y-auto rounded-3xl border border-slate-800 bg-slate-900 p-8 shadow-2xl space-y-5 text-center animate-fade-in">
+                <button type="button" data-acao="fechar" aria-label="${t('saude.modalNao')}"
+                    class="absolute top-4 right-4 w-10 h-10 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-cyan-500">✕</button>
                 <div class="text-4xl" aria-hidden="true">🫶</div>
                 <h3 class="text-lg font-bold text-white">${t('saude.modalTitulo')}</h3>
                 <p class="text-sm text-slate-300 leading-relaxed">${t('saude.modalMsg')}</p>
                 ${cvvBlocoHtml()}
                 <div class="flex flex-col gap-3">
                     <button type="button" data-acao="sim" class="w-full rounded-2xl bg-cyan-500 px-6 py-3 text-sm font-bold text-slate-950 shadow-xl transition hover:bg-cyan-400 transform active:scale-[0.98]">${t('saude.modalSim')}</button>
-                    <button type="button" data-acao="nao" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-600">${t('saude.modalNao')}</button>
+                    <button type="button" data-acao="recusar" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:border-slate-500">${t('saude.modalNaoQueroAgora')}</button>
+                    <button type="button" data-acao="cancelar" class="w-full rounded-2xl px-6 py-2.5 text-sm font-medium text-slate-400 underline-offset-4 transition hover:text-slate-200 hover:underline">${t('saude.modalNao')}</button>
                 </div>
             </div>
         `;
+        const encerrar = (escolha) => { modal.remove(); resolve(escolha); };
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) { modal.remove(); resolve(false); }
+            if (e.target === modal) encerrar('cancelou');
         });
         modal.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 // Sem isto o Esc subiria ao document e, com o modal já removido, fecharia o Bit também.
                 e.stopPropagation();
-                modal.remove();
-                resolve(false);
+                encerrar('cancelou');
             }
         });
-        modal.querySelector('[data-acao="sim"]').addEventListener('click', () => { modal.remove(); resolve(true); });
-        modal.querySelector('[data-acao="nao"]').addEventListener('click', () => { modal.remove(); resolve(false); });
+        modal.querySelector('[data-acao="sim"]').addEventListener('click', () => encerrar('apoio'));
+        modal.querySelector('[data-acao="recusar"]').addEventListener('click', () => encerrar('recusou'));
+        modal.querySelector('[data-acao="cancelar"]').addEventListener('click', () => encerrar('cancelou'));
+        modal.querySelector('[data-acao="fechar"]').addEventListener('click', () => encerrar('cancelou'));
         document.body.appendChild(modal);
         // O foco entra no modal (e não fica no "Enviar" por baixo): os links do CVV ficam
         // alcançáveis pelo teclado e o Esc passa a cancelar.
@@ -303,19 +321,23 @@ function perguntarCheckinDiario(bubblesEl) {
 
         // Nota 1 (derivação REFORÇADA): consentimento ANTES de gravar. O CVV já aparece
         // dentro do modal, então o 188 está na tela mesmo se a pessoa desistir.
+        let recusouApoio = false;
         if (notaEscolhida === 1) {
             // Enquanto o modal está aberto, um segundo clique ou Enter não pode empilhar outro modal
             // nem disparar dois envios.
             botaoEnviar.disabled = true;
-            const consentiu = await pedirConsentimento();
-            if (!consentiu) { // "cliquei sem querer": não grava, não avança
+            const escolha = await pedirConsentimento();
+            if (escolha === 'cancelou') { // "cliquei sem querer": não grava, não avança
                 botaoEnviar.disabled = false;
+                botaoEnviar.focus(); // sem isto o foco cairia no body ao fechar o modal
                 return;
             }
+            // "Não quero apoio agora": grava como qualquer check-in, sem o painel do CVV.
+            recusouApoio = escolha === 'recusou';
         }
 
         const dados = { usuarioId: usuario.id, nota: notaEscolhida, contexto, idioma: getIdioma() };
-        const nivelLocal = nivelDerivacaoLocal(notaEscolhida);
+        const nivelLocal = recusouApoio ? null : nivelDerivacaoLocal(notaEscolhida);
 
         if (nivelLocal) {
             await enviarComCvv(bubblesEl, { moodWrap, formWrap }, dados, nivelLocal);
@@ -328,16 +350,23 @@ function perguntarCheckinDiario(bubblesEl) {
 
         try {
             const data = await saudeCheckin(dados);
+            // Resposta com CVV (nível ou tendência da semana): trava a posição do modal ANTES de o
+            // formulário sair, para o painel e as sugestões que chegam depois não moverem os botões.
+            if (!recusouApoio && (data.nivelDerivacao || data.tendenciaSemana)) fixarPosicaoDoModal();
             moodWrap.remove();
             formWrap.remove();
             if (notaEscolhida) addUserBubble(bubblesEl, nivelPorNota(notaEscolhida)?.emoji || '');
             if (contexto) addUserBubble(bubblesEl, contexto);
-            renderRespostaBit(bubblesEl, data);
+            if (recusouApoio) renderRespostaSemApoio(bubblesEl, data); else renderRespostaBit(bubblesEl, data);
         } catch (err) {
-            if (err?.status === 401) { sessaoExpirou(); return; }
+            // Quem recusou o apoio com nota 1 não pode ficar sem o 188 nem ser levado ao login: o modal
+            // que o trazia já fechou. Nos demais casos o 401 continua levando ao login.
+            if (err?.status === 401 && !recusouApoio) { sessaoExpirou(); return; }
             // Falha ou timeout sem CVV em jogo: aviso no próprio formulário, sem alert().
             botaoEnviar.disabled = false;
             botaoEnviar.textContent = t('saude.enviarRegistro');
+            erroEl.textContent = err?.status === 401 ? t('saude.sessaoExpiradaCvv') : t('saude.erroSalvar');
+            if (recusouApoio) mostrarLinhaDiscretaCvv(erroEl);
             erroEl.classList.remove('hidden');
         }
     });
@@ -370,7 +399,9 @@ function criarPainelResposta(bubblesEl) {
 function fixarPosicaoDoModal() {
     const overlay = document.getElementById('bitOverlay');
     const box = document.getElementById('bitModalBox');
-    if (!overlay || !box) return;
+    // Já travado: uma segunda medida pegaria o modal depois de o formulário sair e o moveria de novo.
+    if (!overlay || !box || overlay.dataset.posicaoFixa) return;
+    overlay.dataset.posicaoFixa = '1';
     const topo = Math.max(16, Math.round(box.getBoundingClientRect().top));
     overlay.classList.remove('items-center');
     overlay.classList.add('items-start');
@@ -409,10 +440,39 @@ async function enviarComCvv(bubblesEl, { moodWrap, formWrap }, dados, nivelLocal
     linkAgoraNao(bubblesEl);
 }
 
-function renderRespostaBit(bubblesEl, data) {
+// Linha discreta do 188 logo abaixo do aviso de erro (uma só, mesmo que o envio falhe de novo).
+function mostrarLinhaDiscretaCvv(erroEl) {
+    if (erroEl.parentElement.querySelector('[data-cvv-discreto]')) return;
+    const linha = document.createElement('p');
+    linha.dataset.cvvDiscreto = '';
+    linha.className = 'text-xs text-slate-400';
+    linha.innerHTML = t('saude.cvvSeMudarDeIdeia');
+    erroEl.after(linha);
+}
+
+// "Não quero apoio agora": só o acolhimento e a linha discreta do 188. Não guarda o painel
+// (painelCvvRow fica como está), então fechar o Bit não cria o cartão fixo do CVV.
+function renderRespostaSemApoio(bubblesEl, data) {
+    const { els } = criarPainelResposta(bubblesEl);
+    renderAcolhimentoSemPainel(els, data);
+
     if (data.leituraEmocional) {
         addBitBubble(bubblesEl, `<span class="italic text-slate-300">${escapeHtml(data.leituraEmocional)}</span>`);
     }
+    renderSugestoes(bubblesEl);
+    linkAgoraNao(bubblesEl);
+}
+
+function renderRespostaBit(bubblesEl, data) {
+    const comCvv = Boolean(data.nivelDerivacao || data.tendenciaSemana);
+    const leituraEmocional = () => {
+        if (data.leituraEmocional) {
+            addBitBubble(bubblesEl, `<span class="italic text-slate-300">${escapeHtml(data.leituraEmocional)}</span>`);
+        }
+    };
+    // Com CVV a leitura emocional vem DEPOIS do painel (como em enviarComCvv): se viesse antes,
+    // empurraria o botão "Ligar 188" para baixo, até a borda do modal no celular.
+    if (!comCvv) leituraEmocional();
 
     const { row, els } = criarPainelResposta(bubblesEl);
     renderNivelDerivacaoPanel(els, data);
@@ -420,9 +480,11 @@ function renderRespostaBit(bubblesEl, data) {
     // A tendência da semana (ou um nível vindo do servidor) também leva o CVV: se o Bit já foi
     // fechado quando a resposta chega, o painel vai direto para o cartão fixo, e se for fechado
     // depois, dispensar() o preserva.
-    if (data.nivelDerivacao || data.tendenciaSemana) {
+    if (comCvv) {
+        fixarPosicaoDoModal(); // as sugestões que chegam depois não podem subir os botões do CVV
         painelCvvRow = row;
         if (!bubblesEl.isConnected) preservarPainelCvv(row);
+        leituraEmocional();
     }
 
     renderSugestoes(bubblesEl);

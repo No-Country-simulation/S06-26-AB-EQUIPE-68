@@ -17,8 +17,9 @@ Se não existir, crie o arquivo .env.production com:
   DB_PASSWORD=123456
   N8N_ASSESSMENT_URL=http://bitapp-n8n:5678/webhook/bit/agent
   N8N_MENTAL_HEALTH_URL=http://bitapp-n8n:5678/webhook/bit/agent
-  N8N_TIMEOUT=10000
-  N8N_MAX_RETRIES=3
+  N8N_CHECKIN_TIMEOUT=5000
+  N8N_ASSESSMENT_TIMEOUT=23000
+  N8N_MAX_RETRIES=1
   JWT_SECRET=bitapp-secret-key-change-in-production-512-bits-minimum
   JWT_EXPIRATION=86400000
   JWT_REFRESH_EXPIRATION=604800000

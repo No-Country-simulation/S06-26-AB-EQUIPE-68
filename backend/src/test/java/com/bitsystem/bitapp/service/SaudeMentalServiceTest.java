@@ -3,6 +3,7 @@ package com.bitsystem.bitapp.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -387,6 +388,21 @@ class SaudeMentalServiceTest {
         assertThat(enviado.path("humor").asText()).isEqualTo("Triste");
         assertThat(enviado.path("idioma").asText()).isEqualTo("pt");
         assertThat(enviado.path("message").asText()).isEqualTo("Semana puxada, muita coisa para entregar.");
+    }
+
+    @Test
+    void promptDoGemini_mandaFalarDeHojeESemAfirmarComoFoiASemana() throws Exception {
+        // Mental Health Agent fora do ar (BeforeEach) + Gemini configurado: o fallback monta o prompt.
+        when(geminiClient.isConfigured()).thenReturn(true);
+        when(geminiClient.generateContent(anyString(), any())).thenReturn("{}");
+
+        checkin(5, "semana boa");
+
+        ArgumentCaptor<String> prompt = ArgumentCaptor.forClass(String.class);
+        verify(geminiClient).generateContent(prompt.capture(), eq(GeminiClient.Espera.CHECKIN));
+        assertThat(prompt.getValue())
+                .contains("HOJE")
+                .contains("sem afirmar nem descrever como foi a semana dela");
     }
 
     private static SaudeDto.HistoricoResponse registro(LocalDate dia, Integer nota) {

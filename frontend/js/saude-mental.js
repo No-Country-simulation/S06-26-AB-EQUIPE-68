@@ -7,6 +7,7 @@ import { t, getIdioma } from './i18n.js';
 import {
     nivelPorNota, nivelDerivacaoLocal, cvvBlocoHtml, renderNivelDerivacaoPanel,
     renderCvvImediato, atualizarAcolhimento, marcarAcolhimentoIndisponivel, mostrarErroSalvar,
+    renderAcolhimentoSemPainel, mostrarErroSalvarSemPainel,
 } from './saude-shared.js';
 import { escapeHtml } from './escape.js';
 
@@ -57,7 +58,9 @@ function aplicarTextos() {
     set('confirmTitle', t('saude.modalTitulo'));
     set('confirmMsg', t('saude.modalMsg'));
     set('confirmSim', t('saude.modalSim'));
+    set('confirmRecusa', t('saude.modalNaoQueroAgora'));
     set('confirmNao', t('saude.modalNao'));
+    document.getElementById('confirmFechar')?.setAttribute('aria-label', t('saude.modalNao'));
     // O 188 fica dentro do modal da nota 1, mesmo antes de a pessoa confirmar.
     const cvv = document.getElementById('confirmCvv');
     if (cvv) cvv.innerHTML = cvvBlocoHtml();
@@ -67,7 +70,9 @@ const formSaude = document.getElementById('formSaude');
 
 // Envio real do check-in — só chega aqui após a confirmação (quando aplicável).
 // É a ÚNICA porta de gravação: um clique acidental cancelado nem toca no banco.
-async function enviarCheckin() {
+// recusouApoio ("Não quero apoio agora", nota 1): grava como qualquer check-in, mas a tela
+// mostra só o acolhimento e a linha discreta do 188, sem o painel do CVV.
+async function enviarCheckin({ recusouApoio = false } = {}) {
     const submitBtn = formSaude?.querySelector('button[type="submit"]');
     if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = `<span class="loader"></span> ${t('saude.salvando')}`; }
     const els = {
@@ -77,7 +82,7 @@ async function enviarCheckin() {
         action: document.getElementById('aiResponseAction'),
     };
     const leituraEl = document.getElementById('aiLeituraEmocional');
-    const nivelLocal = nivelDerivacaoLocal(notaSelecionada);
+    const nivelLocal = recusouApoio ? null : nivelDerivacaoLocal(notaSelecionada);
 
     if (leituraEl) {
         leituraEl.classList.add('hidden');
@@ -102,9 +107,12 @@ async function enviarCheckin() {
             leituraEl.textContent = data.leituraEmocional;
             leituraEl.classList.remove('hidden');
         }
-        if (nivelLocal) atualizarAcolhimento(els, data); else renderNivelDerivacaoPanel(els, data);
+        if (nivelLocal) atualizarAcolhimento(els, data);
+        else if (recusouApoio) renderAcolhimentoSemPainel(els, data);
+        else renderNivelDerivacaoPanel(els, data);
     } catch (err) {
         if (nivelLocal) marcarAcolhimentoIndisponivel(els, err);   // o painel do CVV fica
+        else if (recusouApoio) mostrarErroSalvarSemPainel(els, err); // sem o modal do 188 e sem ir ao login
         else if (err?.status === 401) sessaoExpirou();
         else mostrarErroSalvar(els);
     }
@@ -120,17 +128,27 @@ function abrirConfirmacao() {
     document.getElementById('confirmSim')?.focus(); // foco no modal: os links do CVV ficam alcançáveis pelo teclado
 }
 function fecharConfirmacao() { confirmModal?.classList.add('hidden'); }
+// Cancelar (✕, "Cliquei sem querer", Esc, clique fora): o foco volta ao botão de enviar, em vez de cair no body.
+function cancelarConfirmacao() {
+    fecharConfirmacao();
+    formSaude?.querySelector('button[type="submit"]')?.focus();
+}
 
 document.getElementById('confirmSim')?.addEventListener('click', () => {
     fecharConfirmacao();
     enviarCheckin();
 });
-document.getElementById('confirmNao')?.addEventListener('click', () => {
-    // Cancela o envio: não submete, não grava. O usuário pode reescolher o nível.
+document.getElementById('confirmRecusa')?.addEventListener('click', () => {
+    // "Não quero apoio agora": grava normalmente, sem o painel do CVV. Vale só para este check-in.
     fecharConfirmacao();
+    enviarCheckin({ recusouApoio: true });
 });
-confirmModal?.addEventListener('click', (e) => { if (e.target === confirmModal) fecharConfirmacao(); });
-confirmModal?.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharConfirmacao(); });
+// "Cliquei sem querer" e o ✕ (no celular não há Esc): cancelam o envio, não gravam nada.
+// O usuário pode reescolher o nível.
+document.getElementById('confirmNao')?.addEventListener('click', cancelarConfirmacao);
+document.getElementById('confirmFechar')?.addEventListener('click', cancelarConfirmacao);
+confirmModal?.addEventListener('click', (e) => { if (e.target === confirmModal) cancelarConfirmacao(); });
+confirmModal?.addEventListener('keydown', (e) => { if (e.key === 'Escape') cancelarConfirmacao(); });
 
 formSaude?.addEventListener('submit', async (event) => {
     event.preventDefault();

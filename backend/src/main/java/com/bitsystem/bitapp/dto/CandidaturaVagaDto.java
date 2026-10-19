@@ -6,12 +6,13 @@ import java.time.LocalDateTime;
 
 public class CandidaturaVagaDto {
 
-    /** Payload enviado por POST /api/vagas/enviar-curriculo (front manda {vagaId, usuarioId}). */
+    /**
+     * Payload enviado por POST /api/vagas/enviar-curriculo (front manda {vagaId, usuarioId}).
+     * Nome e e-mail da candidatura não vêm do corpo: são sempre os do usuário do token.
+     */
     public record Request(
         @NotNull Long vagaId,
         Long usuarioId,
-        String nome,
-        String email,
         String mensagem
     ) {}
 

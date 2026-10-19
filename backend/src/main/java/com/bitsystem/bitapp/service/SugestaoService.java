@@ -243,6 +243,7 @@ public class SugestaoService {
             Regras:
             - Só escolha títulos que existem literalmente na lista candidata
             - NUNCA cite ou mencione notas numéricas de bem-estar
+            - No motivo, fale do momento de HOJE do usuario, sem descrever a semana dele (voce nao tem o historico dele)
             - Responda em %s (idioma escolhido pelo usuario na interface)
             - Retorne APENAS o JSON, sem texto adicional
             """,

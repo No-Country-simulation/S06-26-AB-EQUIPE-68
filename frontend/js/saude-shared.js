@@ -154,6 +154,21 @@ export function marcarAcolhimentoIndisponivel({ msg }, erro) {
     msg.textContent = erro?.status === 401 ? t('saude.sessaoExpiradaCvv') : t('saude.acolhimentoIndisponivel');
 }
 
+// "Não quero apoio agora" (nota 1): o check-in é gravado normalmente e o backend classifica a
+// nota do mesmo jeito, mas a tela só mostra o acolhimento e, embaixo, uma linha discreta com o
+// 188 — sem a caixa do CVV, sem os botões grandes, sem tendência da semana e sem cartão fixo
+// depois. A recusa vale só para este check-in: nada é guardado (localStorage) para o próximo.
+export function renderAcolhimentoSemPainel({ container, title, msg, action }, data) {
+    container.className = 'p-6 rounded-3xl border border-slate-800 bg-slate-900/60 mt-6 animate-fade-in';
+    title.className = 'hidden';
+    title.textContent = '';
+    msg.className = 'text-sm text-slate-200 leading-relaxed whitespace-pre-line';
+    msg.textContent = data.mensagem || '';
+    action.className = 'mt-3 text-xs text-slate-400';
+    action.innerHTML = t('saude.cvvSeMudarDeIdeia');
+    container.append(title, msg, action);
+}
+
 // Falha de envio SEM derivação ao CVV: aviso dentro do painel, no lugar do alert().
 export function mostrarErroSalvar(els) {
     const { container, title, msg, action } = els;
@@ -164,6 +179,15 @@ export function mostrarErroSalvar(els) {
     action.innerHTML = '';
     ordenarMensagemPrimeiro(els);
     msg.textContent = t('saude.erroSalvar');
+}
+
+// Falha de envio depois de "Não quero apoio agora": o modal que trazia o 188 já fechou, então o aviso
+// de erro vem acompanhado da mesma linha discreta, e o 401 não leva ao login (ver saudeCheckin).
+export function mostrarErroSalvarSemPainel(els, erro) {
+    mostrarErroSalvar(els);
+    if (erro?.status === 401) els.msg.textContent = t('saude.sessaoExpiradaCvv');
+    els.action.className = 'mt-3 text-xs text-slate-400';
+    els.action.innerHTML = t('saude.cvvSeMudarDeIdeia');
 }
 
 // Renderiza o acolhimento a partir da resposta do servidor, quando NÃO há painel

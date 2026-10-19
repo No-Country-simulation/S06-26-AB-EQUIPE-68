@@ -85,4 +85,11 @@ class N8nWorkflowTest {
         workflow.path("nodes").forEach(n ->
             assertThat(vistos.add(n.path("name").asText())).as("nome duplicado: " + n.path("name").asText()).isTrue());
     }
+
+    @Test
+    void promptDeAcolhimento_mandaFalarDeHojeSemAfirmarComoFoiASemana() {
+        String codigo = no("Montar Prompt Acolhimento").path("parameters").path("jsCode").asText();
+
+        assertThat(codigo).contains("está HOJE").contains("NÃO afirme nem descreva como foi a semana dela");
+    }
 }

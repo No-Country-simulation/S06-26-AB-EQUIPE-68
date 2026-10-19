@@ -78,7 +78,7 @@ public class VagaController {
             Authentication authentication) {
         Long donoId = UsuarioDoToken.resolver(authentication, request.usuarioId());
         CandidaturaVagaDto.Request doDono = new CandidaturaVagaDto.Request(
-                request.vagaId(), donoId, request.nome(), request.email(), request.mensagem());
+                request.vagaId(), donoId, request.mensagem());
         CandidaturaVagaDto.Response response = vagaService.enviarCurriculo(doDono, authentication.getName());
         return ResponseEntity.ok(StandardApiResponse.ok(response));
     }
