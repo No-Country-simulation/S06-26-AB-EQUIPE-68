@@ -563,6 +563,16 @@ O workflow roda numa instância própria do n8n Community, no lugar do serviço 
 * O editor e o login não são públicos. Acesse-os por túnel SSH, `ssh -L 5678:localhost:5678 <usuario>@<servidor>`, e abra `http://localhost:5678` no navegador.
 * No backend, aponte `N8N_ASSESSMENT_URL` e `N8N_MENTAL_HEALTH_URL` para `https://n8n.SEU-DOMINIO/webhook/bit/agent` e defina `N8N_WEBHOOK_TOKEN`.
 
+**Subir o container**
+
+```bash
+docker run -d --name n8n --restart unless-stopped --network host --env-file /opt/n8n/n8n.env -v n8n_data:/home/node/.n8n docker.n8n.io/n8nio/n8n:2.43.7
+```
+
+* **`--network host`.** O n8n escuta só no `127.0.0.1` da própria máquina (`N8N_LISTEN_ADDRESS`), sem publicar porta pelo Docker. O proxy reverso alcança o n8n em `127.0.0.1:5678`, e o Docker não precisa mexer nas regras de encaminhamento do firewall da máquina. Com a rede padrão do Docker, o `127.0.0.1` seria o do container e o proxy não chegaria ao n8n.
+* **`--env-file /opt/n8n/n8n.env`.** As variáveis da tabela abaixo ficam nesse arquivo, uma por linha, no formato `CHAVE=valor`, com permissão `600`.
+* **`--restart unless-stopped`** sobe o container de novo depois de um reinício da máquina; **`-v n8n_data:/home/node/.n8n`** é o volume nomeado citado acima.
+
 **Variáveis do container**
 
 | Variável | Valor | Por quê |
