@@ -204,6 +204,103 @@ class N8NBaseClientTest {
         assertThat(tudo).contains("tipo=mental-health").contains("tentativa 1/1").contains("bytes");
     }
 
+    // ── log de falha numa linha ─────────────────────────────────────────
+
+    private void n8nResponde(int status, String corpo) {
+        servidor.removeContext("/webhook/bit/agent");
+        servidor.createContext("/webhook/bit/agent", troca -> {
+            chamadas.incrementAndGet();
+            byte[] bytes = corpo.getBytes(StandardCharsets.UTF_8);
+            troca.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
+            troca.sendResponseHeaders(status, bytes.length);
+            troca.getResponseBody().write(bytes);
+            troca.close();
+        });
+    }
+
+    private String avisoDeFalha() {
+        List<String> avisos = logs.list.stream()
+                .filter(e -> e.getLevel() == Level.WARN)
+                .map(ILoggingEvent::getFormattedMessage)
+                .toList();
+        assertThat(avisos).as("avisos de falha no log").hasSize(1);
+        return avisos.get(0);
+    }
+
+    @Test
+    void falhaComPaginaDeErroGrande_logaUmaLinhaCurta_semDespejarOHtml() {
+        // Proxy ou n8n respondendo com a página 404 inteira (~5 KB, várias linhas).
+        String pagina = "<html>\n<head><title>404 Not Found</title></head>\n<body>\n"
+                + "<p>Esta página de erro não existe e ocupa muitas linhas.</p>\n".repeat(90)
+                + "FIM-DA-PAGINA\n</body>\n</html>\n";
+        assertThat(pagina.length()).isGreaterThan(5000);
+        n8nResponde(404, pagina);
+
+        org.junit.jupiter.api.Assertions.assertThrows(com.bitsystem.bitapp.exception.BusinessException.class,
+                () -> new N8NMentalHealthClient(url(), 1000, 2000, 1, "").process(checkin("qualquer")));
+
+        String aviso = avisoDeFalha();
+        assertThat(aviso).contains("404").contains("Not Found").contains("…");
+        // "<EOL>" é como o Spring já trocava as quebras na mensagem antiga: sem ele, a linha não é a resumida.
+        assertThat(aviso).doesNotContain("\n").doesNotContain("\r").doesNotContain("<EOL>").doesNotContain("FIM-DA-PAGINA");
+        assertThat(aviso.length()).as("parte da mensagem do aviso").isLessThanOrEqualTo(300);
+    }
+
+    @Test
+    void corpoDeErro_ficaInteiroAte200Caracteres_eAcimaDissoViraUmaLinhaDe200ComReticencias() {
+        String limite = "x".repeat(200);
+        assertThat(avisoDaFalhaComCorpo(500, limite)).endsWith("500 Internal Server Error: \"" + limite + "\"");
+
+        assertThat(avisoDaFalhaComCorpo(500, limite + "y"))
+                .endsWith("500 Internal Server Error: \"" + "x".repeat(199) + "…\"");
+    }
+
+    @Test
+    void corpoDeErro_cortadoNoMeioDeUmParSubstituto_naoDeixaMetadeDeUmEmoji() {
+        // O 😀 ocupa as posições 198 e 199; cortar em 199 deixaria só a primeira metade.
+        String corpo = "a".repeat(198) + "😀" + "b".repeat(50);
+
+        String aviso = avisoDaFalhaComCorpo(500, corpo);
+
+        assertThat(aviso).endsWith("500 Internal Server Error: \"" + "a".repeat(198) + "…\"").doesNotContain("😀");
+    }
+
+    private String avisoDaFalhaComCorpo(int status, String corpo) {
+        logs.list.clear();
+        n8nResponde(status, corpo);
+        org.junit.jupiter.api.Assertions.assertThrows(com.bitsystem.bitapp.exception.BusinessException.class,
+                () -> new N8NMentalHealthClient(url(), 1000, 2000, 1, "").process(checkin("qualquer")));
+        return avisoDeFalha();
+    }
+
+    @Test
+    void falhaComMensagemCurta_continuaAparecendoInteira_paraDiagnosticarOToken() {
+        n8nResponde(403, "Authorization data is wrong!");
+
+        org.junit.jupiter.api.Assertions.assertThrows(com.bitsystem.bitapp.exception.BusinessException.class,
+                () -> new N8NMentalHealthClient(url(), 1000, 2000, 1, "token-errado").process(checkin("qualquer")));
+
+        String aviso = avisoDeFalha();
+        assertThat(aviso).contains("403 Forbidden: \"Authorization data is wrong!\"");
+        assertThat(aviso).doesNotContain("…").doesNotContain("token-errado");
+    }
+
+    @Test
+    void falhaDeConexao_logaONomeDaClasseEAMensagemEmUmaLinha() throws IOException {
+        int portaFechada;
+        try (java.net.ServerSocket socket = new java.net.ServerSocket(0)) {
+            portaFechada = socket.getLocalPort();
+        }
+        String urlSemServidor = "http://127.0.0.1:" + portaFechada + "/webhook/bit/agent";
+
+        org.junit.jupiter.api.Assertions.assertThrows(com.bitsystem.bitapp.exception.BusinessException.class,
+                () -> new N8NMentalHealthClient(urlSemServidor, 1000, 2000, 1, "").process(checkin("qualquer")));
+
+        String aviso = avisoDeFalha();
+        assertThat(aviso).contains("ResourceAccessException: ").doesNotContain("\n").doesNotContain("\r");
+        assertThat(aviso.length()).isLessThanOrEqualTo(300);
+    }
+
     @Test
     void umaTentativaSo_quandoMaxRetriesEh1_eFalhaClaraQuandoOServidorErra() {
         servidor.removeContext("/webhook/bit/agent");

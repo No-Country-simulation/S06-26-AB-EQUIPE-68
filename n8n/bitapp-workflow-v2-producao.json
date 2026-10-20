@@ -112,7 +112,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: $json.prompt }] }], generationConfig: { temperature: 0.4, maxOutputTokens: 2048, thinkingConfig: { thinkingBudget: 0 } } }) }}",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: $json.prompt }] }], generationConfig: { temperature: 0.4, maxOutputTokens: 2048 } }) }}",
         "options": {
           "timeout": 30000
         }
@@ -127,8 +127,8 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "LXo4aRIWlXgy2TI1",
-          "name": "Header Auth account"
+          "id": "CRIAR_NO_N8N_GEMINI",
+          "name": "Gemini API Key (n8n)"
         }
       }
     },
@@ -140,7 +140,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: $json.prompt }] }], generationConfig: { temperature: 0.4, maxOutputTokens: 2048, thinkingConfig: { thinkingBudget: 0 } } }) }}",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: $json.prompt }] }], generationConfig: { temperature: 0.4, maxOutputTokens: 2048 } }) }}",
         "options": {
           "timeout": 30000
         }
@@ -155,8 +155,8 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "LXo4aRIWlXgy2TI1",
-          "name": "Header Auth account"
+          "id": "CRIAR_NO_N8N_GEMINI",
+          "name": "Gemini API Key (n8n)"
         }
       }
     },
