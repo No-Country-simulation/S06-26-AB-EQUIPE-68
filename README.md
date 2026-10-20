@@ -89,7 +89,7 @@ A tag `fim-hackathon-2026-07-25` marca o estado entregue ao fim do hackathon (De
 **n8n auto-hospedado (rodada 2.1)** — o período de teste do n8n Cloud acabou e o workflow do repositório não funcionava com o modelo atual do Gemini.
 
 * **n8n auto-hospedado no lugar do n8n Cloud**, porque o trial acabou. É uma instância própria do n8n Community 2.43.7, com versão fixa, só `/webhook/*` público e o editor por túnel SSH (instalação em [n8n auto-hospedado](#n8n-auto-hospedado)).
-* **Workflow sem `thinkingConfig`**, porque a família 3 do Gemini o recusa: com o `gemini-3.5-flash-lite`, o `thinkingConfig: { thinkingBudget: 0 }` dos nós "Gemini Acolhimento" e "Gemini Carreira" fazia o Google responder 400 `INVALID_ARGUMENT`. A credencial do Gemini nos dois nós passou a se chamar "Gemini API Key (n8n)", para a importação já mostrar qual criar.
+* **Workflow sem `thinkingConfig`**, porque o `gemini-3.5-flash-lite` o recusa (o `thinkingBudget` é da família 2.5; a família 3 controla o raciocínio por `thinkingLevel`): o `thinkingConfig: { thinkingBudget: 0 }` dos nós "Gemini Acolhimento" e "Gemini Carreira" fazia o Google responder 400 `INVALID_ARGUMENT`. A credencial do Gemini nos dois nós passou a se chamar "Gemini API Key (n8n)", para a importação já mostrar qual criar.
 * **Log de falha do n8n numa linha**, porque uma página de erro em HTML (a 404 do serviço antigo, por exemplo) despejava cerca de 6 KB por chamada no log. Agora o aviso traz o status e o corpo cortado em 200 caracteres; mensagens curtas, como `403 Forbidden: "Authorization data is wrong!"`, continuam inteiras, porque são elas que mostram um token errado.
 * **Teste ponta a ponta feito** contra o n8n real, em 19/10/2026: check-in em 1,8 s e avaliação de carreira em 8,0 s.
 

@@ -57,8 +57,8 @@ class N8nWorkflowTest {
 
     @Test
     void nosDoGemini_naoMandamThinkingConfig() {
-        // A família 3 do Gemini (gemini-3.5-flash-lite) recusa thinkingConfig/thinkingBudget com 400
-        // INVALID_ARGUMENT; esse parâmetro é da família 2.5.
+        // O gemini-3.5-flash-lite recusa thinkingConfig: { thinkingBudget: 0 } com 400 INVALID_ARGUMENT
+        // (o thinkingBudget é da família 2.5; a família 3 controla o raciocínio por thinkingLevel).
         for (String nome : new String[] {"Gemini Acolhimento", "Gemini Carreira"}) {
             String corpo = no(nome).path("parameters").path("jsonBody").asText();
             assertThat(corpo).as(nome).contains("generationConfig").doesNotContain("thinkingConfig").doesNotContain("thinkingBudget");
