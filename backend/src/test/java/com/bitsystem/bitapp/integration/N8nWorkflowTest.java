@@ -56,6 +56,30 @@ class N8nWorkflowTest {
     }
 
     @Test
+    void nosDoGemini_naoMandamThinkingConfig() {
+        // A família 3 do Gemini (gemini-3.5-flash-lite) recusa thinkingConfig/thinkingBudget com 400
+        // INVALID_ARGUMENT; esse parâmetro é da família 2.5.
+        for (String nome : new String[] {"Gemini Acolhimento", "Gemini Carreira"}) {
+            String corpo = no(nome).path("parameters").path("jsonBody").asText();
+            assertThat(corpo).as(nome).contains("generationConfig").doesNotContain("thinkingConfig").doesNotContain("thinkingBudget");
+        }
+    }
+
+    @Test
+    void nosDoGemini_referenciamACredencialPeloNome_semChaveNoArquivo() {
+        String idDoWebhook = no("Webhook Entrada").path("credentials").path("httpHeaderAuth").path("id").asText();
+
+        for (String nome : new String[] {"Gemini Acolhimento", "Gemini Carreira"}) {
+            JsonNode credencial = no(nome).path("credentials").path("httpHeaderAuth");
+            // Só a referência: a chave do Gemini é criada no n8n, em projeto próprio do AI Studio.
+            assertThat(credencial.path("name").asText()).as(nome).isEqualTo("Gemini API Key (n8n)");
+            assertThat(credencial.has("value")).as(nome).isFalse();
+            // Mesmo tipo (Header Auth) do webhook: ids iguais poderiam ligar a credencial errada na importação.
+            assertThat(credencial.path("id").asText()).as(nome).isNotEmpty().isNotEqualTo(idDoWebhook);
+        }
+    }
+
+    @Test
     void urlsDoAppVemDeUmaVariavelDeAmbienteDoN8n_naoDeUmHostFixo() {
         for (String nome : new String[] {"Buscar Catálogo", "Buscar Roadmap"}) {
             String url = no(nome).path("parameters").path("url").asText();
