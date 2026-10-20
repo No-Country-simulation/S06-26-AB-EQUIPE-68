@@ -3,6 +3,7 @@ package com.bitsystem.bitapp.integration;
 import com.bitsystem.bitapp.exception.BusinessException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 public abstract class N8NBaseClient {
@@ -21,6 +23,10 @@ public abstract class N8NBaseClient {
 
     // Só para medir o tamanho do payload no log: o conteúdo nunca é registrado.
     private static final ObjectMapper MEDIDOR = new ObjectMapper();
+
+    /** Tamanho máximo, em caracteres, do corpo ou da mensagem de uma falha no log (já com o "…"). */
+    private static final int LIMITE_DO_RESUMO = 200;
+    private static final Pattern ESPACOS = Pattern.compile("\\s+", Pattern.UNICODE_CHARACTER_CLASS);
 
     protected final RestTemplate restTemplate;
     /** Rótulo do tipo de chamada ("mental-health", "assessment"), usado só no log. */
@@ -84,7 +90,7 @@ public abstract class N8NBaseClient {
 
             } catch (Exception ex) {
                 lastException = ex;
-                log.warn("N8N webhook call failed (attempt {}/{}): {}", attempt, maxRetries, ex.getMessage());
+                log.warn("N8N webhook call failed (attempt {}/{}): {}", attempt, maxRetries, resumoDaFalha(ex));
                 if (attempt < maxRetries) {
                     try {
                         Thread.sleep(Duration.ofSeconds(1).toMillis());
@@ -98,6 +104,38 @@ public abstract class N8NBaseClient {
 
         throw new BusinessException("N8N_UNAVAILABLE",
                 "Serviço de orquestração temporariamente indisponível. Tente novamente mais tarde.");
+    }
+
+    /**
+     * Resumo de uma linha da falha, para o log. Quando o n8n (ou o proxy na frente dele) responde
+     * com uma página de erro em HTML, o corpo inteiro (~6 KB) não vai para o log; mensagens curtas,
+     * como 403 Forbidden: "Authorization data is wrong!", continuam aparecendo inteiras.
+     */
+    private static String resumoDaFalha(Exception ex) {
+        if (ex instanceof RestClientResponseException resposta) {
+            String status = (resposta.getStatusCode().value() + " " + resposta.getStatusText()).trim();
+            String corpo = emUmaLinha(resposta.getResponseBodyAsString());
+            return corpo.isEmpty() ? status : status + ": \"" + corpo + "\"";
+        }
+        String mensagem = emUmaLinha(ex.getMessage());
+        String nome = ex.getClass().getSimpleName();
+        return mensagem.isEmpty() ? nome : nome + ": " + mensagem;
+    }
+
+    /** Quebras de linha e sequências de espaços viram um espaço só; passando do limite, corta e termina em "…". */
+    private static String emUmaLinha(String texto) {
+        if (texto == null) {
+            return "";
+        }
+        String linha = ESPACOS.matcher(texto.strip()).replaceAll(" ");
+        if (linha.length() <= LIMITE_DO_RESUMO) {
+            return linha;
+        }
+        int corte = LIMITE_DO_RESUMO - 1;
+        if (Character.isHighSurrogate(linha.charAt(corte - 1))) {
+            corte--; // não parte um par substituto ao meio
+        }
+        return linha.substring(0, corte) + "…";
     }
 
     private static int tamanhoEmBytes(Object payload) {
