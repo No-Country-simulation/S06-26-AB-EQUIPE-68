@@ -613,7 +613,7 @@ cd backend
 mvn test
 ```
 
-Suíte com **261 execuções de teste** (contando os casos parametrizados), cobrindo, entre outros, as regras determinísticas de derivação ao CVV, o match de vagas, os serviços de domínio, a matriz de autorização por rota (sem token 401, token de outro usuário 403, dono 200), o contrato com o n8n, o JSON do workflow versionado, os tempos de espera e o reset e a retenção das contas de demonstração. Os testes não rodam no build Docker (`-DskipTests`).
+Suíte com **268 execuções de teste** (contando os casos parametrizados), cobrindo, entre outros, as regras determinísticas de derivação ao CVV, o match de vagas, os serviços de domínio, a matriz de autorização por rota (sem token 401, token de outro usuário 403, dono 200), o contrato com o n8n, o JSON do workflow versionado, os tempos de espera e o reset e a retenção das contas de demonstração. Os testes não rodam no build Docker (`-DskipTests`).
 
 **Docker é necessário para rodar a suíte inteira.** 13 testes sobem um PostgreSQL 16 real com Testcontainers (a mesma imagem do `docker-compose.yml`); sem Docker eles falham com uma mensagem clara, não são pulados em silêncio. O restante usa H2. No GitHub Actions o Docker já vem no runner, e a última etapa do CI confere que os testes com PostgreSQL rodaram.
 
