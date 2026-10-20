@@ -44,7 +44,7 @@ A tag `fim-hackathon-2026-07-25` marca o estado entregue ao fim do hackathon (De
 
 * Contrato alinhado (`{mensagem, acaoSugerida}` no acolhimento), com exemplos em `backend/src/test/resources/contracts/n8n/` e testes de contrato.
 * Webhook com autenticação por cabeçalho (`X-Webhook-Token`, enviado se `N8N_WEBHOOK_TOKEN` existir); URL do app lida da variável `BITAPP_BASE_URL` do n8n; tempos por tipo de chamada (check-in 1 s + 5 s, avaliação 1 s + 23 s) e 1 tentativa por padrão; URL do n8n vazia pula o n8n e vai direto ao Gemini.
-* O teste ponta a ponta contra o n8n real ainda não foi feito.
+* O teste ponta a ponta contra o n8n real foi feito depois, em 19/10/2026, numa instância auto-hospedada (veja [n8n auto-hospedado](#n8n-auto-hospedado)).
 
 **PWA e mapa**
 
@@ -363,7 +363,7 @@ API[Spring Boot API — porta 8080]
 
 DB[(H2 em memória — padrão local<br/>PostgreSQL no Neon em produção, via ambiente)]
 
-N8N[n8n Cloud — roteamento determinístico]
+N8N[n8n auto-hospedado — roteamento determinístico]
 
 AI[Google Gemini]
 
@@ -390,7 +390,7 @@ Backend Spring Boot (8080)
    │  deriva segurança do CVV localmente (determinístico)
    │  envia payload estruturado (hardSkills, humor, contexto, tipo, idioma)
    v
-n8n Cloud — Switch determinístico pelo campo "tipo"
+n8n (Community, auto-hospedado) — Switch determinístico pelo campo "tipo"
    ├── agente de orientação  → Gemini (+ consulta ao catálogo de cursos e aos roadmaps)
    └── agente de saúde mental → Gemini (linguagem de acolhimento)
    v
@@ -428,7 +428,7 @@ Backend valida, persiste e responde ao Frontend
 ## Inteligência Artificial
 
 * Google Gemini (modelo configurável por `GEMINI_MODEL` na integração direta do Java; no workflow de produção do n8n (`n8n/bitapp-workflow-v2-producao.json`), o modelo fica na URL dos nós "Gemini Acolhimento" e "Gemini Carreira")
-* n8n Cloud como orquestrador dos agentes (roteamento determinístico + consulta ao catálogo)
+* n8n (Community, auto-hospedado em Docker) como orquestrador dos agentes (roteamento determinístico + consulta ao catálogo); veja [n8n auto-hospedado](#n8n-auto-hospedado)
 * Integração direta Java → Gemini (`GeminiClient`) para orientação e sugestões
 
 ## Frontend
@@ -529,7 +529,75 @@ As variáveis padrão do Spring `SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE` e `
 
 No `docker-compose.yml` o frontend sai de um nginx em `http://localhost:3000` e chama o backend em `http://localhost:8080`, que é outra origem: defina `APP_CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080` e `JWT_SECRET` no `.env.production` do serviço `backend`.
 
-Variável do **n8n** (não do backend): `BITAPP_BASE_URL`, a URL pública do app, lida pelos nós "Buscar Catálogo" e "Buscar Roadmap" do workflow. Se o n8n bloquear `$env` em expressões, defina também `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` no container do n8n.
+Variáveis do **n8n** (não do backend): `BITAPP_BASE_URL`, a URL pública do app, lida pelos nós "Buscar Catálogo" e "Buscar Roadmap" do workflow, e `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`, que deve ser definida no container do n8n 2.x: a documentação do n8n 2.0 diz que o acesso a variáveis de ambiente nos nós vem bloqueado por padrão. Testado na 2.43.7: com o valor `false`, `$env.BITAPP_BASE_URL` funciona nas expressões (a avaliação de carreira passou pelos nós "Buscar Catálogo" e "Buscar Roadmap", que dependem dela). O restante da instalação está em [n8n auto-hospedado](#n8n-auto-hospedado), logo abaixo.
+
+### n8n auto-hospedado
+
+O workflow roda numa instância própria do n8n Community, no lugar do serviço em nuvem usado antes, cujo período de teste acabou. O que segue é o que foi testado, na versão 2.43.7, em 19/10/2026.
+
+**Como roda**
+
+* Imagem oficial `docker.n8n.io/n8nio/n8n` com **versão fixa** (`2.43.7`). O n8n trocou a tag `latest` por `stable` e recomenda fixar a versão; fixar também faz com que nenhuma atualização entre sem ser escolhida.
+* Volume nomeado para `/home/node/.n8n`, onde ficam workflows, credenciais e execuções. Sem o volume, recriar o container apaga tudo.
+* O n8n escuta só em `127.0.0.1` (`N8N_LISTEN_ADDRESS`): a porta dele não fica exposta.
+* Na frente dele, um proxy reverso com HTTPS deixa passar só `/webhook/*`; qualquer outro caminho responde 404. O equivalente em Caddy, com `n8n.SEU-DOMINIO` no lugar do domínio:
+
+  ```
+  n8n.SEU-DOMINIO {
+      handle /webhook/* {
+          reverse_proxy 127.0.0.1:5678
+      }
+      handle {
+          respond 404
+      }
+  }
+  ```
+
+* O editor e o login não são públicos. Acesse-os por túnel SSH, `ssh -L 5678:localhost:5678 <usuario>@<servidor>`, e abra `http://localhost:5678` no navegador.
+* No backend, aponte `N8N_ASSESSMENT_URL` e `N8N_MENTAL_HEALTH_URL` para `https://n8n.SEU-DOMINIO/webhook/bit/agent` e defina `N8N_WEBHOOK_TOKEN`.
+
+**Variáveis do container**
+
+| Variável | Valor | Por quê |
+| --- | --- | --- |
+| `WEBHOOK_URL` | `https://n8n.SEU-DOMINIO/` | Atrás de um proxy o n8n não descobre sozinho o endereço público dos webhooks. |
+| `N8N_LISTEN_ADDRESS` | `127.0.0.1` | O n8n só aceita conexões da própria máquina; o único caminho de fora é o proxy. |
+| `N8N_PROXY_HOPS` | `1` | Há um proxy (o Caddy) na frente do n8n, e ele precisa confiar nos cabeçalhos `X-Forwarded-*` que o proxy envia. |
+| `N8N_SECURE_COOKIE` | `false` | **Só porque** o editor é acessado por `http://localhost` dentro do túnel SSH, que já é criptografado. Com o editor público, o valor deve ser `true`. |
+| `GENERIC_TIMEZONE` e `TZ` | `America/Sao_Paulo` | Fuso horário do n8n e do container: o de Brasília. |
+| `BITAPP_BASE_URL` | URL pública do app | Lida pelos nós "Buscar Catálogo" e "Buscar Roadmap" para consultar a API do app. |
+| `N8N_BLOCK_ENV_ACCESS_IN_NODE` | `false` | Libera o `$env` nas expressões: a documentação do n8n 2.0 diz que o acesso vem bloqueado por padrão. Testado na 2.43.7 com `false`. |
+| `EXECUTIONS_DATA_SAVE_ON_SUCCESS` | `none` | **As execuções carregam o texto do check-in, que é dado de saúde mental**; as que dão certo não são guardadas. |
+| `EXECUTIONS_DATA_SAVE_ON_ERROR` | `all` | Guarda as execuções com erro, para diagnosticar. Elas podem conter o texto do check-in (veja "Limitações Conhecidas"). |
+| `EXECUTIONS_DATA_PRUNE` | `true` | Apaga as execuções antigas automaticamente. |
+| `EXECUTIONS_DATA_MAX_AGE` | `168` | Idade máxima, em horas, das execuções guardadas: 7 dias. |
+| `N8N_DIAGNOSTICS_ENABLED` | `false` | Desliga o envio de diagnósticos do n8n. |
+| `N8N_PERSONALIZATION_ENABLED` | `false` | Desliga as perguntas de personalização do primeiro acesso. |
+
+**Importar o workflow**
+
+1. Importe `n8n/bitapp-workflow-v2-producao.json`.
+2. Crie duas credenciais do tipo Header Auth:
+   * **"BiT Webhook Token"**: Name `X-Webhook-Token`, valor igual ao `N8N_WEBHOOK_TOKEN` do backend.
+   * **"Gemini API Key (n8n)"**: Name `x-goog-api-key`, valor a chave de um projeto próprio do AI Studio, com "Allowed HTTP Request Domains" restrito a `generativelanguage.googleapis.com`.
+3. Ligue as credenciais aos três nós: "Webhook Entrada" (BiT Webhook Token), "Gemini Acolhimento" e "Gemini Carreira" (Gemini API Key).
+4. Clique em **Publish**. No n8n 2.x, ele substitui o antigo "Activate".
+
+A chave do Gemini do n8n é de um projeto separado da `GEMINI_API_KEY` do backend porque a cota gratuita do Gemini é por projeto (o n8n e o backend não disputam o mesmo limite) e porque as duas chaves podem ser trocadas de forma independente.
+
+**Como conferir**
+
+* `POST` no webhook **sem** o cabeçalho `X-Webhook-Token` responde `403`.
+* `POST` **com** o cabeçalho e `{"tipo":"mental-health", ...}` responde `200` com `{mensagem, acaoSugerida}`:
+
+  ```bash
+  curl -i -X POST https://n8n.SEU-DOMINIO/webhook/bit/agent \
+    -H 'Content-Type: application/json' \
+    -H "X-Webhook-Token: $N8N_WEBHOOK_TOKEN" \
+    -d '{"tipo":"mental-health","userId":1,"nota":3,"humor":"Triste","idioma":"pt","message":"Semana puxada, muita coisa para entregar."}'
+  ```
+
+* Tempos medidos em 19/10/2026, de ponta a ponta: check-in 1,8 s ("Acolhimento via Mental Health Agent (n8n)") e avaliação de carreira 8,0 s ("Assessment processado via N8N").
 
 ## Testes
 
