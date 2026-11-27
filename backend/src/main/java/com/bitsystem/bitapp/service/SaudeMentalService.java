@@ -159,7 +159,7 @@ public class SaudeMentalService {
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    //  MENSAGEM DE ACOLHIMENTO (Tarefa 4) — agente do Tiago com fallback
+    //  MENSAGEM DE ACOLHIMENTO — agente do Tiago com fallback
     // ════════════════════════════════════════════════════════════════════════
 
     /**
