@@ -18,7 +18,7 @@
   🔗 <strong>Endereço alternativo:</strong> <a href="https://s06-26-appbit-demo.onrender.com">s06-26-appbit-demo.onrender.com</a> (o mesmo serviço)<br/>
   <em>Crie sua conta em segundos pelo "Primeiro Acesso". A instância já vem povoada com vagas, cursos e perfis de exemplo.</em><br/>
   <em>É uma demonstração: as contas criadas são apagadas automaticamente 30 dias após o cadastro, e não se devem usar dados reais.</em><br/>
-  <em>Hospedado no plano gratuito do Render: o primeiro acesso após inatividade pode levar ~1 minuto para o serviço acordar.</em>
+  <em>Hospedado no plano gratuito do Render: o primeiro acesso após inatividade pode levar cerca de 2 minutos para o serviço acordar.</em>
 </p>
 
 ---
