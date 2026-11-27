@@ -334,7 +334,7 @@ GET /api/assessment/historico
 
 ## 🧑‍🏫 Sistema de Mentorias
 
-Usuários podem solicitar mentoria com um dos **4 mentores voluntários da equipe**. Cada solicitação segue um fluxo de status simples — `aguardando` → `confirmada` → `concluída` — e cada mentor atende numa sala fixa do **Google Meet**, exibida ao solicitar a mentoria.
+Usuários podem solicitar mentoria com um dos **4 mentores voluntários da equipe**. Cada solicitação segue um fluxo de status simples — `aguardando` → `confirmada` → `concluída` — e os 4 mentores atendem numa mesma sala do **Google Meet**, exibida ao solicitar a mentoria.
 
 ```http
 POST  /api/mentorias
