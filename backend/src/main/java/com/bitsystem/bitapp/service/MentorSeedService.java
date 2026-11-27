@@ -10,8 +10,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 /**
- * Seed dos 4 mentores voluntários da equipe, com áreas atendidas conforme
- * decisão final do André (2026-07-23): André=Java/DevOps/IA, Carlos=Web/Mobile/UIUX,
+ * Seed dos 4 mentores voluntários da equipe, com áreas atendidas definidas
+ * em 23/07/2026: André=Java/DevOps/IA, Carlos=Web/Mobile/UIUX,
  * Daniela=Java/Web/Mobile/Dados (QA cruza as áreas "de código"), Tiago Farias=IA.
  * Sala única (Google Meet) compartilhada pelos 4.
  */

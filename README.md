@@ -18,7 +18,7 @@
   🔗 <strong>Endereço alternativo:</strong> <a href="https://s06-26-appbit-demo.onrender.com">s06-26-appbit-demo.onrender.com</a> (o mesmo serviço)<br/>
   <em>Crie sua conta em segundos pelo "Primeiro Acesso". A instância já vem povoada com vagas, cursos e perfis de exemplo.</em><br/>
   <em>É uma demonstração: as contas criadas são apagadas automaticamente 30 dias após o cadastro, e não se devem usar dados reais.</em><br/>
-  <em>Hospedado no plano gratuito do Render: o primeiro acesso após inatividade pode levar ~1 minuto para o serviço acordar.</em>
+  <em>Hospedado no plano gratuito do Render: o primeiro acesso após inatividade pode levar cerca de 2 minutos para o serviço acordar.</em>
 </p>
 
 ---
@@ -43,7 +43,7 @@ A tag `fim-hackathon-2026-07-25` marca o estado entregue ao fim do hackathon (De
 **Integração com o n8n** — o workflow respondia com uma lista e o backend esperava outro formato, então descartava a resposta do agente e caía no Gemini direto.
 
 * Contrato alinhado (`{mensagem, acaoSugerida}` no acolhimento), com exemplos em `backend/src/test/resources/contracts/n8n/` e testes de contrato.
-* Webhook com autenticação por cabeçalho (`X-Webhook-Token`, enviado se `N8N_WEBHOOK_TOKEN` existir); URL do app lida da variável `BITAPP_BASE_URL` do n8n; tempos por tipo de chamada (check-in 1 s + 5 s, avaliação 1 s + 23 s) e 1 tentativa por padrão; URL do n8n vazia pula o n8n e vai direto ao Gemini.
+* Webhook com autenticação por cabeçalho (`X-Webhook-Token`, enviado se `N8N_WEBHOOK_TOKEN` existir); URL do app lida da variável `BITAPP_BASE_URL` do n8n; tempos por tipo de chamada (check-in 1 s + 5 s, avaliação 1 s + 23 s) e 1 tentativa por padrão; URL do n8n vazia pula o n8n: o acolhimento do check-in vai direto ao Gemini (ou às respostas locais, sem `GEMINI_API_KEY`), e a avaliação de carreira é montada pelo próprio backend, sem IA.
 * O teste ponta a ponta contra o n8n real foi feito depois, em 19/10/2026, numa instância auto-hospedada (veja [n8n auto-hospedado](#n8n-auto-hospedado)).
 
 **PWA e mapa**
@@ -93,7 +93,7 @@ A tag `fim-hackathon-2026-07-25` marca o estado entregue ao fim do hackathon (De
 * **Log de falha do n8n numa linha**, porque uma página de erro em HTML (a 404 do serviço antigo, por exemplo) despejava cerca de 6 KB por chamada no log. Agora o aviso traz o status e o corpo cortado em 200 caracteres; mensagens curtas, como `403 Forbidden: "Authorization data is wrong!"`, continuam inteiras, porque são elas que mostram um token errado.
 * **Teste ponta a ponta feito** contra o n8n real, em 19/10/2026: check-in em 1,8 s e avaliação de carreira em 8,0 s.
 
-**Organização e documentação** — scripts movidos para `scripts/`, guia antigo para `docs/`, contrato OpenAPI com a coluna de acesso corrigida e o termo "RAG" trocado por "consulta à base curada", já que roadmaps e catálogo são consultas diretas, sem busca por similaridade.
+**Organização e documentação** — contrato OpenAPI com a coluna de acesso corrigida e o termo "RAG" trocado por "consulta à base curada", já que roadmaps e catálogo são consultas diretas, sem busca por similaridade.
 
 ---
 
@@ -271,9 +271,9 @@ Mapa interativo (Leaflet) com pontos reais de lazer em Florianópolis, geolocali
 
 ---
 
-## 🎓 Cursos com Geolocalização e Inscrição
+## 🎓 Cursos com Geolocalização
 
-Catálogo de cursos com filtros por região, gratuidade e instituições beneficentes, incluindo 7 unidades **presenciais de Florianópolis com endereço e link oficial** — e fluxo de inscrição (`POST /api/cursos/inscrever`).
+Catálogo de cursos com filtros por região, gratuidade e instituições beneficentes, incluindo 7 unidades **presenciais de Florianópolis com endereço e link oficial**. A tela de cursos lista e filtra o catálogo e abre o detalhe de cada curso, com o botão "Acessar o programa" para o link oficial quando o curso tem um. A inscrição pela plataforma existe na API (`POST /api/cursos/inscrever`), mas a tela de cursos ainda não a chama.
 
 ---
 
@@ -334,7 +334,7 @@ GET /api/assessment/historico
 
 ## 🧑‍🏫 Sistema de Mentorias
 
-Usuários podem solicitar mentoria com um dos **4 mentores voluntários da equipe**. Cada solicitação segue um fluxo de status simples — `aguardando` → `confirmada` → `concluída` — e cada mentor atende numa sala fixa do **Google Meet**, exibida ao solicitar a mentoria.
+Usuários podem solicitar mentoria com um dos **4 mentores voluntários da equipe**. Cada solicitação segue um fluxo de status simples — `aguardando` → `confirmada` → `concluída` — e os 4 mentores atendem numa mesma sala do **Google Meet**, exibida ao solicitar a mentoria.
 
 ```http
 POST  /api/mentorias
@@ -410,9 +410,8 @@ Backend valida, persiste e responde ao Frontend
 ```text
 /backend    → API Spring Boot (Java 21) + recursos e dados
 /frontend   → páginas HTML/JS servidas pelo backend no build
-/docs       → contrato OpenAPI 3 da API, plano de testes e o GUIA_EXECUCAO.txt (guia antigo, desatualizado: vale este README)
+/docs       → contrato OpenAPI 3 da API (openapi.yaml) e plano de testes (qa/)
 /n8n        → export do workflow de produção dos agentes de IA
-/scripts    → script PowerShell de apoio (setup-project.ps1; roda a partir da raiz do repositório)
 ```
 
 ---
@@ -499,7 +498,8 @@ docker run -p 8080:8080 -e JWT_SECRET="$(openssl rand -base64 48)" -e GEMINI_API
 | `H2_CONSOLE_ENABLED` | `false` | Liga o console do H2; mesmo ligado, `/h2-console` exige token |
 | `GEMINI_API_KEY` | *(vazio)* | Habilita a IA direta; vazio = modo contingência |
 | `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Modelo Gemini da integração direta (`GeminiClient`); nos workflows do n8n o modelo fica fixo na URL de cada nó |
-| `N8N_ASSESSMENT_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de orientação; **vazio desliga o n8n** e o backend segue direto para o Gemini |
+| `GEMINI_CANDIDATE_COUNT` | `1` | Respostas candidatas pedidas ao Gemini em cada chamada da integração direta (`candidateCount`); o `GeminiClient` usa só a primeira |
+| `N8N_ASSESSMENT_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de orientação; **vazio desliga o n8n** e o backend monta a avaliação de carreira localmente, a partir das skills e tecnologias informadas, sem chamar o Gemini |
 | `N8N_MENTAL_HEALTH_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de saúde mental; vazio desliga o n8n |
 | `N8N_WEBHOOK_TOKEN` | *(vazio)* | Valor do cabeçalho `X-Webhook-Token`; só é enviado se estiver definido |
 | `N8N_CONNECT_TIMEOUT` | `1000` | Tempo (ms) para conectar ao n8n, em qualquer chamada |
@@ -657,7 +657,7 @@ Rotas marcadas como **login** exigem `Authorization: Bearer <token>`; sem token 
 | PUT | `/api/usuarios/{id}/localizacao` | login | Atualizar a própria localização | — |
 | GET | `/api/vagas` | público | Listar vagas | — |
 | GET | `/api/vagas/{id}` | público | Detalhe da vaga | — |
-| GET | `/api/vagas/{id}/match` | login | Compatibilidade perfil × vaga | — |
+| GET | `/api/vagas/{id}/match` | login | Compatibilidade perfil × vaga | Gemini direto (texto "como resolver", só quando faltam skills da vaga) · percentual do match calculado local |
 | GET | `/api/vagas/match-lote` | login | Match de todas as vagas | — |
 | POST | `/api/vagas/enviar-curriculo` | login | Envio de currículo | — |
 | GET | `/api/vagas/regioes` | público | Vagas por região | — |
@@ -694,7 +694,7 @@ Registradas para não parecerem mais do que são. Algumas já vinham do hackatho
 * O banco do plano gratuito do Neon dorme depois de 5 minutos sem conexão (e, se as 100 horas mensais acabarem, fica suspenso até o mês seguinte): o primeiro acesso depois de um tempo parado é mais lento, porque espera o banco acordar.
 * Quando o banco cai, parte dos serviços grava em memória (`FallbackStorage`); esses dados somem no restart e não são sincronizados quando o banco volta.
 * Os tempos de espera são por tipo de chamada. No backend, o check-in gasta no pior caso cerca de 12 s (n8n com 1 s para conectar e 5 s para ler e, se ele falhar, Gemini com a mesma conta), sem nova tentativa; a avaliação de carreira gasta até cerca de 24 s no n8n. O frontend espera 20 s no check-in, 35 s na avaliação e 15 s no resto, sempre mais que o pior caso do backend. Se o Gemini ou o n8n responderem mais devagar que isso, o check-in não perde a derivação ao CVV (ela não depende do Gemini nem do n8n): só a mensagem de acolhimento cai para o texto local. Subir `N8N_MAX_RETRIES` ou os tempos de leitura pode estourar o limite do frontend, e aí um check-in sem derivação (notas 5, 7 e 9) mostra erro embora o servidor termine e grave: reenviar duplicaria o registro.
-* O n8n roda numa VM só, sem redundância. Se ele cair, o backend segue direto para o Gemini, como já faz, e a pessoa não vê erro: só perde a orquestração.
+* O n8n roda numa VM só, sem redundância. Se ele cair, a pessoa não vê erro, mas cada fluxo reage de um jeito: o acolhimento do check-in segue direto para o Gemini (ou para as respostas locais, sem `GEMINI_API_KEY`), e a avaliação de carreira passa a ser montada pelo próprio backend, a partir das skills e tecnologias informadas, sem IA.
 * A atualização do n8n é manual, por causa da versão fixa (`2.43.7`): nenhuma versão nova entra sem alguém trocar a tag da imagem.
 
 **Privacidade e LGPD**
@@ -713,6 +713,7 @@ Registradas para não parecerem mais do que são. Algumas já vinham do hackatho
 **Testes e processo**
 
 * A maior parte da suíte roda em H2; só os testes do esquema, da persistência, do reset e da retenção rodam em PostgreSQL real (Testcontainers), e o `Dockerfile` usa `-DskipTests`. O n8n só é simulado nos testes do cliente e do contrato (servidor HTTP local e exemplos JSON); o workflow real não roda na suíte automática, mas foi conferido manualmente em 19/10/2026 contra o n8n 2.43.7 (check-in e avaliação de carreira, de ponta a ponta), e o Gemini só é simulado no teste dos tempos de espera (servidor HTTP local lento), nunca com resposta de modelo real.
+* O frontend não tem testes automatizados: não há arquivo de teste em `frontend/`, e a suíte (`mvn test`) cobre o backend. Três classes de teste do backend leem arquivos do frontend como texto, sem executar o JavaScript: conferem os tempos de espera de `api.js` e o prazo do aviso de cadastro contra os padrões do backend, e os textos do CVV.
 * O histórico do git tem autores com nomes e e-mails diferentes para a mesma pessoa; um `.mailmap` resolveria.
 * O projeto está no Spring Boot 3.3.4; a atualização para uma linha mais nova não foi feita e deve ser planejada (vale a versão declarada no `pom.xml`).
 
