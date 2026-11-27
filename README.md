@@ -410,9 +410,8 @@ Backend valida, persiste e responde ao Frontend
 ```text
 /backend    → API Spring Boot (Java 21) + recursos e dados
 /frontend   → páginas HTML/JS servidas pelo backend no build
-/docs       → contrato OpenAPI 3 da API, plano de testes e o GUIA_EXECUCAO.txt (guia antigo, desatualizado: vale este README)
+/docs       → contrato OpenAPI 3 da API (openapi.yaml) e plano de testes (qa/)
 /n8n        → export do workflow de produção dos agentes de IA
-/scripts    → script PowerShell de apoio (setup-project.ps1; roda a partir da raiz do repositório)
 ```
 
 ---
