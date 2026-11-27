@@ -93,7 +93,7 @@ A tag `fim-hackathon-2026-07-25` marca o estado entregue ao fim do hackathon (De
 * **Log de falha do n8n numa linha**, porque uma página de erro em HTML (a 404 do serviço antigo, por exemplo) despejava cerca de 6 KB por chamada no log. Agora o aviso traz o status e o corpo cortado em 200 caracteres; mensagens curtas, como `403 Forbidden: "Authorization data is wrong!"`, continuam inteiras, porque são elas que mostram um token errado.
 * **Teste ponta a ponta feito** contra o n8n real, em 19/10/2026: check-in em 1,8 s e avaliação de carreira em 8,0 s.
 
-**Organização e documentação** — scripts movidos para `scripts/`, guia antigo para `docs/`, contrato OpenAPI com a coluna de acesso corrigida e o termo "RAG" trocado por "consulta à base curada", já que roadmaps e catálogo são consultas diretas, sem busca por similaridade.
+**Organização e documentação** — contrato OpenAPI com a coluna de acesso corrigida e o termo "RAG" trocado por "consulta à base curada", já que roadmaps e catálogo são consultas diretas, sem busca por similaridade.
 
 ---
 
