@@ -271,7 +271,7 @@ Mapa interativo (Leaflet) com pontos reais de lazer em Florianópolis, geolocali
 
 ---
 
-## 🎓 Cursos com Geolocalização e Inscrição
+## 🎓 Cursos com Geolocalização
 
 Catálogo de cursos com filtros por região, gratuidade e instituições beneficentes, incluindo 7 unidades **presenciais de Florianópolis com endereço e link oficial**. A tela de cursos lista e filtra o catálogo e abre o detalhe de cada curso, com o botão "Acessar o programa" para o link oficial quando o curso tem um. A inscrição pela plataforma existe na API (`POST /api/cursos/inscrever`), mas a tela de cursos ainda não a chama.
 
