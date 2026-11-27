@@ -43,7 +43,7 @@ A tag `fim-hackathon-2026-07-25` marca o estado entregue ao fim do hackathon (De
 **Integração com o n8n** — o workflow respondia com uma lista e o backend esperava outro formato, então descartava a resposta do agente e caía no Gemini direto.
 
 * Contrato alinhado (`{mensagem, acaoSugerida}` no acolhimento), com exemplos em `backend/src/test/resources/contracts/n8n/` e testes de contrato.
-* Webhook com autenticação por cabeçalho (`X-Webhook-Token`, enviado se `N8N_WEBHOOK_TOKEN` existir); URL do app lida da variável `BITAPP_BASE_URL` do n8n; tempos por tipo de chamada (check-in 1 s + 5 s, avaliação 1 s + 23 s) e 1 tentativa por padrão; URL do n8n vazia pula o n8n e vai direto ao Gemini.
+* Webhook com autenticação por cabeçalho (`X-Webhook-Token`, enviado se `N8N_WEBHOOK_TOKEN` existir); URL do app lida da variável `BITAPP_BASE_URL` do n8n; tempos por tipo de chamada (check-in 1 s + 5 s, avaliação 1 s + 23 s) e 1 tentativa por padrão; URL do n8n vazia pula o n8n: o acolhimento do check-in vai direto ao Gemini (ou às respostas locais, sem `GEMINI_API_KEY`), e a avaliação de carreira é montada pelo próprio backend, sem IA.
 * O teste ponta a ponta contra o n8n real foi feito depois, em 19/10/2026, numa instância auto-hospedada (veja [n8n auto-hospedado](#n8n-auto-hospedado)).
 
 **PWA e mapa**
@@ -499,7 +499,7 @@ docker run -p 8080:8080 -e JWT_SECRET="$(openssl rand -base64 48)" -e GEMINI_API
 | `H2_CONSOLE_ENABLED` | `false` | Liga o console do H2; mesmo ligado, `/h2-console` exige token |
 | `GEMINI_API_KEY` | *(vazio)* | Habilita a IA direta; vazio = modo contingência |
 | `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Modelo Gemini da integração direta (`GeminiClient`); nos workflows do n8n o modelo fica fixo na URL de cada nó |
-| `N8N_ASSESSMENT_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de orientação; **vazio desliga o n8n** e o backend segue direto para o Gemini |
+| `N8N_ASSESSMENT_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de orientação; **vazio desliga o n8n** e o backend monta a avaliação de carreira localmente, a partir das skills e tecnologias informadas, sem chamar o Gemini |
 | `N8N_MENTAL_HEALTH_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de saúde mental; vazio desliga o n8n |
 | `N8N_WEBHOOK_TOKEN` | *(vazio)* | Valor do cabeçalho `X-Webhook-Token`; só é enviado se estiver definido |
 | `N8N_CONNECT_TIMEOUT` | `1000` | Tempo (ms) para conectar ao n8n, em qualquer chamada |
@@ -694,7 +694,7 @@ Registradas para não parecerem mais do que são. Algumas já vinham do hackatho
 * O banco do plano gratuito do Neon dorme depois de 5 minutos sem conexão (e, se as 100 horas mensais acabarem, fica suspenso até o mês seguinte): o primeiro acesso depois de um tempo parado é mais lento, porque espera o banco acordar.
 * Quando o banco cai, parte dos serviços grava em memória (`FallbackStorage`); esses dados somem no restart e não são sincronizados quando o banco volta.
 * Os tempos de espera são por tipo de chamada. No backend, o check-in gasta no pior caso cerca de 12 s (n8n com 1 s para conectar e 5 s para ler e, se ele falhar, Gemini com a mesma conta), sem nova tentativa; a avaliação de carreira gasta até cerca de 24 s no n8n. O frontend espera 20 s no check-in, 35 s na avaliação e 15 s no resto, sempre mais que o pior caso do backend. Se o Gemini ou o n8n responderem mais devagar que isso, o check-in não perde a derivação ao CVV (ela não depende do Gemini nem do n8n): só a mensagem de acolhimento cai para o texto local. Subir `N8N_MAX_RETRIES` ou os tempos de leitura pode estourar o limite do frontend, e aí um check-in sem derivação (notas 5, 7 e 9) mostra erro embora o servidor termine e grave: reenviar duplicaria o registro.
-* O n8n roda numa VM só, sem redundância. Se ele cair, o backend segue direto para o Gemini, como já faz, e a pessoa não vê erro: só perde a orquestração.
+* O n8n roda numa VM só, sem redundância. Se ele cair, a pessoa não vê erro, mas cada fluxo reage de um jeito: o acolhimento do check-in segue direto para o Gemini (ou para as respostas locais, sem `GEMINI_API_KEY`), e a avaliação de carreira passa a ser montada pelo próprio backend, a partir das skills e tecnologias informadas, sem IA.
 * A atualização do n8n é manual, por causa da versão fixa (`2.43.7`): nenhuma versão nova entra sem alguém trocar a tag da imagem.
 
 **Privacidade e LGPD**
