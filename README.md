@@ -499,6 +499,7 @@ docker run -p 8080:8080 -e JWT_SECRET="$(openssl rand -base64 48)" -e GEMINI_API
 | `H2_CONSOLE_ENABLED` | `false` | Liga o console do H2; mesmo ligado, `/h2-console` exige token |
 | `GEMINI_API_KEY` | *(vazio)* | Habilita a IA direta; vazio = modo contingência |
 | `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Modelo Gemini da integração direta (`GeminiClient`); nos workflows do n8n o modelo fica fixo na URL de cada nó |
+| `GEMINI_CANDIDATE_COUNT` | `1` | Respostas candidatas pedidas ao Gemini em cada chamada da integração direta (`candidateCount`); o `GeminiClient` usa só a primeira |
 | `N8N_ASSESSMENT_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de orientação; **vazio desliga o n8n** e o backend monta a avaliação de carreira localmente, a partir das skills e tecnologias informadas, sem chamar o Gemini |
 | `N8N_MENTAL_HEALTH_URL` | `http://localhost:5678/webhook/bit/agent` | Webhook do agente de saúde mental; vazio desliga o n8n |
 | `N8N_WEBHOOK_TOKEN` | *(vazio)* | Valor do cabeçalho `X-Webhook-Token`; só é enviado se estiver definido |
