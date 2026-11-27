@@ -713,6 +713,7 @@ Registradas para não parecerem mais do que são. Algumas já vinham do hackatho
 **Testes e processo**
 
 * A maior parte da suíte roda em H2; só os testes do esquema, da persistência, do reset e da retenção rodam em PostgreSQL real (Testcontainers), e o `Dockerfile` usa `-DskipTests`. O n8n só é simulado nos testes do cliente e do contrato (servidor HTTP local e exemplos JSON); o workflow real não roda na suíte automática, mas foi conferido manualmente em 19/10/2026 contra o n8n 2.43.7 (check-in e avaliação de carreira, de ponta a ponta), e o Gemini só é simulado no teste dos tempos de espera (servidor HTTP local lento), nunca com resposta de modelo real.
+* O frontend não tem testes automatizados: não há arquivo de teste em `frontend/`, e a suíte (`mvn test`) cobre o backend. Três classes de teste do backend leem arquivos do frontend como texto, sem executar o JavaScript: conferem os tempos de espera de `api.js` e o prazo do aviso de cadastro contra os padrões do backend, e os textos do CVV.
 * O histórico do git tem autores com nomes e e-mails diferentes para a mesma pessoa; um `.mailmap` resolveria.
 * O projeto está no Spring Boot 3.3.4; a atualização para uma linha mais nova não foi feita e deve ser planejada (vale a versão declarada no `pom.xml`).
 
